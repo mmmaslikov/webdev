@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Веб-разработка · главная страница курса</title>
+<style>
+  /* ---------- Переменные темы ---------- */
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  button, a{font-family:inherit}
+
+  /* ---------- Шапка ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:10;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{
+    max-width:960px; margin:0 auto;
+    padding:8px 20px;
+    display:flex; align-items:center; gap:16px;
+    min-height:56px;
+  }
+  .brand{display:flex; flex-direction:column; min-width:0}
+  .brand-title{font-size:14px; font-weight:700; letter-spacing:-0.01em; white-space:nowrap}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap}
+  .topnav{
+    margin-left:auto;
+    display:flex; gap:4px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .topnav::-webkit-scrollbar{display:none}
+  .topnav a{
+    display:inline-flex; align-items:center;
+    min-height:44px;
+    padding:0 12px;
+    border-radius:10px;
+    color:var(--text-2);
+    text-decoration:none;
+    font-size:14px; font-weight:500;
+    white-space:nowrap;
+    transition:all .15s ease;
+  }
+  .topnav a:hover{background:var(--surface-2); color:var(--text)}
+  .topnav a:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+
+  main{max-width:960px; margin:0 auto; padding:28px 20px 80px}
+  section{scroll-margin-top:76px}
+
+  /* ---------- Герой ---------- */
+  .hero{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:44px 32px;
+    box-shadow:var(--shadow-md);
+    text-align:center;
+    margin-bottom:20px;
+  }
+  .hero-badge{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 12px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    border-radius:999px;
+    font-size:12px; font-weight:600;
+    letter-spacing:.02em;
+  }
+  .hero h1{
+    font-size:clamp(28px, 5vw, 42px);
+    font-weight:700;
+    letter-spacing:-0.02em;
+    margin:18px 0 10px;
+    line-height:1.12;
+  }
+  .hero p{
+    color:var(--text-2);
+    font-size:17px;
+    max-width:600px;
+    margin:0 auto 24px;
+  }
+  .hero-meta{
+    display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+    margin-bottom:26px;
+  }
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 12px;
+    background:var(--surface-2);
+    border-radius:999px;
+    font-size:13px; color:var(--text-2);
+  }
+  .chip b{color:var(--text); font-weight:600}
+  .hero-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center;
+    gap:8px;
+    min-height:48px;
+    padding:0 26px;
+    border-radius:12px;
+    border:1px solid transparent;
+    font-size:15px; font-weight:600;
+    cursor:pointer;
+    text-decoration:none;
+    transition:all .15s ease;
+  }
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{
+    background:var(--accent); color:#fff;
+    box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15);
+  }
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+
+  /* ---------- Секции ---------- */
+  .block{margin-bottom:28px}
+  .block-head{margin-bottom:16px}
+  .block-title{
+    font-size:22px; font-weight:700; letter-spacing:-0.01em;
+    margin:0 0 6px;
+  }
+  .block-sub{font-size:15px; color:var(--text-2); margin:0; max-width:640px}
+
+  /* ---------- Принципы ---------- */
+  .principles{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+  }
+  @media (min-width:700px){.principles{grid-template-columns:repeat(3,1fr)}}
+  .principle-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    box-shadow:var(--shadow-sm);
+  }
+  .principle-icon{
+    width:38px; height:38px;
+    border-radius:10px;
+    background:var(--accent-soft);
+    color:var(--accent);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:12px;
+  }
+  .principle-icon svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+  .principle-card h3{font-size:15px; font-weight:700; margin:0 0 6px}
+  .principle-card p{font-size:14px; color:var(--text-2); margin:0; line-height:1.55}
+
+  /* ---------- Структура занятия ---------- */
+  .steps{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  @media (min-width:700px){.steps{grid-template-columns:repeat(4,1fr)}}
+  .step{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:16px;
+    position:relative;
+  }
+  .step-time{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    color:var(--accent);
+    background:var(--accent-soft);
+    border-radius:6px;
+    padding:2px 8px;
+    margin-bottom:8px;
+    letter-spacing:.03em;
+  }
+  .step h4{font-size:14px; font-weight:700; margin:0 0 4px}
+  .step p{font-size:13px; color:var(--text-2); margin:0; line-height:1.5}
+
+  /* ---------- Фильтр каталога ---------- */
+  .filter{
+    display:flex; gap:8px; flex-wrap:wrap;
+    margin-bottom:18px;
+  }
+  .filter-btn{
+    min-height:44px;
+    padding:0 16px;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text-2);
+    font-size:14px; font-weight:500;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .filter-btn:hover{border-color:var(--border-strong); color:var(--text)}
+  .filter-btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .filter-btn.active{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+  }
+  .catalog-hint{
+    font-size:13px; color:var(--text-3);
+    margin:0 0 18px;
+  }
+
+  /* ---------- Модули и уроки ---------- */
+  .module{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:22px;
+    margin-bottom:16px;
+    box-shadow:var(--shadow-sm);
+  }
+  .module-head{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+  .module-badge{
+    font-size:11px; font-weight:700;
+    color:#fff;
+    background:#0f172a;
+    border-radius:6px;
+    padding:3px 8px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .module-title{font-size:17px; font-weight:700; margin:0; letter-spacing:-0.01em}
+  .module-hours{
+    margin-left:auto;
+    font-size:12px; color:var(--text-3); font-weight:600;
+    background:var(--surface-2);
+    border-radius:999px;
+    padding:3px 10px;
+  }
+  .lessons{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+  }
+  @media (min-width:640px){.lessons{grid-template-columns:1fr 1fr}}
+  .lesson{
+    display:flex; align-items:flex-start; gap:12px;
+    padding:14px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    text-decoration:none;
+    color:var(--text);
+    min-height:44px;
+    transition:all .15s ease;
+  }
+  .lesson:hover{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .lesson:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .lesson-num{
+    flex-shrink:0;
+    width:34px; height:34px;
+    border-radius:9px;
+    background:var(--surface-2);
+    color:var(--text-2);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono);
+    font-size:13px; font-weight:700;
+  }
+  .lesson-body{flex:1; min-width:0}
+  .lesson-title{display:block; font-size:14px; font-weight:700; margin-bottom:2px}
+  .lesson-desc{display:block; font-size:13px; color:var(--text-2); line-height:1.45}
+  .lesson-mark{
+    flex-shrink:0;
+    display:flex; align-items:center; gap:6px;
+  }
+  .done-badge{
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:700;
+    color:var(--success);
+    background:var(--success-soft);
+    border-radius:999px;
+    padding:3px 8px;
+  }
+  .lesson-arrow{
+    flex-shrink:0;
+    color:var(--text-3);
+    align-self:center;
+  }
+  .lesson-arrow svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+
+  /* ---------- Проект и критерии ---------- */
+  .project-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius-lg);
+    padding:26px;
+    box-shadow:var(--shadow-sm);
+  }
+  .project-card p{font-size:15px; color:var(--text-2); margin:0 0 18px; line-height:1.6}
+  .criteria-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    margin-bottom:20px;
+  }
+  .criteria-table th{
+    text-align:left;
+    padding:10px 12px;
+    background:var(--surface-2);
+    font-weight:600;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--text-3);
+    border-bottom:1px solid var(--border);
+  }
+  .criteria-table td{
+    padding:12px;
+    border-bottom:1px solid var(--border);
+    vertical-align:top;
+  }
+  .criteria-table tr:last-child td{border-bottom:none}
+  .criteria-table td:first-child{font-weight:600}
+  .score{
+    display:inline-block;
+    font-family:var(--mono);
+    font-size:13px; font-weight:700;
+    color:var(--accent);
+    background:var(--accent-soft);
+    border-radius:6px;
+    padding:2px 8px;
+  }
+  .rule-callout{
+    background:var(--success-soft);
+    border-left:4px solid var(--success);
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:15px;
+    color:#14532d;
+    line-height:1.6;
+    margin-bottom:22px;
+  }
+  .rule-callout b{font-weight:700}
+  .after-title{font-size:16px; font-weight:700; margin:0 0 12px}
+  .after-list{list-style:none; margin:0; padding:0; display:grid; gap:10px}
+  .after-list li{
+    display:flex; align-items:flex-start; gap:10px;
+    font-size:14px; color:var(--text-2);
+    line-height:1.5;
+  }
+  .after-check{
+    flex-shrink:0;
+    width:20px; height:20px;
+    border-radius:6px;
+    background:var(--success-soft);
+    color:var(--success);
+    display:flex; align-items:center; justify-content:center;
+    margin-top:1px;
+  }
+  .after-check svg{width:12px; height:12px; stroke:currentColor; fill:none; stroke-width:3; stroke-linecap:round; stroke-linejoin:round}
+
+  /* ---------- Футер ---------- */
+  .footer{
+    border-top:1px solid var(--border);
+    padding:24px 20px 40px;
+    text-align:center;
+  }
+  .footer p{font-size:13px; color:var(--text-3); margin:4px 0}
+
+  .hidden{display:none !important}
+
+  /* ---------- Печать ---------- */
+  @media print{
+    @page{size:A4; margin:15mm}
+    body{background:#fff}
+    .topbar, .filter, .hero-actions, .lesson-arrow{display:none !important}
+    main{padding:0; max-width:100%}
+    .hero, .module, .project-card, .principle-card, .step{box-shadow:none; break-inside:avoid}
+    .module.hidden{display:block !important}
+  }
+
+  /* ---------- Мобильная адаптация ---------- */
+  @media (max-width:480px){
+    .topbar-inner{padding:8px 14px; gap:10px}
+    .topnav a{padding:0 10px; font-size:13px}
+    main{padding:16px 14px 60px}
+    .hero{padding:32px 20px}
+    .hero p{font-size:15px}
+    .module{padding:18px 16px}
+    .project-card{padding:20px 18px}
+    .block-title{font-size:19px}
+    .criteria-table{font-size:13px}
+    .criteria-table th, .criteria-table td{padding:8px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   ГЛАВНАЯ СТРАНИЦА КУРСА · Веб-разработка
+   Учитель: Масликов М. М. · 24 занятия
+   ========================================================= */
+
+/* ---------- Константы ---------- */
+const COURSE = {
+  title: "Веб-разработка",
+  subtitle: "Создание современных сайтов с HTML, CSS, JavaScript и ИИ",
+  teacher: "Масликов М. М.",
+  lessons: 24,
+  lessonTime: "90 минут",
+  format: "симулятор профессии Junior Frontend Developer"
+};
+
+/* Модули курса */
+const MODULES = [
+  { id:"m1", num:1, title:"Введение в современную веб-разработку", hours:"2 часа" },
+  { id:"m2", num:2, title:"HTML5: семантика и структура", hours:"4 часа" },
+  { id:"m3", num:3, title:"CSS3: адаптивный дизайн и UI", hours:"8 часов" },
+  { id:"m4", num:4, title:"JavaScript: интерактивность и API", hours:"10 часов" },
+  { id:"m5", num:5, title:"Git и GitHub: контроль версий", hours:"4 часа" },
+  { id:"m6", num:6, title:"Деплой: публикация проектов", hours:"2 часа" },
+  { id:"m7", num:7, title:"Vibe Coding: разработка с ИИ", hours:"4 часа" },
+  { id:"m8", num:8, title:"Командная разработка: Agile, Scrum", hours:"4 часа" },
+  { id:"m9", num:9, title:"Итоговый проект и защита портфолио", hours:"10 часов" }
+];
+
+/* Каталог уроков: номер, модуль, название, описание */
+const LESSONS = [
+  { n:1,  m:"m1", title:"Как устроен сайт", desc:"Клиент и сервер, DNS и коды ответов, DevTools. Правило курса про ИИ." },
+  { n:2,  m:"m2", title:"HTML5: структура и семантика", desc:"Каркас страницы: шапка, один main, секции, подвал, список для меню." },
+  { n:3,  m:"m2", title:"Формы, таблицы, медиа", desc:"Форма предзаказа с подписями, таблица часов работы, картинка с alt." },
+  { n:4,  m:"m3", title:"Селекторы, каскад, переменные", desc:"Палитра в :root, var(), тёмная тема и оформление классами." },
+  { n:5,  m:"m3", title:"Flexbox", desc:"Ряд карточек с gap и переносом, шапка в ряд, подвал прижат к низу." },
+  { n:6,  m:"m3", title:"CSS Grid и адаптивная вёрстка", desc:"Сетка 1 → 2 → 3 колонки, Mobile First, медиазапросы по возрастанию." },
+  { n:7,  m:"m3", title:"Анимации и UI-кит", desc:"Кнопки, карточки, transition и одно появление. Собираем свой кит." },
+  { n:8,  m:"m4", title:"Основы JavaScript", desc:"Счётчик порций на странице: const, функция, обработка клика." },
+  { n:9,  m:"m4", title:"Объекты и массивы", desc:"Меню из данных: filter и вывод списка на экран." },
+  { n:10, m:"m4", title:"DOM и события", desc:"Модальное окно «состав пирога»: classList, закрытие по Escape." },
+  { n:11, m:"m4", title:"Валидация форм", desc:"preventDefault, пустое имя, «@» в почте, ошибка на странице." },
+  { n:12, m:"m4", title:"fetch и мини-проект", desc:"Меню из внешних данных, сбой сети, запасной JSON. Промежуточный контроль.", control:true },
+  { n:13, m:"m5", title:"Git", desc:"Commit, diff, ветка. Сообщение коммита описывает реальное изменение." },
+  { n:14, m:"m5", title:"Pull Request и ревью", desc:"Ревью чужого кода по строкам. Промежуточный контроль.", control:true },
+  { n:15, m:"m6", title:"Деплой и README", desc:"Относительные пути, хостинг статики, публичная ссылка. Промежуточный контроль.", control:true },
+  { n:16, m:"m7", title:"Prompt Engineering", desc:"Банк промптов: контекст, задача, ограничения, формат, критерии." },
+  { n:17, m:"m7", title:"Прототип и аудит", desc:"«Галлюцинации» модели и протокол аудита чужого кода." },
+  { n:18, m:"m8", title:"Agile, Scrum и канбан", desc:"Стори, три колонки доски, граница MVP." },
+  { n:19, m:"m8", title:"Планирование проекта", desc:"Декомпозиция и спринт-план занятий 20–23." },
+  { n:20, m:"m9", title:"Старт проекта", desc:"Каркас Dashboard с заглушками, тема в :root, правило работающего билда." },
+  { n:21, m:"m9", title:"Логика", desc:"Состояние, рендер, fetch: данные на экране, а не в консоли." },
+  { n:22, m:"m9", title:"MVP", desc:"localStorage, тёмная тема, микроанимации. Контрольная точка.", control:true },
+  { n:23, m:"m9", title:"Тест и деплой", desc:"Взаимное тестирование на чужом устройстве, баг-репорт, ограничения в README." },
+  { n:24, m:"m9", title:"Публичная защита", desc:"3–5 минут: проблема, демо, код, роль ИИ, что улучшил бы." }
+];
+
+/* Критерии оценки итогового проекта (30 баллов) */
+const CRITERIA = [
+  { name:"Соответствие ТЗ", score:10, how:"Подтверждается демонстрацией: что показано в работе, то и засчитано" },
+  { name:"Адаптивность и качество UI/UX", score:5, how:"Подтверждается показом на узком экране и тёмной темы" },
+  { name:"Культура работы с Git", score:5, how:"Проверяется по репозиторию: история, ветки, принятый PR" },
+  { name:"Осознанное применение ИИ", score:5, how:"Проверяется ответами: что просил, что проверил, что переписал" },
+  { name:"Защита и презентация", score:5, how:"Структура выступления, ответы на вопросы, рефлексия" }
+];
+
+/* Что остаётся после курса */
+const AFTER = [
+  "Работающее веб-приложение по публичной ссылке.",
+  "Репозиторий с историей: 10+ осмысленных коммитов, ветки, принятый Pull Request.",
+  "README из шести блоков, включая честные «известные ограничения».",
+  "Учебный проект курса — сайт буфета «Северный пирог», тоже опубликованный.",
+  "Умение довести идею до работающего продукта и объяснить каждую строку кода."
+];
+
+/* Структура занятия */
+const STEPS = [
+  { time:"30–35 мин", title:"Теория и разбор примеров", desc:"Новая тема у кода в редакторе и в браузере, а не только на слайдах." },
+  { time:"5–10 мин", title:"Динамическая пауза", desc:"Разминка и отдых для глаз. Не сокращается." },
+  { time:"50–55 мин", title:"Практика", desc:"Твой артефакт занятия: тренажёр, свой файл, ИИ-ассистент и консультации." },
+  { time:"5 мин", title:"Мини-демо и фиксация", desc:"Показываешь результат группе и фиксируешь его. Занятие без демо не завершено." }
+];
+
+/* Принципы курса */
+const PRINCIPLES = [
+  {
+    icon:'<path d="M5 12h14M13 5l7 7-7 7"/>',
+    title:"Видимый результат каждого занятия",
+    text:"Каждое занятие заканчивается артефактом, который можно показать: страница, компонент, коммит, публичная ссылка. Портфолио растёт с первого занятия."
+  },
+  {
+    icon:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/>',
+    title:"Сквозной продукт",
+    text:"Модули — не отдельные темы, а шаги к одному итоговому проекту: твоему Dashboard. Каркас из занятия 2, темы из занятия 4, сетки из 6, данные из 12."
+  },
+  {
+    icon:'<path d="M12 2a7 7 0 0 1 7 7c0 3-2 4-2 6H7c0-2-2-3-2-6a7 7 0 0 1 7-7z"/><path d="M9 19h6M10 22h4"/>',
+    title:"ИИ — штатный инструмент",
+    text:"Пользоваться можно всем, сдавать можно только то, что понимаешь. На защите ты объясняешь любой фрагмент своего кода, включая написанный моделью."
+  }
+];
+
+/* ---------- Состояние ---------- */
+let state = {
+  filter: "all"   // "all" или id модуля
+};
+
+/* ---------- Вспомогательные ---------- */
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+/* Урок помечен выполненным, если его рабочий лист завершён в этом браузере */
+function lessonDone(n){
+  try{
+    const key = "wdc-l0" + String(n).padStart(2,"0") + "-worksheet-v1";
+    const raw = localStorage.getItem(key);
+    if(!raw) return false;
+    const parsed = JSON.parse(raw);
+    return !!(parsed && parsed.finished);
+  }catch(e){
+    return false;
+  }
+}
+
+function doneCount(){
+  return LESSONS.filter(function(l){ return lessonDone(l.n); }).length;
+}
+
+function lessonHref(n){
+  return "L" + String(n).padStart(2,"0") + "_task.html";
+}
+
+/* ---------- Рендер ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  const html = [
+    renderTopbar(),
+    "<main>",
+    renderHero(),
+    renderPrinciples(),
+    renderStructure(),
+    renderCatalog(),
+    renderProject(),
+    "</main>",
+    renderFooter()
+  ].join("\n");
+  app.innerHTML = html;
+  bindHandlers();
+}
+
+function renderTopbar(){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <span class="brand-title">' + escapeHtml(COURSE.title) + '</span>',
+    '      <span class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · 24 занятия</span>',
+    '    </div>',
+    '    <nav class="topnav" aria-label="Разделы страницы">',
+    '      <a href="#about">О курсе</a>',
+    '      <a href="#catalog">Уроки</a>',
+    '      <a href="#project">Проект</a>',
+    '      <a href="#criteria">Оценка</a>',
+    '    </nav>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderHero(){
+  const done = doneCount();
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Курс дополнительного образования</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.title) + '</h1>',
+    '  <p>' + escapeHtml(COURSE.subtitle) + '. От первой страницы в блокноте до собственного приложения по публичной ссылке и публичной защиты.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">📚 <b>' + COURSE.lessons + ' занятия</b> по ' + escapeHtml(COURSE.lessonTime) + '</span>',
+    '    <span class="chip">🎓 10–11 класс</span>',
+    '    <span class="chip">💼 ' + escapeHtml(COURSE.format) + '</span>',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    (done > 0 ? '    <span class="chip">✅ пройдено: <b>' + done + ' из ' + COURSE.lessons + '</b></span>' : ''),
+    '  </div>',
+    '  <div class="hero-actions">',
+    '    <a class="btn btn-primary" href="#catalog">Открыть каталог уроков</a>',
+    '    <a class="btn btn-secondary" href="#criteria">Как оценивается проект</a>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderPrinciples(){
+  const cards = PRINCIPLES.map(function(p){
+    return [
+      '<div class="principle-card">',
+      '  <div class="principle-icon" aria-hidden="true"><svg viewBox="0 0 24 24">' + p.icon + '</svg></div>',
+      '  <h3>' + escapeHtml(p.title) + '</h3>',
+      '  <p>' + escapeHtml(p.text) + '</p>',
+      '</div>'
+    ].join("\n");
+  }).join("\n");
+
+  return [
+    '<section class="block" id="about" aria-labelledby="about-title">',
+    '  <div class="block-head">',
+    '    <h2 class="block-title" id="about-title">Как устроен курс</h2>',
+    '    <p class="block-sub">Три правила, на которых держится всё обучение. Они действуют с первого занятия до защиты.</p>',
+    '  </div>',
+    '  <div class="principles">' + cards + '</div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderStructure(){
+  const steps = STEPS.map(function(s, i){
+    return [
+      '<div class="step">',
+      '  <span class="step-time">' + escapeHtml(s.time) + '</span>',
+      '  <h4>' + (i + 1) + '. ' + escapeHtml(s.title) + '</h4>',
+      '  <p>' + escapeHtml(s.desc) + '</p>',
+      '</div>'
+    ].join("\n");
+  }).join("\n");
+
+  return [
+    '<section class="block" aria-labelledby="struct-title">',
+    '  <div class="block-head">',
+    '    <h2 class="block-title" id="struct-title">Как проходит каждое занятие</h2>',
+    '    <p class="block-sub">Структура одинакова все 24 занятия: понятно, что будет дальше, и когда показывать свой результат.</p>',
+    '  </div>',
+    '  <div class="steps">' + steps + '</div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderCatalog(){
+  const chips = ['<button class="filter-btn ' + (state.filter === "all" ? "active" : "") + '" data-filter="all" aria-pressed="' + (state.filter === "all") + '">Все модули</button>'];
+  MODULES.forEach(function(m){
+    chips.push('<button class="filter-btn ' + (state.filter === m.id ? "active" : "") + '" data-filter="' + m.id + '" aria-pressed="' + (state.filter === m.id) + '">' + m.num + ' · ' + escapeHtml(shortName(m)) + '</button>');
+  });
+
+  const visibleModules = MODULES.filter(function(m){
+    return state.filter === "all" || state.filter === m.id;
+  });
+
+  const modulesHtml = visibleModules.map(function(m){
+    const lessons = LESSONS.filter(function(l){ return l.m === m.id; });
+    const lessonCards = lessons.map(renderLessonCard).join("\n");
+    return [
+      '<div class="module" data-module="' + m.id + '">',
+      '  <div class="module-head">',
+      '    <span class="module-badge">Модуль ' + m.num + '</span>',
+      '    <h3 class="module-title">' + escapeHtml(m.title) + '</h3>',
+      '    <span class="module-hours">' + escapeHtml(m.hours) + '</span>',
+      '  </div>',
+      '  <div class="lessons">' + lessonCards + '</div>',
+      '</div>'
+    ].join("\n");
+  }).join("\n");
+
+  return [
+    '<section class="block" id="catalog" aria-labelledby="catalog-title">',
+    '  <div class="block-head">',
+    '    <h2 class="block-title" id="catalog-title">Каталог уроков</h2>',
+    '    <p class="block-sub">Девять модулей и 24 занятия. Каждый урок открывается своей страницей: теория, практика и проверка через ИИ.</p>',
+    '  </div>',
+    '  <div class="filter" role="group" aria-label="Фильтр уроков по модулям">' + chips.join("\n") + '</div>',
+    '  <p class="catalog-hint">Значок «готово» появляется у уроков, чей рабочий лист ты завершил в этом браузере.</p>',
+    modulesHtml,
+    '</section>'
+  ].join("\n");
+}
+
+function shortName(m){
+  const map = {
+    m1:"Введение", m2:"HTML", m3:"CSS", m4:"JavaScript",
+    m5:"Git", m6:"Деплой", m7:"ИИ", m8:"Команда", m9:"Проект"
+  };
+  return map[m.id] || m.title;
+}
+
+function renderLessonCard(l){
+  const done = lessonDone(l.n);
+  return [
+    '<a class="lesson" href="' + lessonHref(l.n) + '">',
+    '  <span class="lesson-num">' + String(l.n).padStart(2,"0") + '</span>',
+    '  <span class="lesson-body">',
+    '    <span class="lesson-title">' + escapeHtml(l.title) + (l.control ? ' · контроль' : '') + '</span>',
+    '    <span class="lesson-desc">' + escapeHtml(l.desc) + '</span>',
+    '  </span>',
+    '  <span class="lesson-mark">',
+    (done ? '    <span class="done-badge">✓ готово</span>' : ''),
+    '  </span>',
+    '  <span class="lesson-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>',
+    '</a>'
+  ].join("\n");
+}
+
+function renderProject(){
+  const rows = CRITERIA.map(function(c){
+    return [
+      '<tr>',
+      '  <td>' + escapeHtml(c.name) + '</td>',
+      '  <td><span class="score">' + c.score + '</span></td>',
+      '  <td>' + escapeHtml(c.how) + '</td>',
+      '</tr>'
+    ].join("\n");
+  }).join("\n");
+
+  const afterItems = AFTER.map(function(a){
+    return [
+      '<li>',
+      '  <span class="after-check" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span>',
+      '  <span>' + escapeHtml(a) + '</span>',
+      '</li>'
+    ].join("\n");
+  }).join("\n");
+
+  return [
+    '<section class="block" id="project" aria-labelledby="project-title">',
+    '  <div class="block-head">',
+    '    <h2 class="block-title" id="project-title">Итоговый проект</h2>',
+    '    <p class="block-sub">Модули 1–8 готовят к модулю 9: там ты делаешь собственный Dashboard и защищаешь его публично.</p>',
+    '  </div>',
+    '  <div class="project-card" id="criteria">',
+    '    <p>Тема Dashboard выбирается из шести готовых: трекер привычек, менеджер задач, кинопоиск, панель геймера и другие. Свобода в теме — при жёстких технических требованиях: адаптивная вёрстка Mobile First, тёмная тема, данные из внешнего API, публикация по публичной ссылке.</p>',
+    '    <table class="criteria-table">',
+    '      <thead>',
+    '        <tr><th>Критерий</th><th>Баллы</th><th>Как подтверждается</th></tr>',
+    '      </thead>',
+    '      <tbody>' + rows + '</tbody>',
+    '    </table>',
+    '    <div class="rule-callout">',
+    '      <b>Главное правило курса:</b> на защите ты обязан объяснить любой фрагмент кода своего проекта, включая сгенерированный ИИ. Код, который ты не понимаешь, в зачёт не идёт. Это правило звучит с первого занятия и проверяется напрямую.',
+    '    </div>',
+    '    <h3 class="after-title">Что остаётся после курса</h3>',
+    '    <ul class="after-list">' + afterItems + '</ul>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderFooter(){
+  return [
+    '<footer class="footer">',
+    '  <p><b>' + escapeHtml(COURSE.title) + '</b> · ' + escapeHtml(COURSE.subtitle) + '</p>',
+    '  <p>' + escapeHtml(COURSE.teacher) + ' · 24 занятия · 48 академических часов</p>',
+    '</footer>'
+  ].join("\n");
+}
+
+/* ---------- Обработчики ---------- */
+function bindHandlers(){
+  document.querySelectorAll("[data-filter]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const next = btn.dataset.filter;
+      state.filter = (state.filter === next) ? "all" : next;
+      render();
+      // Вернуть фокус на нажатую кнопку после перерисовки
+      const again = document.querySelector('[data-filter="' + state.filter + '"]');
+      if(again) again.focus();
+    });
+  });
+}
+
+/* ---------- Инициализация ---------- */
+function init(){
+  render();
+}
+init();
+</script>
+</body>
+</html>
