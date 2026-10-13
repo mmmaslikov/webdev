@@ -1,0 +1,1271 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 7 · Анимации и UI-кит</title>
+<style>
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  button, input, textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+  .topbar{
+    position:sticky; top:0; z-index:10;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{max-width:960px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px}
+  .brand{display:flex; flex-direction:column; min-width:0; flex:1}
+  .brand-title{font-size:14px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .progress-wrap{display:flex; align-items:center; gap:10px; min-width:140px}
+  .progress-bar{flex:1; height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; min-width:80px}
+  .progress-fill{height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:38px; text-align:right}
+
+  main{max-width:960px; margin:0 auto; padding:28px 20px 120px}
+
+  .hero{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .hero-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px, 4vw, 36px); font-weight:700; letter-spacing:-0.02em; margin:18px 0 10px; line-height:1.15}
+  .hero p{color:var(--text-2); font-size:16px; max-width:560px; margin:0 auto 24px}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:28px}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--surface-2); border-radius:999px; font-size:13px; color:var(--text-2)}
+  .chip b{color:var(--text); font-weight:600}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 22px; border-radius:12px; border:1px solid transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .15s ease; user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent; color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2); color:var(--text)}
+  .btn-lg{min-height:52px; padding:0 28px; font-size:16px; border-radius:14px}
+
+  .section{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; margin-bottom:20px; box-shadow:var(--shadow-sm)}
+  .section-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:18px}
+  .section-num{flex-shrink:0; width:36px; height:36px; border-radius:10px; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px}
+  .section-num.theory{background:#0f172a}
+  .section-num.practice{background:var(--accent)}
+  .section-title-wrap{flex:1; min-width:0}
+  .section-title{font-size:20px; font-weight:700; letter-spacing:-0.01em; margin:0 0 4px}
+  .section-sub{font-size:14px; color:var(--text-2); margin:0}
+  .section-status{flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--text-3)}
+  .section-status.done{background:var(--success-soft); color:var(--success)}
+
+  .instruction{background:var(--surface-2); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; font-size:14px; color:var(--text-2)}
+  .instruction ol, .instruction ul{margin:0; padding-left:18px}
+  .instruction li{margin-bottom:4px}
+  .instruction li::marker{color:var(--accent); font-weight:600}
+
+  .terms-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:24px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; cursor:pointer; transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent); background:#f8fbff}
+  .term-head{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .term-name{font-weight:700; font-size:15px; font-family:var(--mono); color:var(--accent)}
+  .term-check{margin-left:auto; width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex-shrink:0}
+  .term.learned .term-check{background:var(--success); border-color:var(--success)}
+  .term-check svg{width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:14px; color:var(--text-2); line-height:1.5}
+
+  .tags-table{width:100%; border-collapse:collapse; font-size:14px; margin-bottom:16px}
+  .tags-table th{text-align:left; padding:10px 12px; background:var(--surface-2); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .tags-table td{padding:12px; border-bottom:1px solid var(--border); vertical-align:top}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tags-table tr:hover td{background:var(--surface-2)}
+  .tag-code{font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:600; background:var(--accent-soft); padding:2px 8px; border-radius:6px; white-space:nowrap}
+  .tag-used{display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--warn-soft); color:#92400e; margin-left:6px; letter-spacing:.03em}
+
+  .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.6; overflow-x:auto; white-space:pre; margin-bottom:16px; position:relative}
+  .code-block::before{content:"ui-kit.html"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+
+  .ethalon-toggle{display:flex; flex-direction:column; align-items:center; gap:10px; padding:20px; background:linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%); border:1px dashed var(--accent); border-radius:var(--radius); text-align:center; margin-bottom:16px}
+  .ethalon-toggle-text{font-size:14px; color:var(--text-2); max-width:520px; line-height:1.5}
+  .ethalon-toggle-text b{color:var(--text)}
+  .ethalon-content{overflow:hidden; max-height:0; opacity:0; transition:max-height .4s ease, opacity .3s ease, margin .3s ease; margin-top:0}
+  .ethalon-content.open{max-height:20000px; opacity:1; margin-top:16px}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block; font-size:13px; color:var(--text-2); margin-bottom:6px; font-weight:600}
+  .field-hint{font-size:12px; color:var(--text-3); font-weight:400; margin-left:4px}
+  .field-input{width:100%; min-height:40px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:14px; transition:border-color .15s ease, background .15s ease}
+  .field-input::placeholder{color:var(--text-3)}
+  .field-input:hover{border-color:var(--border-strong)}
+  .field-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff; border-color:var(--accent)}
+  textarea.field-input{min-height:100px; resize:vertical; line-height:1.5; font-family:var(--font)}
+  textarea.field-input.code{font-family:var(--mono); font-size:13px; line-height:1.6; min-height:140px; tab-size:2}
+
+  .algo{background:linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%); border:1px solid #fde68a; border-radius:var(--radius); padding:18px; margin-bottom:20px}
+  .algo-title{font-weight:700; font-size:15px; color:#78350f; margin-bottom:10px; display:flex; align-items:center; gap:8px}
+  .algo ol{margin:0; padding-left:20px; color:#78350f}
+  .algo li{margin-bottom:6px; font-size:14px}
+  .algo li::marker{font-weight:700}
+  .algo-note{margin-top:12px; padding:10px 12px; background:rgba(255,255,255,.5); border-radius:8px; font-size:13px; color:#78350f; line-height:1.5}
+  .algo-note b{font-weight:700}
+  .algo-note code{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.7); padding:1px 5px; border-radius:4px}
+
+  /* ---------- Тест ---------- */
+  .quiz-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+  .quiz-q{font-weight:600; font-size:14px; margin-bottom:10px; line-height:1.5}
+  .quiz-q code{font-family:var(--mono); font-size:13px; background:var(--surface-2); padding:1px 6px; border-radius:4px; color:var(--accent)}
+  .quiz-options{display:grid; gap:8px}
+  .quiz-opt{min-height:44px; text-align:left; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; font-size:14px; transition:all .15s ease; line-height:1.4}
+  .quiz-opt:hover:not(:disabled){border-color:var(--border-strong); background:var(--surface-2)}
+  .quiz-opt:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .quiz-opt:disabled{cursor:default}
+  .quiz-opt.correct{background:var(--success-soft); border-color:var(--success); color:#14532d}
+  .quiz-opt.wrong{background:var(--danger-soft); border-color:var(--danger); color:#7f1d1d}
+  .quiz-feedback{margin-top:10px; font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5}
+  .quiz-feedback.good{background:var(--success-soft); color:#14532d}
+  .quiz-feedback.bad{background:var(--danger-soft); color:#7f1d1d}
+  .quiz-score{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--surface-2); font-size:13px; font-weight:600; color:var(--text-2); margin-bottom:14px}
+
+  /* ---------- SVG-иконки ---------- */
+  .icon-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:14px}
+  .icon-head{display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap}
+  .icon-title{font-weight:700; font-size:15px; flex:1; min-width:140px}
+  .icon-status{padding:3px 10px; border-radius:999px; font-size:11px; font-weight:700; background:var(--surface-2); color:var(--text-3); letter-spacing:.03em}
+  .icon-status.mid{background:var(--warn-soft); color:#92400e}
+  .icon-status.good{background:var(--success-soft); color:var(--success)}
+  .icon-preview-row{display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap; padding:14px; background:var(--surface-2); border-radius:10px; margin:10px 0}
+  .icon-preview-box{display:flex; flex-direction:column; align-items:center; gap:6px; color:var(--text)}
+  .icon-preview-box span{font-size:11px; color:var(--text-3)}
+  .icon-preview-box.dark{background:#0f172a; color:#e2e8f0; border-radius:8px; padding:8px 10px; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  .icon-preview-box.dark span{color:#94a3b8}
+  .icon-preview-empty{font-size:13px; color:var(--text-3); line-height:1.5}
+  .icon-checks{list-style:none; margin:0; padding:0; display:grid; gap:6px}
+  .icon-checks li{display:flex; gap:8px; align-items:flex-start; font-size:13px; color:var(--text-2); line-height:1.45}
+  .icon-checks li.ok{color:#14532d}
+  .icon-checks li.bad{color:#7f1d1d}
+  .ic-mark{flex-shrink:0; width:18px; height:18px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; margin-top:1px}
+  .icon-checks li.ok .ic-mark{background:var(--success-soft); color:var(--success)}
+  .icon-checks li.bad .ic-mark{background:var(--danger-soft); color:var(--danger)}
+  .icon-checks li.pending .ic-mark{background:var(--surface-2); color:var(--text-3)}
+
+  .prompt-box{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:16px; position:relative; word-break:break-word}
+  .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease}
+  .copy-btn:hover{background:rgba(255,255,255,.15); color:#fff}
+  .copy-btn.copied{background:var(--success); color:#fff; border-color:var(--success)}
+
+  .ai-links{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .ai-link{display:inline-flex; align-items:center; gap:8px; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); text-decoration:none; font-size:14px; font-weight:500; transition:all .15s ease; min-height:44px}
+  .ai-link:hover{border-color:var(--accent); background:var(--accent-soft)}
+  .ai-link-dot{width:8px; height:8px; border-radius:50%}
+  .ai-link-dot.deepseek{background:#4d6bfe}
+  .ai-link-dot.alice{background:#fc3f1d}
+  .ai-link-dot.qwen{background:#615ced}
+
+  .divider{height:1px; background:var(--border); margin:24px 0}
+  .sub-title{font-size:16px; font-weight:700; letter-spacing:-0.01em; margin:0 0 12px; color:var(--text)}
+
+  .actions{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.9); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-top:1px solid var(--border); padding:12px 20px; z-index:10}
+  .actions-inner{max-width:960px; margin:0 auto; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+
+  .finish{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .finish-icon{width:64px; height:64px; border-radius:50%; background:var(--success-soft); color:var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 20px}
+  .finish-icon svg{width:32px; height:32px; stroke:currentColor; fill:none; stroke-width:2.5}
+  .finish h2{font-size:28px; font-weight:700; letter-spacing:-0.02em; margin:0 0 8px}
+  .finish p{color:var(--text-2); margin:0 0 24px}
+  .stats{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:28px}
+  .stat{background:var(--surface-2); border-radius:var(--radius); padding:16px 12px}
+  .stat-val{font-size:24px; font-weight:700; color:var(--accent); letter-spacing:-0.02em}
+  .stat-lbl{font-size:12px; color:var(--text-3); margin-top:2px}
+  .finish-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+
+  .hidden{display:none !important}
+
+  @media print{
+    @page{size:A4; margin:15mm}
+    body{background:#fff}
+    .topbar, .actions, .copy-btn, .btn-ghost{display:none !important}
+    main{padding:0; max-width:100%}
+    .section, .hero, .finish{box-shadow:none; break-inside:avoid; page-break-inside:avoid}
+    .field-input, textarea.field-input{border:1px solid #cbd5e1 !important; background:#fff !important}
+    .code-block, .prompt-box{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .term.learned{border-color:#2563eb !important}
+    .ethalon-content{max-height:none !important; opacity:1 !important; margin-top:16px !important}
+    .quiz-opt.correct{background:#dcfce7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-opt.wrong{background:#fee2e2 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  }
+
+  @media (max-width:480px){
+    .topbar-inner{padding:10px 14px; gap:10px}
+    .brand-title{font-size:13px}
+    .brand-sub{font-size:11px}
+    .progress-wrap{min-width:110px}
+    main{padding:16px 14px 110px}
+    .section{padding:20px 18px}
+    .hero{padding:28px 20px}
+    .hero h1{font-size:24px}
+    .section-title{font-size:17px}
+    .stats{grid-template-columns:1fr}
+    .actions{padding:10px 14px}
+    .actions-inner{gap:8px}
+    .actions-inner .btn{flex:1; padding:0 14px}
+    .tags-table{font-size:13px}
+    .tags-table th, .tags-table td{padding:8px}
+    .code-block{font-size:11.5px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 7 · Анимации и UI-кит
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title: "Рабочий лист · Занятие 7",
+  subtitle: "Анимации и UI-кит",
+  teacher: "Масликов М. М.",
+  grade: "10–11 класс",
+  time: "80 минут"
+};
+
+const TERMS = [
+  { key:"comp", name:"Компонент", def:"Самостоятельный кусочек интерфейса с именем, который переиспользуется: кнопка, карточка, поле, метка." },
+  { key:"kit", name:"UI-кит", def:"Набор компонентов проекта, описанный один раз и применяемый везде." },
+  { key:"base", name:"Базовый класс", def:"Правило компонента с тем, что общее для всех его экземпляров: .btn." },
+  { key:"mod", name:"Модификатор", def:"Дополнительный класс, меняющий одну характеристику базового: .btn--primary." },
+  { key:"state", name:"Состояние", def:"Вид элемента в зависимости от того, что с ним происходит. Задаётся псевдоклассом." },
+  { key:"hover", name:":hover", def:"Состояние «курсор наведён». На телефоне не срабатывает." },
+  { key:"focusv", name:":focus-visible", def:"Состояние «элемент получил фокус с клавиатуры». Подсветку убирать нельзя." },
+  { key:"active", name:":active", def:"Состояние «нажат и удерживается»." },
+  { key:"outline", name:"outline", def:"Обводка, рисуемая поверх элемента. Не занимает места и не сдвигает соседей, в отличие от border." },
+  { key:"outoff", name:"outline-offset", def:"Отступ обводки от края элемента." },
+  { key:"trans", name:"transition", def:"Плавный переход свойства из одного значения в другое. Пишется в базовом правиле, а не в состоянии." },
+  { key:"transform", name:"transform", def:"Сдвиг, поворот, масштаб элемента. Не пересчитывает раскладку и не двигает соседей." },
+  { key:"keyframes", name:"@keyframes", def:"Описание анимации по кадрам: что в начале, что в конце." },
+  { key:"anim", name:"animation", def:"Назначение анимации элементу: имя, длительность, характер, режим заполнения." },
+  { key:"animdel", name:"animation-delay", def:"Задержка перед стартом. Разные задержки у соседей дают эффект «лесенки»." },
+  { key:"inf", name:"infinite", def:"Бесконечное повторение анимации. Оправдано только для индикатора ожидания." },
+  { key:"prm", name:"prefers-reduced-motion", def:"Медиазапрос, читающий системную настройку «уменьшить движение». Обязателен в любом проекте с анимациями." },
+  { key:"pill", name:"Пилюля (бейдж)", def:"Маленькая метка со скруглением: «хит», «новинка». Всегда содержит текст, а не только цвет." },
+  { key:"curcol", name:"currentColor", def:"Значение «цвет текста родителя». В SVG позволяет иконке менять цвет вместе с темой." },
+  { key:"viewbox", name:"viewBox", def:"Система координат SVG. Без него картинка не масштабируется." },
+  { key:"ariahide", name:"aria-hidden=\"true\"", def:"Атрибут «скрыть от программы чтения». Ставится декоративным иконкам рядом с текстом." },
+  { key:"arialab", name:"aria-label", def:"Текстовая подпись элемента для программы чтения. Обязательна кнопке, у которой только иконка." }
+];
+
+const TAGS = [
+  { code:".btn { … }", desc:"Базовый класс кнопки: форма, размер, поведение — общее для всех.", used:true },
+  { code:".btn--primary / .btn--ghost", desc:"Модификаторы: меняют только цвет поверх базы.", used:true },
+  { code:":hover", desc:"Состояние наведения. На телефоне не срабатывает.", used:true },
+  { code:":focus-visible", desc:"Клавиатурный фокус со своей обводкой. Убирать нельзя.", used:true },
+  { code:":active", desc:"Момент нажатия: сдвиг на 1px через transform.", used:true },
+  { code:"transition", desc:"Плавность. Пишется в базовом правиле, не в :hover.", used:true },
+  { code:"transform", desc:"Сдвиг без пересчёта раскладки: соседи не двигаются.", used:true },
+  { code:"@keyframes", desc:"Кадры анимации: from и to.", used:true },
+  { code:"animation: fade-up 320ms ease both", desc:"Имя, длительность, характер, режим заполнения.", used:true },
+  { code:"animation-delay", desc:"Задержка старта. Разная у соседей — «лесенка».", used:false },
+  { code:"infinite", desc:"Бесконечный повтор. Только для индикатора ожидания.", used:false },
+  { code:"@media (prefers-reduced-motion: reduce)", desc:"Уважает системную настройку «уменьшить движение».", used:true },
+  { code:"font-family: inherit", desc:"Возвращает кнопкам и полям шрифт страницы.", used:true },
+  { code:"display: inline-block", desc:"Пилюля по ширине содержимого, но с padding.", used:true },
+  { code:"outline: none", desc:"Без замены убивает клавиатурную навигацию. Запрещён.", used:false },
+  { code:"viewBox + stroke=\"currentColor\"", desc:"Масштабируемая иконка, цвет которой идёт от родителя.", used:true }
+];
+
+/* Эталон с комментарием к каждой строке */
+const REFERENCE_CODE = `<!DOCTYPE html>                          <!-- Тип документа: это современный HTML -->
+<html lang="ru">                         <!-- Корень страницы. lang="ru" — язык для браузера и программы чтения -->
+<head>                                   <!-- Служебная часть: человек её не видит -->
+  <meta charset="utf-8">                 <!-- Кодировка. Без неё вместо букв будут непонятные символы -->
+  <title>UI-кит</title>                  <!-- Название вкладки браузера -->
+  <style>                                <!-- Весь CSS занятия живёт здесь, отдельного файла пока нет -->
+    *, *::before, *::after { box-sizing: border-box; }
+    /* Первая строка любого CSS: ширина считается вместе с padding и border */
+
+    :root {                              /* Корень документа: здесь объявляем переменные палитры */
+      --pie-card:        #ffffff;        /* Фон карточки */
+      --pie-text:        #111312;        /* Основной текст */
+      --pie-muted:       #6b706b;        /* Приглушённый текст */
+      --pie-accent:      #7cc142;        /* Акцент светлый: заливка главной кнопки */
+      --pie-accent-dark: #5fa22e;        /* Акцент тёмный: hover и outline, читается на белом */
+      --pie-border:      #e3e7e1;        /* Цвет границ карточек и ghost-кнопки */
+    }
+
+    body {                               /* Общие свойства страницы задаём один раз */
+      font-family: Arial, Helvetica, sans-serif;  /* Шрифт с запасными вариантами */
+      background: #f4f6f3;               /* Фон страницы: кит показываем на светлом */
+      color: var(--pie-text);            /* Цвет текста берём из переменной */
+      padding: 24px;                     /* Отступ содержимого от края окна */
+      line-height: 1.5;                  /* Межстрочный интервал: текст удобно читать */
+    }
+
+    .btn {                               /* БАЗА кнопки: всё общее для любых кнопок */
+      font-family: inherit;              /* Кнопки не наследуют шрифт сами — возвращаем шрифт страницы */
+      font-size: 17px;                   /* Размер текста кнопки: крупнее 16, попадать пальцем легче */
+      font-weight: 600;                  /* Полужирный: текст кнопки заметен */
+      line-height: 1;                    /* Высота строки равна кеглю: размер задаёт padding, а не шрифт */
+      padding: 12px 24px;                /* Внутренние отступы: 12 сверху и снизу, 24 по бокам */
+      border-radius: 999px;              /* Скругление больше половины высоты: форма «пилюли» */
+      border: 2px solid transparent;     /* Прозрачная рамка: резерв места, чтобы ghost не прыгала */
+      cursor: pointer;                   /* Курсор-рука: признак кликабельности */
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+      /* Плавность трёх свойств. Пишем в базе: работает и вход в hover, и выход из него */
+    }
+
+    .btn--primary { background: var(--pie-accent); color: var(--pie-text); }
+    /* МОДИФИКАТОР главной кнопки: только цвета поверх базы */
+
+    .btn--ghost { background: transparent; color: var(--pie-text); border-color: var(--pie-border); }
+    /* МОДИФИКАТОР ghost-кнопки: без заливки, рамка становится видимой */
+
+    .btn:hover {                         /* СОСТОЯНИЕ наведения. На телефоне не сработает — это норма */
+      background: var(--pie-accent-dark);/* Заливка темнее */
+      color: #ffffff;                    /* Текст белым: на тёмном фоне нужен контраст */
+      border-color: var(--pie-accent-dark); /* Рамка в цвет фона: кнопка не «двухцветная» */
+    }
+
+    .btn:focus-visible {                 /* СОСТОЯНИЕ фокуса с клавиатуры: обводку нельзя убирать */
+      outline: 3px solid var(--pie-accent-dark);  /* Видимая обводка вокруг кнопки */
+      outline-offset: 3px;               /* Зазор между кнопкой и обводкой: видно даже на цветном фоне */
+    }
+
+    .btn:active { transform: translateY(1px); }
+    /* СОСТОЯНИЕ нажатия: кнопка проседает на 1px, отдача под палец */
+
+    .card {                              /* БАЗА карточки */
+      background: var(--pie-card);       /* Фон из переменной */
+      border: 1px solid var(--pie-border); /* Тонкая рамка из переменной */
+      border-radius: 14px;               /* Скругление углов */
+      padding: 16px;                     /* Внутренний отступ содержимого */
+      margin-bottom: 12px;               /* Внешний отступ до следующей карточки */
+      transition: transform 160ms ease;  /* Плавный подъём при наведении */
+      animation: fade-up 320ms ease both;/* Появление: имя кадров, длительность, характер, режим both */
+    }
+
+    .card:hover { transform: translateY(-2px); }
+    /* Наведение: карточка приподнимается. transform не двигает соседей */
+
+    .card--hit { border-color: var(--pie-accent); }
+    /* МОДИФИКАТОР хита: меняет только цвет рамки */
+
+    .pill {                              /* Пилюля: метка со словом, цвет не единственный сигнал */
+      display: inline-block;             /* По ширине содержимого, но padding и рамка работают */
+      font-size: 14px;                   /* Размер текста метки: не мельче 13–14 */
+      font-weight: 600;                  /* Полужирный: метку видно сразу */
+      padding: 4px 12px;                 /* Небольшие внутренние отступы */
+      border-radius: 999px;              /* Форма пилюли */
+      border: 2px solid var(--pie-accent);  /* Акцентная рамка */
+      color: var(--pie-accent-dark);     /* Текст тёмным акцентом: контраст на белом */
+      margin-bottom: 8px;                /* Отступ до заголовка карточки */
+    }
+
+    @keyframes fade-up {                 /* Кадры появления: откуда и куда движется элемент */
+      from { opacity: 0; transform: translateY(12px); }  /* Старт: невидимый и на 12px ниже */
+      to   { opacity: 1; transform: translateY(0); }     /* Финиш: видимый и на своём месте */
+    }
+
+    @media (prefers-reduced-motion: reduce) {   /* Система просит меньше движения — уважаем */
+      *, *::before, *::after {
+        animation-duration: .01ms !important;    /* Анимации становятся мгновенными */
+        animation-iteration-count: 1 !important; /* Ни одного повтора */
+        transition-duration: .01ms !important;   /* Переходы становятся мгновенными */
+        scroll-behavior: auto !important;        /* Без плавной прокрутки */
+      }
+    }
+  </style>
+</head>
+<body>                                   <!-- Всё видимое содержимое страницы -->
+
+  <h2>Кнопки</h2>                        <!-- Заголовок раздела витрины кита -->
+  <button class="btn btn--primary" type="button">Записаться</button>
+  <!-- Два класса через пробел: база .btn и модификатор .btn--primary. type="button" — ничего не отправляет -->
+  <button class="btn btn--ghost" type="button">Тёмная тема</button>
+  <!-- Та же база, другой модификатор: отличается только цвет -->
+
+  <h2>Карточки</h2>                      <!-- Заголовок второго раздела витрины -->
+  <article class="card">                 <!-- Обычная карточка: только базовый класс -->
+    <h3>Шаньга со сметаной</h3>           <!-- Заголовок карточки: уровень 3 под уровнем 2 -->
+    <p>50 ₽</p>                          <!-- Цена обычным абзацем -->
+  </article>
+
+  <article class="card card--hit">       <!-- Карточка хита: база плюс модификатор -->
+    <span class="pill">Хит недели</span> <!-- Пилюля со словом: хит заметен не только цветом -->
+    <h3>Рыбник</h3>                      <!-- Заголовок карточки -->
+    <p>90 ₽</p>                          <!-- Цена -->
+  </article>
+
+</body>
+</html>`;
+
+/* Тест по строкам эталона */
+const QUIZ = [
+  {
+    q:"Зачем в <code>.btn</code> написано <code>font-family: inherit;</code>?",
+    options:[
+      "Чтобы кнопка выглядела тем же шрифтом, что и страница",
+      "Чтобы кнопка наследовала цвет текста у родителя",
+      "Без этой строки у кнопки вообще не было бы шрифта"
+    ],
+    correct:0,
+    why:"Кнопки и поля форм не наследуют шрифт по умолчанию. Эта строка возвращает им шрифт страницы."
+  },
+  {
+    q:"Что изменится, если перенести <code>transition</code> из <code>.btn</code> в <code>.btn:hover</code>?",
+    options:[
+      "Ничего: место записи transition не важно",
+      "Появление наведения станет плавным, а уход мыши — рывком",
+      "Анимация станет бесконечной"
+    ],
+    correct:1,
+    why:"Transition пишут в базовом правиле: тогда он работает в обе стороны — и вход в hover, и выход из него."
+  },
+  {
+    q:"Зачем в базе кнопки <code>border: 2px solid transparent;</code>?",
+    options:[
+      "Чтобы рамка не мигала при наведении",
+      "Резерв места: ghost-кнопка с видимой рамкой будет того же размера, что и primary",
+      "Чтобы кнопка стала круглой"
+    ],
+    correct:1,
+    why:"Без прозрачной рамки ghost-кнопка с реальной рамкой оказалась бы на 4px выше, и пара кнопок прыгала бы."
+  },
+  {
+    q:"Что сломает строка <code>.btn:focus { outline: none; }</code>?",
+    options:[
+      "Ничего, просто станет чище выглядеть",
+      "Человек с клавиатурой перестанет видеть, где он сейчас находится",
+      "Кнопка перестанет нажиматься"
+    ],
+    correct:1,
+    why:"Outline — единственная отметка клавиатурного фокуса. Убрал без замены — страница стала непригодной без мыши."
+  },
+  {
+    q:"Что даёт слово <code>both</code> в записи <code>animation: fade-up 320ms ease both;</code>?",
+    options:[
+      "Анимация проигрывается два раза подряд",
+      "Элемент держит стартовые значения до начала и конечные после конца",
+      "Анимация работает в обе стороны"
+    ],
+    correct:1,
+    why:"both — режим заполнения: кадры from применяются до старта (с учётом задержки), кадры to остаются после финиша."
+  },
+  {
+    q:"Почему хит помечен пилюлей со словом, а не только зелёной рамкой?",
+    options:[
+      "Цвет не может быть единственным сигналом: человек, не различающий цвета, не заметит хит",
+      "Пилюля ускоряет загрузку страницы",
+      "Рамка карточки не может быть зелёной по спецификации"
+    ],
+    correct:0,
+    why:"Сигнал дублируют другим средством: словом, значком, формой. Один цвет недоступен части пользователей."
+  },
+  {
+    q:"Зачем в конце файла блок <code>@media (prefers-reduced-motion: reduce)</code>?",
+    options:[
+      "Ускоряет страницу на слабых компьютерах",
+      "Уважает системную настройку «уменьшить движение»",
+      "Отключает анимации на телефонах"
+    ],
+    correct:1,
+    why:"Движение некоторым людям неприятно физически. В системе есть настройка, и этот блок обнуляет все анимации."
+  }
+];
+
+/* Правила чистки SVG */
+const SVG_RULES = [
+  "viewBox=\"0 0 24 24\" обязателен: без него иконка не масштабируется.",
+  "width и height в разметке не пишем: размер задаёт CSS.",
+  "fill=\"none\" и stroke=\"currentColor\": цвет иконки идёт от текста родителя и переключается с темой.",
+  "stroke-width=\"2\": толщина линии одинаковая во всём ките.",
+  "Не больше трёх элементов path или circle на иконку.",
+  "Никаких <style>, <title>, id, xmlns:xlink, градиентов и фильтров.",
+  "Всё лишнее, что принесла модель, вычищаем руками: SVG — это текст, его открывают и правят."
+];
+
+const ICON_NAMES = ["пирог", "часы", "галочка"];
+
+const PROMPT_TEXT = `Ты рисуешь SVG-иконки для учебного веб-проекта.
+
+Контекст: страница школьного буфета «Северный пирог». Только HTML и CSS, без библиотек и без внешних файлов — иконка вставляется прямо в разметку. Цвета берутся из CSS-переменных страницы.
+
+Задача: нарисуй три иконки в едином стиле — пирог, часы, галочка. Стиль контурный, толщина линии одинаковая.
+
+Ограничения: обязательно viewBox="0 0 24 24"; без атрибутов width и height в разметке; fill="none" и stroke="currentColor"; stroke-width="2"; не больше трёх элементов path или circle на иконку; никаких <style>, <title>, id, xmlns:xlink и атрибутов графических редакторов; никаких градиентов и фильтров.
+
+Формат ответа: три блока кода, перед каждым — название иконки одной строкой. Ниже — таблица: иконка, где применяется, нужен ли ей aria-hidden.
+
+Критерии проверки: каждая иконка масштабируется от 16 до 64 пикселей без искажений; цвет управляется свойством color родителя; в коде нет ничего, кроме svg, path и circle.`;
+
+const STORAGE_KEY = "wdc-l07-worksheet-v1";
+
+let state = {
+  started: false,
+  finished: false,
+  ethalonOpen: false,
+  termsLearned: {},
+  quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+  icons: [ {code:""}, {code:""}, {code:""} ],
+  reflect: ""
+};
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state = deepMerge(state, parsed);
+    }
+    if(!Array.isArray(state.quiz) || state.quiz.length !== QUIZ.length){
+      state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+    }
+    if(!Array.isArray(state.icons) || state.icons.length !== 3){
+      state.icons = [ {code:""}, {code:""}, {code:""} ];
+    }
+  }catch(e){}
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])){
+      out[k] = deepMerge(target[k] || {}, source[k]);
+    } else {
+      out[k] = source[k];
+    }
+  }
+  return out;
+}
+
+/* ---------- Прогресс ---------- */
+function countProgress(){
+  let filled = 0, total = 0;
+
+  TERMS.forEach(function(t){
+    total++;
+    if(state.termsLearned[t.key]) filled++;
+  });
+
+  QUIZ.forEach(function(_, i){
+    total++;
+    if(state.quiz[i].correct) filled++;
+  });
+
+  state.icons.forEach(function(ic){
+    total++;
+    if(parseSvgRoot(ic.code)) filled++;
+  });
+
+  total++;
+  if(state.reflect.trim()) filled++;
+
+  return { filled: filled, total: total, percent: total ? Math.round(filled / total * 100) : 0 };
+}
+function termsCount(){
+  return Object.values(state.termsLearned).filter(Boolean).length;
+}
+function quizScore(){
+  return state.quiz.filter(function(q){ return q.correct; }).length;
+}
+function iconsCleanCount(){
+  return state.icons.filter(function(ic){
+    return analyzeSvg(ic.code).checks.every(function(c){ return c.pass === true; });
+  }).length;
+}
+
+/* ---------- SVG: разбор, проверка, санитизация ---------- */
+const SVG_NS = "http://www.w3.org/2000/svg";
+const SVG_ALLOWED_TAGS = { svg:1, path:1, circle:1 };
+const SVG_ALLOWED_ATTRS = {
+  "viewbox":1, "fill":1, "stroke":1, "stroke-width":1, "d":1,
+  "cx":1, "cy":1, "r":1, "stroke-linecap":1, "stroke-linejoin":1,
+  "aria-hidden":1, "role":1
+};
+
+function parseSvgDoc(code){
+  const clean = (code || "").trim();
+  if(!clean) return null;
+  try{
+    const doc = new DOMParser().parseFromString(clean, "image/svg+xml");
+    if(doc.getElementsByTagName("parsererror").length) return null;
+    return doc;
+  }catch(e){
+    return null;
+  }
+}
+function parseSvgRoot(code){
+  const doc = parseSvgDoc(code);
+  if(!doc) return false;
+  const root = doc.documentElement;
+  return !!root && root.nodeName.toLowerCase() === "svg";
+}
+
+function analyzeSvg(code){
+  const checks = [];
+  const doc = parseSvgDoc(code);
+  const root = doc ? doc.documentElement : null;
+  const isSvg = !!doc && !!root && root.nodeName.toLowerCase() === "svg";
+
+  checks.push({ label:"Код разобран, корневой элемент — <svg>", pass: (code && code.trim()) ? isSvg : null });
+  if(!isSvg){
+    checks.push({ label:"Есть viewBox", pass: (code && code.trim()) ? false : null });
+    checks.push({ label:"Нет width и height на <svg>", pass: (code && code.trim()) ? false : null });
+    checks.push({ label:"Есть fill=\"none\"", pass: (code && code.trim()) ? false : null });
+    checks.push({ label:"Есть stroke=\"currentColor\"", pass: (code && code.trim()) ? false : null });
+    checks.push({ label:"Есть stroke-width=\"2\"", pass: (code && code.trim()) ? false : null });
+    checks.push({ label:"Графических элементов (path, circle) от 1 до 3", pass: (code && code.trim()) ? false : null });
+    checks.push({ label:"Только svg, path и circle; без id, title, style и обработчиков", pass: (code && code.trim()) ? false : null });
+    return { checks: checks, root: null };
+  }
+
+  const hasViewBox = !!(root.getAttribute("viewBox") || "").trim();
+  checks.push({ label:"Есть viewBox", pass: hasViewBox });
+
+  const noSize = !root.hasAttribute("width") && !root.hasAttribute("height");
+  checks.push({ label:"Нет width и height на <svg>", pass: noSize });
+
+  const graphics = Array.prototype.slice.call(doc.querySelectorAll("path, circle"));
+  function attrEverywhere(name, value){
+    if((root.getAttribute(name) || "") === value) return true;
+    if(!graphics.length) return false;
+    return graphics.every(function(g){ return (g.getAttribute(name) || "") === value; });
+  }
+  checks.push({ label:"Есть fill=\"none\"", pass: attrEverywhere("fill", "none") });
+  checks.push({ label:"Есть stroke=\"currentColor\"", pass: attrEverywhere("stroke", "currentColor") });
+  checks.push({ label:"Есть stroke-width=\"2\"", pass: attrEverywhere("stroke-width", "2") });
+  checks.push({ label:"Графических элементов (path, circle) от 1 до 3", pass: graphics.length >= 1 && graphics.length <= 3 });
+
+  let cleanTags = true;
+  const all = Array.prototype.slice.call(doc.querySelectorAll("*"));
+  for(let i = 0; i < all.length; i++){
+    const name = all[i].nodeName.toLowerCase();
+    if(!SVG_ALLOWED_TAGS[name]) { cleanTags = false; break; }
+    const attrs = Array.prototype.slice.call(all[i].attributes);
+    for(let j = 0; j < attrs.length; j++){
+      const an = attrs[j].name.toLowerCase();
+      if(an === "id" || an.indexOf("on") === 0) { cleanTags = false; break; }
+    }
+    if(!cleanTags) break;
+  }
+  checks.push({ label:"Только svg, path и circle; без id, title, style и обработчиков", pass: cleanTags });
+
+  return { checks: checks, root: root };
+}
+
+/* Безопасная сборка превью: только разрешённые теги и атрибуты, без innerHTML */
+function sanitizeSvg(code){
+  const doc = parseSvgDoc(code);
+  if(!doc) return null;
+  const src = doc.documentElement;
+  if(!src || src.nodeName.toLowerCase() !== "svg") return null;
+
+  function clone(node){
+    const name = node.nodeName.toLowerCase();
+    if(!SVG_ALLOWED_TAGS[name]) return null;
+    const el = document.createElementNS(SVG_NS, name);
+    const attrs = Array.prototype.slice.call(node.attributes);
+    for(let i = 0; i < attrs.length; i++){
+      const an = attrs[i].name.toLowerCase();
+      if(!SVG_ALLOWED_ATTRS[an]) continue;
+      if(an === "id") continue;
+      const v = attrs[i].value;
+      if(/javascript:|data:|url\(/i.test(v)) continue;
+      el.setAttribute(an, v);
+    }
+    const kids = Array.prototype.slice.call(node.children);
+    for(let k = 0; k < kids.length; k++){
+      const c = clone(kids[k]);
+      if(c) el.appendChild(c);
+    }
+    return el;
+  }
+  return clone(src);
+}
+
+/* ---------- Рендер ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  const progress = countProgress();
+
+  let html = renderTopbar(progress);
+  html += "<main>";
+
+  if(!state.started){
+    html += renderHero();
+  } else if(state.finished){
+    html += renderFinish(progress);
+  } else {
+    html += renderTheory();
+    html += renderPractice();
+  }
+
+  html += "</main>";
+
+  if(state.started && !state.finished){
+    html += renderActions(progress);
+  }
+
+  app.innerHTML = html;
+  bindHandlers();
+  afterRender();
+}
+
+function afterRender(){
+  // Дорисовать превью и проверки иконок без потери фокуса
+  state.icons.forEach(function(_, i){ refreshIcon(i, false); });
+}
+
+function renderTopbar(progress){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <div class="brand-title">' + escapeHtml(COURSE.title) + '</div>',
+    '      <div class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · ' + escapeHtml(COURSE.grade) + '</div>',
+    '    </div>',
+    '    <div class="progress-wrap" aria-label="Прогресс заполнения">',
+    '      <div class="progress-bar" role="progressbar" aria-valuenow="' + progress.percent + '" aria-valuemin="0" aria-valuemax="100">',
+    '        <div class="progress-fill" style="width:' + progress.percent + '%"></div>',
+    '      </div>',
+    '      <div class="progress-num">' + progress.percent + '%</div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderHero(){
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Занятие 7 из 24</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.subtitle) + '</h1>',
+    '  <p>Последнее занятие модуля вёрстки. Марина Петровна сказала: «Хочется, чтобы было понятно, что кнопка — это кнопка». Сегодня собираем UI-кит буфета и разбираем в эталоне каждую строку.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    '    <span class="chip">🎓 ' + escapeHtml(COURSE.grade) + '</span>',
+    '    <span class="chip">⏱ ' + escapeHtml(COURSE.time) + '</span>',
+    '  </div>',
+    '  <button class="btn btn-primary btn-lg" data-action="start">',
+    '    Начать работу',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '  </button>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTheory(){
+  const learned = termsCount();
+  const theoryDone = learned === TERMS.length;
+  return [
+    '<section class="section" aria-labelledby="theory-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num theory">Т</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="theory-title">Теория: термины и свойства кита</h2>',
+    '      <p class="section-sub">Прочитай каждый термин и отметь те, что понял. Ниже — таблица свойств и эталон с комментарием к каждой строке.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (theoryDone ? 'done' : '') + '">' + learned + '/' + TERMS.length + ' отмечено</span>',
+    '  </div>',
+    '',
+    '  <div class="instruction">',
+    '    <ol>',
+    '      <li>Внимательно прочитай каждый термин.</li>',
+    '      <li>Если понял — отметь галочкой. Это подтверждение, что ты готов идти дальше.</li>',
+    '      <li>Все двадцать два термина должны быть отмечены, прежде чем ты перейдёшь к практике.</li>',
+    '    </ol>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Ключевые термины</h3>',
+    '  <div class="terms-grid" role="list">',
+    TERMS.map(renderTerm).join(""),
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Свойства и приёмы занятия</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Жёлтая плашка «на занятии» означает, что этот приём есть в эталоне.</p>',
+    '  <div style="overflow-x:auto; margin-bottom:20px">',
+    '    <table class="tags-table">',
+    '      <thead><tr><th>Приём</th><th>Что делает</th></tr></thead>',
+    '      <tbody>',
+    TAGS.map(renderTagRow).join(""),
+    '      </tbody>',
+    '    </table>',
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Эталон: UI-кит буфета с комментарием к каждой строке</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Это последнее занятие модуля вёрстки, поэтому в эталоне объяснена каждая строка. Читай комментарии сначала по теории, потом сверяй со своим кодом. Открой эталон после теста и практики.</p>',
+    '',
+    '  <div class="ethalon-toggle">',
+    '    <p class="ethalon-toggle-text">',
+    '      <b>Я прошёл тест и собрал свой кит — хочу сверить каждую строку.</b><br>',
+    '      Нажми кнопку ниже — эталон с комментариями откроется.',
+    '    </p>',
+    '    <button class="btn btn-secondary" data-action="toggle-ethalon" type="button">',
+    state.ethalonOpen ? 'Скрыть эталон' : 'Открыть эталон',
+    '    </button>',
+    '  </div>',
+    '',
+    '  <div class="ethalon-content ' + (state.ethalonOpen ? 'open' : '') + '" id="ethalon-content">',
+    '    <div class="code-block">' + escapeHtml(REFERENCE_CODE) + '</div>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return [
+    '<div class="term ' + (learned ? 'learned' : '') + '" data-term="' + t.key + '" role="listitem" tabindex="0" aria-pressed="' + learned + '">',
+    '  <div class="term-head">',
+    '    <span class="term-name">' + escapeHtml(t.name) + '</span>',
+    '    <span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+    '  </div>',
+    '  <div class="term-def">' + escapeHtml(t.def) + '</div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTagRow(tag){
+  return [
+    '<tr>',
+    '  <td><span class="tag-code">' + escapeHtml(tag.code) + '</span>' + (tag.used ? '<span class="tag-used">НА ЗАНЯТИИ</span>' : '') + '</td>',
+    '  <td>' + escapeHtml(tag.desc) + '</td>',
+    '</tr>'
+  ].join("\n");
+}
+
+function renderPractice(){
+  const quizDone = state.quiz.every(function(q){ return q.answered; });
+  const iconsDone = iconsCleanCount() === 3 && state.reflect.trim();
+  const practiceDone = quizDone && iconsDone;
+
+  return [
+    '<section class="section" aria-labelledby="practice-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num practice">П</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="practice-title">Практика: тест, иконки и итог</h2>',
+    '      <p class="section-sub">Сначала тест по строкам эталона, потом три SVG-иконки через ИИ и ручная чистка.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (practiceDone ? 'done' : '') + '">' + (quizDone ? 'тест ✓' : 'тест …') + ' · ' + iconsCleanCount() + '/3 иконки</span>',
+    '  </div>',
+    '',
+    '  <div class="algo">',
+    '    <div class="algo-title">',
+    '      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+    '      План практики',
+    '    </div>',
+    '    <ol>',
+    '      <li>Пройди тест по строкам эталона. Попытка одна: читай объяснение после ответа, даже если ответил верно.</li>',
+    '      <li>Скопируй промпт и попроси ИИ нарисовать три иконки: пирог, часы, галочка.</li>',
+    '      <li>Вставь код каждой иконки в своё поле. Превью и проверки обновятся сами.</li>',
+    '      <li>Вычисти всё лишнее руками, пока все восемь проверок не станут зелёными.</li>',
+    '      <li>Запиши, что пришлось вычистить, и сохрани лист в PDF — это результат занятия.</li>',
+    '    </ol>',
+    '    <div class="algo-note">',
+    '      <b>Где хранить иконки:</b> вставь очищенный код прямо в разметку своей страницы буфета рядом с текстом. Декоративной иконке рядом со словом добавь <code>aria-hidden="true"</code>.',
+    '    </div>',
+    '    <div class="algo-note">',
+    '      <b>Альтернативы блокноту:</b> онлайн HTML-редактор показывает результат сразу; VS Code подсвечивает CSS и SVG и видит незакрытые теги. Весь CSS по-прежнему живёт внутри <code>&lt;style&gt;</code> в том же <code>index.html</code>.',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Тест по строкам эталона</h3>',
+    '  <span class="quiz-score">Верно с первой попытки: ' + quizScore() + ' из ' + QUIZ.length + '</span>',
+    QUIZ.map(renderQuizCard).join(""),
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Три SVG-иконки через ИИ</h3>',
+    '  <div class="instruction">',
+    '    <b>Правила чистой иконки:</b>',
+    '    <ul>',
+    SVG_RULES.map(function(r){ return '<li>' + escapeHtml(r) + '</li>'; }).join(""),
+    '    </ul>',
+    '  </div>',
+    '',
+    '  <div class="prompt-box" aria-label="Промпт для генерации иконок">',
+    '    <button class="copy-btn" data-action="copy-prompt" type="button" aria-label="Скопировать промпт">Копировать</button>',
+    escapeHtml(PROMPT_TEXT),
+    '  </div>',
+    '',
+    '  <div class="ai-links">',
+    '    <a class="ai-link" href="https://chat.deepseek.com/" target="_blank" rel="noopener"><span class="ai-link-dot deepseek"></span>DeepSeek</a>',
+    '    <a class="ai-link" href="https://alice.yandex.ru/" target="_blank" rel="noopener"><span class="ai-link-dot alice"></span>Яндекс Алиса</a>',
+    '    <a class="ai-link" href="https://chat.qwen.ai/" target="_blank" rel="noopener"><span class="ai-link-dot qwen"></span>Qwen</a>',
+    '  </div>',
+    '',
+    [0,1,2].map(renderIconCard).join(""),
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="reflect">Что пришлось вычистить в сгенерированном коде? <span class="field-hint">(1–2 предложения)</span></label>',
+    '    <textarea class="field-input ' + (state.reflect.trim() ? 'filled' : '') + '" id="reflect" data-reflect',
+    '      placeholder="Например: «модель дала width=512 и &lt;title&gt; — убрал; stroke был жёстким #000 — заменил на currentColor»">' + escapeHtml(state.reflect) + '</textarea>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderQuizCard(q, i){
+  const st = state.quiz[i];
+  return [
+    '<div class="quiz-card" data-quiz="' + i + '">',
+    '  <div class="quiz-q">' + (i + 1) + '. ' + q.q + '</div>',
+    '  <div class="quiz-options" role="group" aria-label="Варианты ответа">',
+    q.options.map(function(opt, j){
+      return '<button type="button" class="quiz-opt" data-quiz-opt="' + i + ':' + j + '">' + escapeHtml(opt) + '</button>';
+    }).join(""),
+    '  </div>',
+    '  <div class="quiz-feedback hidden"></div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderIconCard(i){
+  return [
+    '<div class="icon-card" data-icon="' + i + '">',
+    '  <div class="icon-head">',
+    '    <span class="icon-title">Иконка ' + (i + 1) + ' — ' + ICON_NAMES[i] + '</span>',
+    '    <span class="icon-status" data-icon-status>пусто</span>',
+    '  </div>',
+    '  <div class="field">',
+    '    <label class="field-label" for="icon-code-' + i + '">Код иконки из ответа модели</label>',
+    '    <textarea class="field-input code" id="icon-code-' + i + '" data-icon-code="' + i + '"',
+    '      placeholder="&lt;svg viewBox=&quot;0 0 24 24&quot; fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;2&quot;&gt;&#10;  &lt;path d=&quot;…&quot;/&gt;&#10;&lt;/svg&gt;">' + escapeHtml(state.icons[i].code) + '</textarea>',
+    '  </div>',
+    '  <div class="icon-preview-row" data-icon-preview aria-label="Предпросмотр иконки"></div>',
+    '  <ul class="icon-checks" data-icon-checks></ul>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderActions(progress){
+  const canFinish = progress.percent >= 70;
+  const disabledAttr = canFinish ? '' : 'disabled style="opacity:.5;cursor:not-allowed"';
+  return [
+    '<div class="actions" role="toolbar" aria-label="Действия">',
+    '  <div class="actions-inner">',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Сбросить</button>',
+    '    <button class="btn btn-secondary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-primary" data-action="finish" type="button" ' + disabledAttr + '>Завершить</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderFinish(progress){
+  return [
+    '<section class="finish" aria-labelledby="fin-title">',
+    '  <div class="finish-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>',
+    '  <h2 id="fin-title">Рабочий лист заполнен</h2>',
+    '  <p>Сохрани PDF и передай учителю. Помни правило курса: сдаётся только то, что ты можешь объяснить вслух.</p>',
+    '  <div class="stats">',
+    '    <div class="stat"><div class="stat-val">' + termsCount() + '/' + TERMS.length + '</div><div class="stat-lbl">терминов отмечено</div></div>',
+    '    <div class="stat"><div class="stat-val">' + quizScore() + '/' + QUIZ.length + '</div><div class="stat-lbl">тест с первой попытки</div></div>',
+    '    <div class="stat"><div class="stat-val">' + iconsCleanCount() + '/3</div><div class="stat-lbl">иконки вычищены</div></div>',
+    '  </div>',
+    '  <div class="finish-actions">',
+    '    <button class="btn btn-secondary" data-action="back" type="button">Вернуться и проверить</button>',
+    '    <button class="btn btn-primary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Начать заново</button>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+/* ---------- Точечные обновления ---------- */
+function paintQuiz(card, i){
+  const st = state.quiz[i];
+  const opts = card.querySelectorAll(".quiz-opt");
+  opts.forEach(function(btn, j){
+    btn.disabled = true;
+    btn.classList.remove("correct", "wrong");
+    if(j === QUIZ[i].correct) btn.classList.add("correct");
+    else if(j === st.chosen) btn.classList.add("wrong");
+  });
+  const fb = card.querySelector(".quiz-feedback");
+  fb.classList.remove("hidden", "good", "bad");
+  fb.classList.add(st.correct ? "good" : "bad");
+  fb.innerHTML = "<b>" + (st.correct ? "Верно. " : "Не совсем. Правильный ответ: «" + escapeHtml(QUIZ[i].options[QUIZ[i].correct]) + "». ") + "</b>" + escapeHtml(QUIZ[i].why);
+}
+
+function previewBox(node, size, dark){
+  const box = document.createElement("div");
+  box.className = "icon-preview-box" + (dark ? " dark" : "");
+  const clone = node.cloneNode(true);
+  clone.setAttribute("width", String(size));
+  clone.setAttribute("height", String(size));
+  box.appendChild(clone);
+  const cap = document.createElement("span");
+  cap.textContent = dark ? "на тёмном, 24" : size + " px";
+  box.appendChild(cap);
+  return box;
+}
+
+function refreshIcon(idx, withProgress){
+  const card = document.querySelector('[data-icon="' + idx + '"]');
+  if(!card) return;
+  const code = state.icons[idx].code;
+  const analysis = analyzeSvg(code);
+
+  const list = card.querySelector("[data-icon-checks]");
+  list.innerHTML = analysis.checks.map(function(c){
+    const cls = c.pass === null ? "pending" : (c.pass ? "ok" : "bad");
+    const mark = c.pass === null ? "·" : (c.pass ? "✓" : "✕");
+    return '<li class="' + cls + '"><span class="ic-mark" aria-hidden="true">' + mark + '</span><span>' + escapeHtml(c.label) + "</span></li>";
+  }).join("");
+
+  const prev = card.querySelector("[data-icon-preview]");
+  while(prev.firstChild) prev.removeChild(prev.firstChild);
+  const node = sanitizeSvg(code);
+  if(!node){
+    const empty = document.createElement("div");
+    empty.className = "icon-preview-empty";
+    empty.textContent = code.trim()
+      ? "Превью появится, когда код станет похож на иконку: корень <svg> и только path или circle внутри."
+      : "Здесь будет предпросмотр: иконка на 16, 24 и 48 px и на тёмном фоне — проверка масштаба и currentColor.";
+    prev.appendChild(empty);
+  } else {
+    [16, 24, 48].forEach(function(size){ prev.appendChild(previewBox(node, size, false)); });
+    prev.appendChild(previewBox(node, 24, true));
+  }
+
+  const status = card.querySelector("[data-icon-status]");
+  const allPass = analysis.checks.every(function(c){ return c.pass === true; });
+  const parsed = analysis.checks[0] && analysis.checks[0].pass === true;
+  status.textContent = allPass ? "чисто" : (parsed ? "надо чистить" : (code.trim() ? "не разобралось" : "пусто"));
+  status.className = "icon-status" + (allPass ? " good" : (parsed ? " mid" : ""));
+
+  const ta = card.querySelector("textarea");
+  if(ta) ta.classList.toggle("filled", !!code.trim());
+
+  if(withProgress) updateProgress();
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent + "%";
+  if(num) num.textContent = p.percent + "%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+
+  const score = document.querySelector(".quiz-score");
+  if(score) score.textContent = "Верно с первой попытки: " + quizScore() + " из " + QUIZ.length;
+
+  const finishBtn = document.querySelector('[data-action="finish"]');
+  if(finishBtn){
+    if(p.percent >= 70){
+      finishBtn.disabled = false;
+      finishBtn.style.opacity = "";
+      finishBtn.style.cursor = "";
+    } else {
+      finishBtn.disabled = true;
+      finishBtn.style.opacity = ".5";
+      finishBtn.style.cursor = "not-allowed";
+    }
+  }
+}
+
+/* ---------- Обработчики ---------- */
+function bindHandlers(){
+  app.querySelectorAll("[data-action]").forEach(function(btn){
+    btn.addEventListener("click", handleAction);
+  });
+
+  app.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      saveState();
+      render();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-quiz-opt]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.quizOpt.split(":");
+      const qi = parseInt(parts[0], 10);
+      const oi = parseInt(parts[1], 10);
+      const st = state.quiz[qi];
+      if(st.answered) return;
+      st.answered = true;
+      st.chosen = oi;
+      st.correct = oi === QUIZ[qi].correct;
+      saveState();
+      paintQuiz(btn.closest(".quiz-card"), qi);
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-icon-code]").forEach(function(ta){
+    ta.addEventListener("input", function(e){
+      const idx = parseInt(e.target.dataset.iconCode, 10);
+      state.icons[idx].code = e.target.value;
+      saveState();
+      refreshIcon(idx, true);
+    });
+  });
+
+  const reflect = app.querySelector("[data-reflect]");
+  if(reflect){
+    reflect.addEventListener("input", function(e){
+      state.reflect = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      updateProgress();
+      saveState();
+    });
+  }
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){
+    state.started = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "reset"){
+    if(confirm("Сбросить все заполненные поля? Это действие нельзя отменить.")){
+      localStorage.removeItem(STORAGE_KEY);
+      state = {
+        started:false, finished:false, ethalonOpen:false,
+        termsLearned:{},
+        quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+        icons:[ {code:""}, {code:""}, {code:""} ],
+        reflect:""
+      };
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+  } else if(action === "print"){
+    window.print();
+  } else if(action === "toggle-ethalon"){
+    state.ethalonOpen = !state.ethalonOpen;
+    saveState();
+    render();
+  } else if(action === "finish"){
+    const p = countProgress();
+    if(p.percent < 70){
+      alert("Заполни ещё немного — сейчас заполнено " + p.percent + "%. Для завершения нужно 70%.");
+      return;
+    }
+    state.finished = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "back"){
+    state.finished = false;
+    saveState();
+    render();
+  } else if(action === "copy-prompt"){
+    copyToClipboard(PROMPT_TEXT, e.currentTarget);
+  }
+}
+
+async function copyToClipboard(text, btn){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    document.body.removeChild(ta);
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Скопировано";
+  btn.classList.add("copied");
+  setTimeout(function(){
+    btn.textContent = original;
+    btn.classList.remove("copied");
+  }, 1600);
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function init(){
+  loadState();
+  render();
+  // восстановить отмеченные ответы теста после рендера
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = document.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+}
+init();
+</script>
+</body>
+</html>
