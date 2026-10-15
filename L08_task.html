@@ -1,0 +1,1085 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 8 · JavaScript: основы языка</title>
+<style>
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  button, input, textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+  .topbar{
+    position:sticky; top:0; z-index:10;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{max-width:960px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px}
+  .brand{display:flex; flex-direction:column; min-width:0; flex:1}
+  .brand-title{font-size:14px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .progress-wrap{display:flex; align-items:center; gap:10px; min-width:140px}
+  .progress-bar{flex:1; height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; min-width:80px}
+  .progress-fill{height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:38px; text-align:right}
+
+  main{max-width:960px; margin:0 auto; padding:28px 20px 120px}
+
+  .hero{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .hero-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px, 4vw, 36px); font-weight:700; letter-spacing:-0.02em; margin:18px 0 10px; line-height:1.15}
+  .hero p{color:var(--text-2); font-size:16px; max-width:600px; margin:0 auto 24px}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:28px}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--surface-2); border-radius:999px; font-size:13px; color:var(--text-2)}
+  .chip b{color:var(--text); font-weight:600}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 22px; border-radius:12px; border:1px solid transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .15s ease; user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent; color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2); color:var(--text)}
+  .btn-lg{min-height:52px; padding:0 28px; font-size:16px; border-radius:14px}
+
+  .section{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; margin-bottom:20px; box-shadow:var(--shadow-sm)}
+  .section-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:18px}
+  .section-num{flex-shrink:0; width:36px; height:36px; border-radius:10px; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px}
+  .section-num.theory{background:#0f172a}
+  .section-num.practice{background:var(--accent)}
+  .section-title-wrap{flex:1; min-width:0}
+  .section-title{font-size:20px; font-weight:700; letter-spacing:-0.01em; margin:0 0 4px}
+  .section-sub{font-size:14px; color:var(--text-2); margin:0}
+  .section-status{flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--text-3)}
+  .section-status.done{background:var(--success-soft); color:var(--success)}
+
+  .instruction{background:var(--surface-2); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; font-size:14px; color:var(--text-2)}
+  .instruction ol, .instruction ul{margin:0; padding-left:18px}
+  .instruction li{margin-bottom:4px}
+  .instruction li::marker{color:var(--accent); font-weight:600}
+
+  .terms-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:24px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; cursor:pointer; transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent); background:#f8fbff}
+  .term-head{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .term-name{font-weight:700; font-size:15px; font-family:var(--mono); color:var(--accent)}
+  .term-check{margin-left:auto; width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex-shrink:0}
+  .term.learned .term-check{background:var(--success); border-color:var(--success)}
+  .term-check svg{width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:14px; color:var(--text-2); line-height:1.5}
+
+  .tags-table{width:100%; border-collapse:collapse; font-size:14px; margin-bottom:16px}
+  .tags-table th{text-align:left; padding:10px 12px; background:var(--surface-2); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .tags-table td{padding:12px; border-bottom:1px solid var(--border); vertical-align:top}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tags-table tr:hover td{background:var(--surface-2)}
+  .tag-code{font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:600; background:var(--accent-soft); padding:2px 8px; border-radius:6px; white-space:nowrap}
+  .tag-used{display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--warn-soft); color:#92400e; margin-left:6px; letter-spacing:.03em}
+  .map-table code, .task-card-desc code, .algo-note code{font-family:var(--mono); font-size:12.5px; background:var(--surface-2); padding:1px 6px; border-radius:4px; color:var(--accent); white-space:normal}
+  .map-table td{line-height:1.55}
+
+  .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.6; overflow-x:auto; white-space:pre; margin-bottom:16px; position:relative}
+  .code-block::before{content:"index.html"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+
+  .ethalon-toggle{display:flex; flex-direction:column; align-items:center; gap:10px; padding:20px; background:linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%); border:1px dashed var(--accent); border-radius:var(--radius); text-align:center; margin-bottom:16px}
+  .ethalon-toggle-text{font-size:14px; color:var(--text-2); max-width:520px; line-height:1.5}
+  .ethalon-toggle-text b{color:var(--text)}
+  .ethalon-content{overflow:hidden; max-height:0; opacity:0; transition:max-height .4s ease, opacity .3s ease, margin .3s ease; margin-top:0}
+  .ethalon-content.open{max-height:20000px; opacity:1; margin-top:16px}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block; font-size:13px; color:var(--text-2); margin-bottom:6px; font-weight:600}
+  .field-hint{font-size:12px; color:var(--text-3); font-weight:400; margin-left:4px}
+  .field-input{width:100%; min-height:40px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:14px; transition:border-color .15s ease, background .15s ease}
+  .field-input::placeholder{color:var(--text-3)}
+  .field-input:hover{border-color:var(--border-strong)}
+  .field-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff; border-color:var(--accent)}
+  textarea.field-input{min-height:100px; resize:vertical; line-height:1.5; font-family:var(--font)}
+  textarea.field-input.code{font-family:var(--mono); font-size:13px; line-height:1.6; min-height:260px; tab-size:2}
+
+  .task-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; transition:border-color .15s ease, box-shadow .15s ease}
+  .task-card.done{border-color:var(--success); background:#f8fdf9}
+  .task-card-head{display:flex; align-items:center; gap:10px; margin-bottom:10px}
+  .task-card-num{width:26px; height:26px; border-radius:8px; background:var(--surface-2); color:var(--text-2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex-shrink:0}
+  .task-card.done .task-card-num{background:var(--success); color:#fff}
+  .task-card-title{font-weight:700; font-size:15px; flex:1}
+  .task-card-desc{font-size:14px; color:var(--text-2); margin:0 0 12px; line-height:1.6}
+  .task-card-note{display:flex; align-items:flex-start; gap:8px; padding:10px 12px; background:var(--warn-soft); border-radius:10px; font-size:13px; color:#78350f; margin-bottom:12px; line-height:1.5}
+  .task-card-note b{font-weight:700}
+
+  .algo{background:linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%); border:1px solid #fde68a; border-radius:var(--radius); padding:18px; margin-bottom:20px}
+  .algo-title{font-weight:700; font-size:15px; color:#78350f; margin-bottom:10px; display:flex; align-items:center; gap:8px}
+  .algo ol{margin:0; padding-left:20px; color:#78350f}
+  .algo li{margin-bottom:6px; font-size:14px}
+  .algo li::marker{font-weight:700}
+  .algo-note{margin-top:12px; padding:10px 12px; background:rgba(255,255,255,.5); border-radius:8px; font-size:13px; color:#78350f; line-height:1.5}
+  .algo-note b{font-weight:700}
+
+  .prompt-box{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:16px; position:relative; word-break:break-word}
+  .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease}
+  .copy-btn:hover{background:rgba(255,255,255,.15); color:#fff}
+  .copy-btn.copied{background:var(--success); color:#fff; border-color:var(--success)}
+
+  .ai-links{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .ai-link{display:inline-flex; align-items:center; gap:8px; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); text-decoration:none; font-size:14px; font-weight:500; transition:all .15s ease; min-height:44px}
+  .ai-link:hover{border-color:var(--accent); background:var(--accent-soft)}
+  .ai-link-dot{width:8px; height:8px; border-radius:50%}
+  .ai-link-dot.deepseek{background:#4d6bfe}
+  .ai-link-dot.alice{background:#fc3f1d}
+  .ai-link-dot.qwen{background:#615ced}
+
+  .checklist{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px}
+  .checklist-title{font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:12px; text-transform:uppercase; letter-spacing:.05em}
+  .check-item{display:flex; align-items:flex-start; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:background .15s ease; user-select:none}
+  .check-item:hover{background:var(--surface-2)}
+  .check-item.checked{background:var(--success-soft)}
+  .check-box{flex-shrink:0; width:22px; height:22px; border:2px solid var(--border-strong); border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all .15s ease; margin-top:1px}
+  .check-item.checked .check-box{background:var(--success); border-color:var(--success)}
+  .check-box svg{width:14px; height:14px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .check-item.checked .check-box svg{opacity:1}
+  .check-text{font-size:14px; color:var(--text); flex:1}
+
+  .divider{height:1px; background:var(--border); margin:24px 0}
+  .sub-title{font-size:16px; font-weight:700; letter-spacing:-0.01em; margin:0 0 12px; color:var(--text)}
+
+  .actions{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.9); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-top:1px solid var(--border); padding:12px 20px; z-index:10}
+  .actions-inner{max-width:960px; margin:0 auto; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+
+  .finish{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .finish-icon{width:64px; height:64px; border-radius:50%; background:var(--success-soft); color:var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 20px}
+  .finish-icon svg{width:32px; height:32px; stroke:currentColor; fill:none; stroke-width:2.5}
+  .finish h2{font-size:28px; font-weight:700; letter-spacing:-0.02em; margin:0 0 8px}
+  .finish p{color:var(--text-2); margin:0 0 24px}
+  .stats{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:28px}
+  .stat{background:var(--surface-2); border-radius:var(--radius); padding:16px 12px}
+  .stat-val{font-size:24px; font-weight:700; color:var(--accent); letter-spacing:-0.02em}
+  .stat-lbl{font-size:12px; color:var(--text-3); margin-top:2px}
+  .finish-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+
+  .hidden{display:none !important}
+
+  @media print{
+    @page{size:A4; margin:15mm}
+    body{background:#fff}
+    .topbar, .actions, .copy-btn, .btn-ghost{display:none !important}
+    main{padding:0; max-width:100%}
+    .section, .hero, .finish{box-shadow:none; break-inside:avoid; page-break-inside:avoid}
+    .field-input, textarea.field-input{border:1px solid #cbd5e1 !important; background:#fff !important}
+    .code-block, .prompt-box{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .term.learned{border-color:#2563eb !important}
+    .ethalon-content{max-height:none !important; opacity:1 !important; margin-top:16px !important}
+    .check-item.checked .check-box{background:#16a34a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  }
+
+  @media (max-width:480px){
+    .topbar-inner{padding:10px 14px; gap:10px}
+    .brand-title{font-size:13px}
+    .brand-sub{font-size:11px}
+    .progress-wrap{min-width:110px}
+    main{padding:16px 14px 110px}
+    .section{padding:20px 18px}
+    .hero{padding:28px 20px}
+    .hero h1{font-size:24px}
+    .section-title{font-size:17px}
+    .stats{grid-template-columns:1fr}
+    .actions{padding:10px 14px}
+    .actions-inner{gap:8px}
+    .actions-inner .btn{flex:1; padding:0 14px}
+    .tags-table, .map-table{font-size:13px}
+    .tags-table th, .tags-table td, .map-table th, .map-table td{padding:8px}
+    .code-block{font-size:11.5px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 8 · JavaScript: основы языка
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title: "Рабочий лист · Занятие 8",
+  subtitle: "JavaScript: основы языка",
+  teacher: "Масликов М. М.",
+  grade: "10–11 класс",
+  time: "80 минут"
+};
+
+const TERMS = [
+  { key:"js", name:"JavaScript", def:"Язык программирования браузера. Третий слой страницы: поведение." },
+  { key:"script", name:"Скрипт", def:"Код на JavaScript, подключённый к странице. Ставится в конце body: браузер читает документ сверху вниз." },
+  { key:"var", name:"Переменная", def:"Именованное хранилище для значения. Имя говорит, что внутри: price, а не x." },
+  { key:"const", name:"const", def:"Объявление переменной, значение которой не меняется. Берётся по умолчанию." },
+  { key:"let", name:"let", def:"Объявление переменной, значение которой меняется." },
+  { key:"varOld", name:"var", def:"Устаревшее объявление. На курсе не используется; встречается в старом коде и в ответах ИИ." },
+  { key:"type", name:"Тип данных", def:"Какого сорта значение: число, строка, логическое." },
+  { key:"string", name:"Строка", def:"Текст в кавычках. Значение из поля ввода — всегда строка, даже при type=\"number\"." },
+  { key:"number", name:"Number()", def:"Преобразование строки в число. Не получилось — вернёт NaN." },
+  { key:"nan", name:"NaN", def:"«Не число». Результат неудачного преобразования. Заразно: попадёт во всё вычисление." },
+  { key:"typeof", name:"typeof", def:"Оператор, возвращающий название типа значения. Главный инструмент проверки догадок." },
+  { key:"glue", name:"Склейка", def:"Поведение + со строками: \"45\" + 10 даёт \"4510\", а не 55." },
+  { key:"func", name:"Функция", def:"Кусок кода с именем, который принимает данные и возвращает результат." },
+  { key:"param", name:"Параметр", def:"Данные, которые функция принимает на вход. Живут только внутри неё." },
+  { key:"return", name:"return", def:"То, что функция отдаёт наружу. Завершает выполнение функции. Не путать с console.log." },
+  { key:"if", name:"Условие (if)", def:"Развилка: если условие истинно — одно, иначе — другое. Условия проверяются сверху вниз." },
+  { key:"strict", name:"===", def:"Строгое сравнение: сравнивает значение и тип. На курсе только оно." },
+  { key:"loose", name:"==", def:"Нестрогое сравнение: приводит типы друг к другу и прячет ошибки. На курсе не используется." },
+  { key:"template", name:"Шаблонная строка", def:"Обратные кавычки и подстановка ${…}. Внутри можно писать любое выражение." },
+  { key:"clog", name:"console.log", def:"Вывод значения в консоль. Показать себе, а не отдать программе. Для отладки, не для результата." },
+  { key:"undef", name:"undefined", def:"«Сюда ничего не положили». Возвращается функцией без return." },
+  { key:"listener", name:"addEventListener", def:"Назначение обработчика события. Единственный способ, принятый на курсе." }
+];
+
+const TAGS = [
+  { code:"<script> в конце <body>", desc:"Скрипт подключают после разметки: найти кнопку, которой ещё нет, нельзя.", used:true },
+  { code:"document.getElementById(\"…\")", desc:"Найти элемент на странице по его id.", used:true },
+  { code:"const / let", desc:"Современные объявления переменных. const по умолчанию.", used:true },
+  { code:"Number(поле.value)", desc:"Преобразовать строку из поля в число сразу при получении.", used:true },
+  { code:"function … { return … }", desc:"Функция считает и отдаёт результат наружу.", used:true },
+  { code:"if (…) { …; return; }", desc:"Ранний выход: проверка не прошла — сообщение и выход из обработчика.", used:true },
+  { code:"===", desc:"Строгое сравнение. На курсе только оно, не ==.", used:true },
+  { code:"`…${выражение}…`", desc:"Шаблонная строка: текст собирается из значений.", used:true },
+  { code:"элемент.textContent", desc:"Записать результат на страницу. Результат живёт на странице, не в консоли.", used:true },
+  { code:"addEventListener(\"click\", …)", desc:"Обработчик клика по кнопке.", used:true },
+  { code:"** (возведение в степень)", desc:"(1 + i) ** (-n) — это (1 + i) в степени минус n. Встречается в готовой формуле.", used:true },
+  { code:"toLocaleString(\"ru-RU\")", desc:"Формат числа по-русски: 12 345.67. Встречается в готовом форматировании денег.", used:true },
+  { code:"var", desc:"Устаревшее объявление. На курсе запрещено.", used:false },
+  { code:"==", desc:"Нестрогое сравнение. Прячет ошибки. На курсе запрещено.", used:false },
+  { code:"alert", desc:"Блокирует страницу. Для отладки не используем.", used:false },
+  { code:"console.log вместо return", desc:"Функция показала результат, но не отдала: на странице будет undefined.", used:false }
+];
+
+/* Эталон: счётчик заказа буфета */
+const REFERENCE_CODE = [
+  '<!DOCTYPE html>',
+  '<html lang="ru">',
+  '<head>',
+  '  <meta charset="utf-8">',
+  '  <title>Счётчик заказа</title>',
+  '  <style>',
+  '    *, *::before, *::after { box-sizing: border-box; }',
+  '    body { font-family: Arial, Helvetica, sans-serif; padding: 24px; line-height: 1.5; }',
+  '    label { display: block; margin-bottom: 4px; font-weight: 600; }',
+  '    input, button { font-family: inherit; font-size: 16px; padding: 8px 12px; }',
+  '    #out { margin-top: 16px; font-size: 18px; font-weight: 700; min-height: 1.5em; }',
+  '  </style>',
+  '</head>',
+  '<body>',
+  '',
+  '  <h1>Калитка с картошкой</h1>',
+  '',
+  '  <p>',
+  '    <label for="count">Сколько штук</label>',
+  '    <input type="number" id="count" value="3" min="1" max="10">',
+  '  </p>',
+  '',
+  '  <button id="calcBtn" type="button">Посчитать</button>',
+  '',
+  '  <p id="out"></p>',
+  '',
+  '  <script>',
+  '    const PRICE = 45;',
+  '    const DISCOUNT_FROM_3 = 10;',
+  '    const DISCOUNT_FROM_5 = 30;',
+  '',
+  '    const inputCount = document.getElementById("count");',
+  '    const btnCalc = document.getElementById("calcBtn");',
+  '    const out = document.getElementById("out");',
+  '',
+  '    function calcDiscount(count) {',
+  '      if (count >= 5) {',
+  '        return DISCOUNT_FROM_5;',
+  '      } else if (count >= 3) {',
+  '        return DISCOUNT_FROM_3;',
+  '      }',
+  '      return 0;',
+  '    }',
+  '',
+  '    function calcTotal(price, count) {',
+  '      const sum = price * count;',
+  '      return sum - calcDiscount(count);',
+  '    }',
+  '',
+  '    btnCalc.addEventListener("click", function () {',
+  '      const count = Number(inputCount.value);',
+  '',
+  '      if (Number.isNaN(count) || count < 1) {',
+  '        out.textContent = "Укажи количество от 1 штуки";',
+  '        return;',
+  '      }',
+  '',
+  '      const total = calcTotal(PRICE, count);',
+  '      out.textContent = `${count} шт. × ${PRICE} ₽ = ${total} ₽`;',
+  '    });',
+  '  </' + 'script>',
+  '',
+  '</body>',
+  '</html>'
+].join("\n");
+
+/* Соответствие: счётчик → калькулятор */
+const MAP_ROWS = [
+  {
+    a:"<code>const PRICE = 45;</code> — цена известна заранее и записана константой",
+    b:"Данные приходят из трёх полей: <code>P</code>, <code>n</code>, <code>i</code>. Каждое читается через <code>Number()</code> в момент клика"
+  },
+  {
+    a:"<code>calcDiscount(count)</code> — функция с условием и <code>return</code> в каждой ветке",
+    b:"<code>calcMonthlyPayment(P, n, i)</code> — дана готовой: формула уже внутри, вставляешь как есть"
+  },
+  {
+    a:"<code>calcTotal(price, count)</code> — умножение и вычитание внутри функции",
+    b:"Твои строки: <code>total = payment * n</code> и <code>overpay = total - P</code> — в функции или в обработчике"
+  },
+  {
+    a:"<code>if (Number.isNaN(count) || count &lt; 1) { …; return; }</code> — проверка одного поля",
+    b:"Проверка трёх полей: если хотя бы одно не положительное число — сообщение и <code>return</code>"
+  },
+  {
+    a:"Одна строка результата в <code>out.textContent</code>",
+    b:"Три строки результата: три абзаца, каждому свой <code>textContent</code>"
+  },
+  {
+    a:"<code>btnCalc.addEventListener(\"click\", …)</code> — обработчик клика",
+    b:"Тот же обработчик, только внутри он читает три поля вместо одного"
+  }
+];
+
+/* Задание */
+const TASK = {
+  id:"t1",
+  title:"Калькулятор кредита",
+  desc:"Собери страницу-калькулятор по образцу счётчика заказа. Разметка: заголовок <code>&lt;h1&gt;</code>, три поля с подписями — сумма <code>P</code> (руб.), срок <code>n</code> (мес.), процент <code>i</code> (годовых), кнопка <code>&lt;button id=\"calcBtn\" type=\"button\"&gt;</code> и три пустых абзаца для результата: <code>#outPayment</code>, <code>#outTotal</code>, <code>#outOverpay</code>.<br><br><b>Дано готовое (вставь как есть и разберись в каждой строке):</b> функция <code>calcMonthlyPayment(P, n, annualPercent)</code> с формулой аннуитета и функция <code>formatMoney(value)</code> с форматированием «12 345.67 ₽». Обе есть в заготовке ниже.<br><br><b>Пишешь сам:</b> получение пяти элементов через <code>document.getElementById</code>; обработчик клика; внутри — чтение трёх полей через <code>Number()</code>, проверка «все три положительные числа» с сообщением и <code>return</code>, подсчёт <code>payment</code>, <code>total = payment * n</code>, <code>overpay = total - P</code> и вывод трёх строк шаблонными строками через <code>textContent</code>.<br><br><b>Правила:</b> только <code>const</code> и <code>let</code>, только <code>===</code> там, где сравниваешь, без <code>var</code>, <code>==</code> и <code>alert</code>. Результат — на странице, не в консоли. Скрипт — в конце <code>&lt;body&gt;</code>.",
+  note:"Заготовка уже содержит разметку, стили и две готовые функции. Допиши четыре помеченных места и проверь на наборах: 10000 / 3 / 12 и 100000 / 12 / 20.",
+  placeholder:[
+    '<!DOCTYPE html>',
+    '<html lang="ru">',
+    '<head>',
+    '  <meta charset="utf-8">',
+    '  <title>Кредит</title>',
+    '  <style>',
+    '    *, *::before, *::after { box-sizing: border-box; }',
+    '    body { font-family: Arial, Helvetica, sans-serif; padding: 24px; line-height: 1.5; }',
+    '    label { display: block; margin-bottom: 4px; font-weight: 600; }',
+    '    input, button { font-family: inherit; font-size: 16px; padding: 8px 12px; }',
+    '    #outPayment, #outTotal, #outOverpay { margin: 6px 0; font-size: 18px; }',
+    '  </style>',
+    '</head>',
+    '<body>',
+    '',
+    '  <h1>Расчёт кредита</h1>',
+    '',
+    '  <p>',
+    '    <label for="P">Сумма (руб.)</label>',
+    '    <input type="number" id="P" value="10000" min="1000" max="1000000">',
+    '  </p>',
+    '  <p>',
+    '    <label for="n">Срок (мес.)</label>',
+    '    <input type="number" id="n" value="3" min="1" max="30">',
+    '  </p>',
+    '  <p>',
+    '    <label for="i">Процент (годовых, %)</label>',
+    '    <input type="number" id="i" value="12" min="1" max="25">',
+    '  </p>',
+    '',
+    '  <button id="calcBtn" type="button">Посчитать</button>',
+    '',
+    '  <p id="outPayment"></p>',
+    '  <p id="outTotal"></p>',
+    '  <p id="outOverpay"></p>',
+    '',
+    '  <script>',
+    '    /* ДАНО 1. Формула аннуитетного платежа. Вставь как есть.',
+    '       i — процент в месяц: годовые делим на 100 и на 12.',
+    '       ** — возведение в степень: (1 + i) ** (-n) это (1 + i) в степени минус n. */',
+    '    function calcMonthlyPayment(P, n, annualPercent) {',
+    '      const i = annualPercent / 100 / 12;',
+    '      return (P * i) / (1 - (1 + i) ** (-n));',
+    '    }',
+    '',
+    '    /* ДАНО 2. Формат денег по-русски: 12 345.67 ₽ */',
+    '    function formatMoney(value) {',
+    '      return value.toLocaleString("ru-RU", {',
+    '        minimumFractionDigits: 2,',
+    '        maximumFractionDigits: 2',
+    '      }) + " ₽";',
+    '    }',
+    '',
+    '    /* ТУТ: получи пять элементов через document.getElementById */',
+    '',
+    '',
+    '    /* ТУТ: обработчик клика по кнопке:',
+    '       1) прочитать P, n и i через Number();',
+    '       2) проверить: все три — положительные числа, иначе сообщение и return;',
+    '       3) посчитать payment, total и overpay;',
+    '       4) вывести три строки в textContent трёх абзацев. */',
+    '  </' + 'script>',
+    '',
+    '</body>',
+    '</html>'
+  ].join("\n")
+};
+
+const PROMPT_TEMPLATE = [
+  'Ты объясняешь готовый код построчно ученику, который первый день пишет на JavaScript.',
+  '',
+  'Контекст: страница банка, расчёт кредита. Только чистый JavaScript, без библиотек и фреймворков. Ученик знает: переменные const и let, типы число и строка, функции, условие if.',
+  '',
+  'Задача: объясни мой код построчно — что делает каждая строка и что сломается, если её убрать.',
+  '',
+  'Ограничения: не переписывай мой код и не предлагай улучшений; не используй слова, которых нет в моём коде, без объяснения; не упоминай var, стрелочные функции и методы массивов — мы их ещё не проходили; пиши по-русски, короткими предложениями.',
+  '',
+  'Формат ответа: таблица из трёх колонок — строка кода, что делает, что сломается без неё.',
+  '',
+  'Критерии проверки: каждая строка моего кода разобрана; в объяснении нет терминов без пояснения; ничего не добавлено сверх того, что есть в коде.',
+  '',
+  'Вот мой код:',
+  '',
+  '{CODE}'
+].join("\n");
+
+const CHECKLIST = [
+  "Разобрана каждая строка моего кода",
+  "Объяснение совпадает с моим собственным пониманием кода",
+  "В объяснении нет терминов без пояснения",
+  "Модель не переписывала мой код и не предлагала улучшений",
+  "Модель не упоминала var, стрелочные функции и методы массивов",
+  "Модель верна про типы: строка из поля, число после Number()",
+  "Хотя бы одну строку «что сломается» я проверил экспериментом",
+  "После таблицы я сам могу объяснить каждую строку своего кода"
+];
+
+const STORAGE_KEY = "wdc-l08-worksheet-v1";
+
+let state = {
+  started: false,
+  finished: false,
+  ethalonOpen: false,
+  termsLearned: {},
+  task: { code:"", note:"" },
+  prompt: {
+    response: "",
+    checklist: [false,false,false,false,false,false,false,false],
+    weak: "",
+    fix: ""
+  }
+};
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state = deepMerge(state, parsed);
+    }
+    if(!Array.isArray(state.prompt.checklist) || state.prompt.checklist.length !== CHECKLIST.length){
+      state.prompt.checklist = CHECKLIST.map(function(){ return false; });
+    }
+  }catch(e){}
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])){
+      out[k] = deepMerge(target[k] || {}, source[k]);
+    } else {
+      out[k] = source[k];
+    }
+  }
+  return out;
+}
+
+function countProgress(){
+  let filled = 0, total = 0;
+
+  TERMS.forEach(function(t){
+    total++;
+    if(state.termsLearned[t.key]) filled++;
+  });
+
+  total += 2;
+  if(state.task.code.trim()) filled++;
+  if(state.task.note.trim()) filled++;
+
+  total++;
+  if(state.prompt.response.trim()) filled++;
+  CHECKLIST.forEach(function(_, i){
+    total++;
+    if(state.prompt.checklist[i]) filled++;
+  });
+  total++;
+  if(state.prompt.weak.trim()) filled++;
+
+  return { filled: filled, total: total, percent: total ? Math.round(filled / total * 100) : 0 };
+}
+function termsCount(){
+  return Object.values(state.termsLearned).filter(Boolean).length;
+}
+
+const app = document.getElementById("app");
+
+function render(){
+  const progress = countProgress();
+
+  let html = renderTopbar(progress);
+  html += "<main>";
+
+  if(!state.started){
+    html += renderHero();
+  } else if(state.finished){
+    html += renderFinish(progress);
+  } else {
+    html += renderTheory();
+    html += renderPractice();
+  }
+
+  html += "</main>";
+
+  if(state.started && !state.finished){
+    html += renderActions(progress);
+  }
+
+  app.innerHTML = html;
+  bindHandlers();
+}
+
+function renderTopbar(progress){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <div class="brand-title">' + escapeHtml(COURSE.title) + '</div>',
+    '      <div class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · ' + escapeHtml(COURSE.grade) + '</div>',
+    '    </div>',
+    '    <div class="progress-wrap" aria-label="Прогресс заполнения">',
+    '      <div class="progress-bar" role="progressbar" aria-valuenow="' + progress.percent + '" aria-valuemin="0" aria-valuemax="100">',
+    '        <div class="progress-fill" style="width:' + progress.percent + '%"></div>',
+    '      </div>',
+    '      <div class="progress-num">' + progress.percent + '%</div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderHero(){
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Занятие 8 из 24</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.subtitle) + '</h1>',
+    '  <p>Начинается самый большой модуль программы: страница учится думать. Марина Петровна просила счётчик заказа — а ты сегодня напишешь свой собственный калькулятор, который считает деньги по формуле.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    '    <span class="chip">🎓 ' + escapeHtml(COURSE.grade) + '</span>',
+    '    <span class="chip">⏱ ' + escapeHtml(COURSE.time) + '</span>',
+    '  </div>',
+    '  <button class="btn btn-primary btn-lg" data-action="start">',
+    '    Начать работу',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '  </button>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTheory(){
+  const learned = termsCount();
+  const theoryDone = learned === TERMS.length;
+  return [
+    '<section class="section" aria-labelledby="theory-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num theory">Т</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="theory-title">Теория: термины и приёмы JavaScript</h2>',
+    '      <p class="section-sub">Прочитай каждый термин и отметь те, что понял. Ниже — таблица приёмов и эталон: счётчик заказа буфета.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (theoryDone ? 'done' : '') + '">' + learned + '/' + TERMS.length + ' отмечено</span>',
+    '  </div>',
+    '',
+    '  <div class="instruction">',
+    '    <ol>',
+    '      <li>Внимательно прочитай каждый термин.</li>',
+    '      <li>Если понял — отметь галочкой. Это подтверждение, что ты готов идти дальше.</li>',
+    '      <li>Все двадцать два термина должны быть отмечены, прежде чем ты перейдёшь к практике.</li>',
+    '    </ol>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Ключевые термины</h3>',
+    '  <div class="terms-grid" role="list">',
+    TERMS.map(renderTerm).join(""),
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Приёмы занятия</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Жёлтая плашка «на занятии» означает, что этот приём есть в эталоне и понадобится в твоём калькуляторе.</p>',
+    '  <div style="overflow-x:auto; margin-bottom:20px">',
+    '    <table class="tags-table">',
+    '      <thead><tr><th>Приём</th><th>Что делает</th></tr></thead>',
+    '      <tbody>',
+    TAGS.map(renderTagRow).join(""),
+    '      </tbody>',
+    '    </table>',
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Эталон: счётчик заказа буфета</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Вот рабочая страница на чистом JavaScript: константы, две функции с return, проверка и вывод на страницу. Твой калькулятор кредита устроен так же — сверяй структуру по таблице соответствия в практике.</p>',
+    '',
+    '  <div class="ethalon-toggle">',
+    '    <p class="ethalon-toggle-text">',
+    '      <b>Я разобрал таблицу соответствия и хочу сверить структуру с эталоном.</b><br>',
+    '      Нажми кнопку ниже — эталон откроется.',
+    '    </p>',
+    '    <button class="btn btn-secondary" data-action="toggle-ethalon" type="button">',
+    state.ethalonOpen ? 'Скрыть эталон' : 'Открыть эталон',
+    '    </button>',
+    '  </div>',
+    '',
+    '  <div class="ethalon-content ' + (state.ethalonOpen ? 'open' : '') + '" id="ethalon-content">',
+    '    <div class="code-block">' + escapeHtml(REFERENCE_CODE) + '</div>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return [
+    '<div class="term ' + (learned ? 'learned' : '') + '" data-term="' + t.key + '" role="listitem" tabindex="0" aria-pressed="' + learned + '">',
+    '  <div class="term-head">',
+    '    <span class="term-name">' + escapeHtml(t.name) + '</span>',
+    '    <span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+    '  </div>',
+    '  <div class="term-def">' + escapeHtml(t.def) + '</div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTagRow(tag){
+  return [
+    '<tr>',
+    '  <td><span class="tag-code">' + escapeHtml(tag.code) + '</span>' + (tag.used ? '<span class="tag-used">НА ЗАНЯТИИ</span>' : '') + '</td>',
+    '  <td>' + escapeHtml(tag.desc) + '</td>',
+    '</tr>'
+  ].join("\n");
+}
+
+function renderPractice(){
+  const taskDone = state.task.code.trim() && state.task.note.trim();
+  const allChecked = state.prompt.checklist.every(Boolean);
+  const promptDone = state.prompt.response.trim() && allChecked && state.prompt.weak.trim();
+  const practiceDone = taskDone && promptDone;
+
+  /* ИСПРАВЛЕНО: обычный тернарный оператор с двоеточием, без запятой */
+  const codeInfo = state.task.code.trim()
+    ? 'Заполнено символов: ' + state.task.code.length + '.'
+    : '<span style="color:#b45309">Код задания ещё не написан — сначала напиши калькулятор, потом проси разбор.</span>';
+
+  const mapRows = MAP_ROWS.map(function(r){
+    return '<tr><td>' + r.a + '</td><td>' + r.b + '</td></tr>';
+  }).join("\n");
+
+  return [
+    '<section class="section" aria-labelledby="practice-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num practice">П</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="practice-title">Практика: калькулятор и построчный разбор</h2>',
+    '      <p class="section-sub">Пишешь калькулятор кредита по образцу счётчика, потом просишь ИИ объяснить твой код построчно и сверяешь с собственным пониманием.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (practiceDone ? 'done' : '') + '">' + (taskDone ? '1/1 ТЗ' : '0/1 ТЗ') + ' + ИИ</span>',
+    '  </div>',
+    '',
+    '  <div class="algo">',
+    '    <div class="algo-title">',
+    '      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+    '      Как работать через блокнот',
+    '    </div>',
+    '    <ol>',
+    '      <li>Открой <b>Блокнот</b> (в меню «Пуск» набери «Блокнот»).</li>',
+    '      <li>Вставь заготовку задания и допиши помеченные места. HTML, CSS и JavaScript живут в одном файле.</li>',
+    '      <li>Нажми <b>Файл → Сохранить как</b>. В поле «Тип файла» выбери <b>«Все файлы»</b>. В поле «Имя файла» напиши <b>index.html</b>. В поле «Кодировка» выбери <b>UTF-8</b>.</li>',
+    '      <li>Открой файл двойным кликом — он откроется в браузере.</li>',
+    '      <li>Поправил код? Сохрани в блокноте → нажми <b>F5</b> в браузере.</li>',
+    '      <li>Если страница не считает — открой <b>F12</b>, вкладка Console: ошибка называет строку. Первое место, куда смотрят при поломке.</li>',
+    '    </ol>',
+    '    <div class="algo-note">',
+    '      <b>Важно:</b> скрипт живёт в конце <code>&lt;body&gt;</code>. Поставишь его в <code>&lt;head&gt;</code> — <code>getElementById</code> вернёт <code>null</code>: элементов ещё нет в документе.',
+    '    </div>',
+    '    <div class="algo-note">',
+    '      <b>Альтернатива 1:</b> онлайн HTML-редактор показывает результат сразу и имеет консоль рядом. Удобно для отладки обработчика.',
+    '    </div>',
+    '    <div class="algo-note">',
+    '      <b>Альтернатива 2:</b> VS Code подсвечивает JavaScript, видит незакрытые скобки и предлагает имена функций. Создай файл <code>index.html</code> — редактор сам поймёт, что внутри три языка.',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <div class="algo">',
+    '    <div class="algo-title">',
+    '      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '      От счётчика к калькулятору: таблица соответствия',
+    '    </div>',
+    '    <p style="margin:0 0 12px; color:#78350f; font-size:14px; line-height:1.5">',
+    '      Твой калькулятор устроен ровно как счётчик заказа в эталоне. Меняются только данные и число строк результата. Сверяйся с таблицей, пока пишешь.',
+    '    </p>',
+    '    <div style="overflow-x:auto">',
+    '      <table class="tags-table map-table">',
+    '        <thead><tr><th>В счётчике заказа</th><th>В твоём калькуляторе</th></tr></thead>',
+    '        <tbody>',
+    mapRows,
+    '        </tbody>',
+    '      </table>',
+    '    </div>',
+    '    <div class="algo-note">',
+    '      <b>Значение из поля — всегда строка.</b> Даже при <code>type="number"</code>. Поэтому каждое поле читаем как <code>Number(поле.value)</code> сразу, а не посреди формулы.',
+    '    </div>',
+    '    <div class="algo-note">',
+    '      <b>Формула и форматирование даны готовыми.</b> <code>**</code> — возведение в степень: <code>(1 + i) ** (-n)</code> это (1 + i) в степени минус n. <code>toLocaleString("ru-RU")</code> делает из числа строку «12 345.67». Обе функции ты вставляешь как есть — и обязан объяснить каждую их строку на разборе с ИИ.',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Одно задание</h3>',
+    '  <div class="task-card ' + (taskDone ? 'done' : '') + '" data-task="t1">',
+    '    <div class="task-card-head">',
+    '      <span class="task-card-num">1</span>',
+    '      <span class="task-card-title">' + escapeHtml(TASK.title) + '</span>',
+    '    </div>',
+    '    <div class="task-card-note">',
+    '      <span>💡</span>',
+    '      <span><b>По образцу эталона.</b> ' + escapeHtml(TASK.note) + '</span>',
+    '    </div>',
+    '    <p class="task-card-desc">' + TASK.desc + '</p>',
+    '    <div class="field">',
+    '      <label class="field-label" for="task-code-t1">Твой код <span class="field-hint">(HTML + CSS + JavaScript в одном файле)</span></label>',
+    '      <textarea class="field-input code ' + (state.task.code.trim() ? 'filled' : '') + '"',
+    '        id="task-code-t1" data-task-key="code" data-task-id="t1"',
+    '        placeholder="' + escapeHtml(TASK.placeholder) + '">' + escapeHtml(state.task.code) + '</textarea>',
+    '    </div>',
+    '    <div class="field">',
+    '      <label class="field-label" for="task-note-t1">Что получилось? Что было сложно? <span class="field-hint">(1–2 предложения)</span></label>',
+    '      <textarea class="field-input ' + (state.task.note.trim() ? 'filled' : '') + '"',
+    '        id="task-note-t1" data-task-key="note" data-task-id="t1"',
+    '        placeholder="Например: «забыл Number() и получил склейку строк вместо суммы»">' + escapeHtml(state.task.note) + '</textarea>',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Построчный разбор через ИИ</h3>',
+    '  <p class="section-sub" style="margin-bottom:14px">Цель разбора — не проверка, а понимание: после таблицы ты обязан объяснить каждую строку своего кода сам. На проверку уйдёт код из задания выше, включая две данные функции.</p>',
+    '',
+    '  <div class="ai-links">',
+    '    <a class="ai-link" href="https://chat.deepseek.com/" target="_blank" rel="noopener"><span class="ai-link-dot deepseek"></span>DeepSeek</a>',
+    '    <a class="ai-link" href="https://alice.yandex.ru/" target="_blank" rel="noopener"><span class="ai-link-dot alice"></span>Яндекс Алиса</a>',
+    '    <a class="ai-link" href="https://chat.qwen.ai/" target="_blank" rel="noopener"><span class="ai-link-dot qwen"></span>Qwen</a>',
+    '  </div>',
+    '',
+    '  <div class="instruction" style="margin-bottom:14px">',
+    '    <b>Будет отправлен код из задания «Калькулятор кредита».</b> ' + codeInfo,
+    '  </div>',
+    '',
+    '  <div class="prompt-box" aria-label="Текст промпта">',
+    '    <button class="copy-btn" data-action="copy-prompt" type="button" aria-label="Скопировать промпт с кодом">Копировать</button>',
+    escapeHtml(buildPrompt()),
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-response">Ответ нейросети (вставь сюда)</label>',
+    '    <textarea class="field-input ' + (state.prompt.response.trim() ? 'filled' : '') + '"',
+    '      id="prompt-response" data-prompt-key="response"',
+    '      placeholder="Сюда — таблицу, которую прислала модель"',
+    '      style="min-height:180px">' + escapeHtml(state.prompt.response) + '</textarea>',
+    '  </div>',
+    '',
+    '  <div class="checklist" role="group" aria-label="Чек-лист проверки разбора">',
+    '    <div class="checklist-title">Чек-лист проверки разбора</div>',
+    CHECKLIST.map(function(text, i){
+      const checked = state.prompt.checklist[i] ? 'checked' : '';
+      return [
+        '<div class="check-item ' + checked + '"',
+        '     data-check-idx="' + i + '" role="checkbox" aria-checked="' + state.prompt.checklist[i] + '" tabindex="0">',
+        '  <span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+        '  <span class="check-text">' + escapeHtml(text) + '</span>',
+        '</div>'
+      ].join("\n");
+    }).join(""),
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-weak">Строка, которую модель объяснила неверно или пропустила</label>',
+    '    <textarea class="field-input ' + (state.prompt.weak.trim() ? 'filled' : '') + '"',
+    '      id="prompt-weak" data-prompt-key="weak"',
+    '      placeholder="Например: «про ** сказала «делит», а это степень; строку с return 0 в моей функции вообще пропустила»">' + escapeHtml(state.prompt.weak) + '</textarea>',
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-fix">Что из объяснения ты переписал своими словами? <span class="field-hint">(необязательно)</span></label>',
+    '    <textarea class="field-input ' + (state.prompt.fix.trim() ? 'filled' : '') + '"',
+    '      id="prompt-fix" data-prompt-key="fix"',
+    '      placeholder="Свободное поле — можно оставить пустым">' + escapeHtml(state.prompt.fix) + '</textarea>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderActions(progress){
+  const canFinish = progress.percent >= 70;
+  const disabledAttr = canFinish ? '' : 'disabled style="opacity:.5;cursor:not-allowed"';
+  return [
+    '<div class="actions" role="toolbar" aria-label="Действия">',
+    '  <div class="actions-inner">',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Сбросить</button>',
+    '    <button class="btn btn-secondary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-primary" data-action="finish" type="button" ' + disabledAttr + '>Завершить</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderFinish(progress){
+  const checkCount = state.prompt.checklist.filter(Boolean).length;
+  const taskDone = state.task.code.trim() && state.task.note.trim();
+
+  return [
+    '<section class="finish" aria-labelledby="fin-title">',
+    '  <div class="finish-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>',
+    '  <h2 id="fin-title">Рабочий лист заполнен</h2>',
+    '  <p>Сохрани PDF и передай учителю. Помни правило курса: сдаётся только то, что ты можешь объяснить вслух.</p>',
+    '  <div class="stats">',
+    '    <div class="stat"><div class="stat-val">' + termsCount() + '/' + TERMS.length + '</div><div class="stat-lbl">терминов отмечено</div></div>',
+    '    <div class="stat"><div class="stat-val">' + (taskDone ? '✓' : '—') + '</div><div class="stat-lbl">калькулятор написан</div></div>',
+    '    <div class="stat"><div class="stat-val">' + checkCount + '/' + CHECKLIST.length + '</div><div class="stat-lbl">пунктов чек-листа</div></div>',
+    '  </div>',
+    '  <div class="finish-actions">',
+    '    <button class="btn btn-secondary" data-action="back" type="button">Вернуться и проверить</button>',
+    '    <button class="btn btn-primary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Начать заново</button>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function bindHandlers(){
+  app.querySelectorAll("[data-action]").forEach(function(btn){
+    btn.addEventListener("click", handleAction);
+  });
+
+  app.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      saveState();
+      render();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-task-key]").forEach(function(input){
+    input.addEventListener("input", function(e){
+      const key = e.target.dataset.taskKey;
+      state.task[key] = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      const card = document.querySelector('[data-task="t1"]');
+      if(card) card.classList.toggle("done", state.task.code.trim() && state.task.note.trim());
+      updateProgress();
+      saveState();
+    });
+  });
+
+  app.querySelectorAll("[data-prompt-key]").forEach(function(input){
+    input.addEventListener("input", function(e){
+      state.prompt[e.target.dataset.promptKey] = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      updateProgress();
+      saveState();
+    });
+  });
+
+  app.querySelectorAll("[data-check-idx]").forEach(function(item){
+    const handler = function(){
+      const idx = parseInt(item.dataset.checkIdx, 10);
+      state.prompt.checklist[idx] = !state.prompt.checklist[idx];
+      item.classList.toggle("checked", state.prompt.checklist[idx]);
+      item.setAttribute("aria-checked", String(state.prompt.checklist[idx]));
+      updateProgress();
+      saveState();
+    };
+    item.addEventListener("click", handler);
+    item.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){
+    state.started = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "reset"){
+    if(confirm("Сбросить все заполненные поля? Это действие нельзя отменить.")){
+      localStorage.removeItem(STORAGE_KEY);
+      state = {
+        started:false, finished:false, ethalonOpen:false,
+        termsLearned:{},
+        task:{ code:"", note:"" },
+        prompt:{ response:"", checklist: CHECKLIST.map(function(){ return false; }), weak:"", fix:"" }
+      };
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+  } else if(action === "print"){
+    window.print();
+  } else if(action === "toggle-ethalon"){
+    state.ethalonOpen = !state.ethalonOpen;
+    saveState();
+    render();
+  } else if(action === "finish"){
+    const p = countProgress();
+    if(p.percent < 70){
+      alert("Заполни ещё немного — сейчас заполнено " + p.percent + "%. Для завершения нужно 70%.");
+      return;
+    }
+    state.finished = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "back"){
+    state.finished = false;
+    saveState();
+    render();
+  } else if(action === "copy-prompt"){
+    copyToClipboard(buildPrompt(), e.currentTarget);
+  }
+}
+
+function buildPrompt(){
+  const code = state.task.code || "(код пока не написан)";
+  return PROMPT_TEMPLATE.replace("{CODE}", code);
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent + "%";
+  if(num) num.textContent = p.percent + "%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+
+  const finishBtn = document.querySelector('[data-action="finish"]');
+  if(finishBtn){
+    if(p.percent >= 70){
+      finishBtn.disabled = false;
+      finishBtn.style.opacity = "";
+      finishBtn.style.cursor = "";
+    } else {
+      finishBtn.disabled = true;
+      finishBtn.style.opacity = ".5";
+      finishBtn.style.cursor = "not-allowed";
+    }
+  }
+}
+
+async function copyToClipboard(text, btn){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    document.body.removeChild(ta);
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Скопировано";
+  btn.classList.add("copied");
+  setTimeout(function(){
+    btn.textContent = original;
+    btn.classList.remove("copied");
+  }, 1600);
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function init(){
+  loadState();
+  render();
+}
+init();
+</script>
+</body>
+</html>
