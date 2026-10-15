@@ -120,6 +120,8 @@
 
   .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.6; overflow-x:auto; white-space:pre; margin-bottom:16px; position:relative}
   .code-block::before{content:"index.html"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .scaffold-block{max-height:340px; overflow:auto; margin-bottom:0}
+  .scaffold-block::before{content:"заготовка · index.html"}
 
   .ethalon-toggle{display:flex; flex-direction:column; align-items:center; gap:10px; padding:20px; background:linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%); border:1px dashed var(--accent); border-radius:var(--radius); text-align:center; margin-bottom:16px}
   .ethalon-toggle-text{font-size:14px; color:var(--text-2); max-width:520px; line-height:1.5}
@@ -159,7 +161,7 @@
 
   .prompt-box{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:16px; position:relative; word-break:break-word}
   .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
-  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease}
+  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease; z-index:2}
   .copy-btn:hover{background:rgba(255,255,255,.15); color:#fff}
   .copy-btn.copied{background:var(--success); color:#fff; border-color:var(--success)}
 
@@ -209,6 +211,7 @@
     .section, .hero, .finish{box-shadow:none; break-inside:avoid; page-break-inside:avoid}
     .field-input, textarea.field-input{border:1px solid #cbd5e1 !important; background:#fff !important}
     .code-block, .prompt-box{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .scaffold-block{max-height:none !important}
     .term.learned{border-color:#2563eb !important}
     .ethalon-content{max-height:none !important; opacity:1 !important; margin-top:16px !important}
     .check-item.checked .check-box{background:#16a34a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
@@ -363,6 +366,75 @@ const REFERENCE_CODE = [
   '</html>'
 ].join("\n");
 
+/* Заготовка задания: ученик копирует её в свой редактор и дописывает помеченные места */
+const SCAFFOLD_CODE = [
+  '<!DOCTYPE html>',
+  '<html lang="ru">',
+  '<head>',
+  '  <meta charset="utf-8">',
+  '  <title>Кредит</title>',
+  '  <style>',
+  '    *, *::before, *::after { box-sizing: border-box; }',
+  '    body { font-family: Arial, Helvetica, sans-serif; padding: 24px; line-height: 1.5; }',
+  '    label { display: block; margin-bottom: 4px; font-weight: 600; }',
+  '    input, button { font-family: inherit; font-size: 16px; padding: 8px 12px; }',
+  '    #outPayment, #outTotal, #outOverpay { margin: 6px 0; font-size: 18px; }',
+  '  </style>',
+  '</head>',
+  '<body>',
+  '',
+  '  <h1>Расчёт кредита</h1>',
+  '',
+  '  <p>',
+  '    <label for="P">Сумма (руб.)</label>',
+  '    <input type="number" id="P" value="10000" min="1000" max="1000000">',
+  '  </p>',
+  '  <p>',
+  '    <label for="n">Срок (мес.)</label>',
+  '    <input type="number" id="n" value="3" min="1" max="30">',
+  '  </p>',
+  '  <p>',
+  '    <label for="i">Процент (годовых, %)</label>',
+  '    <input type="number" id="i" value="12" min="1" max="25">',
+  '  </p>',
+  '',
+  '  <button id="calcBtn" type="button">Посчитать</button>',
+  '',
+  '  <p id="outPayment"></p>',
+  '  <p id="outTotal"></p>',
+  '  <p id="outOverpay"></p>',
+  '',
+  '  <script>',
+  '    /* ДАНО 1. Формула аннуитетного платежа. Вставь как есть.',
+  '       i — процент в месяц: годовые делим на 100 и на 12.',
+  '       ** — возведение в степень: (1 + i) ** (-n) это (1 + i) в степени минус n. */',
+  '    function calcMonthlyPayment(P, n, annualPercent) {',
+  '      const i = annualPercent / 100 / 12;',
+  '      return (P * i) / (1 - (1 + i) ** (-n));',
+  '    }',
+  '',
+  '    /* ДАНО 2. Формат денег по-русски: 12 345.67 ₽ */',
+  '    function formatMoney(value) {',
+  '      return value.toLocaleString("ru-RU", {',
+  '        minimumFractionDigits: 2,',
+  '        maximumFractionDigits: 2',
+  '      }) + " ₽";',
+  '    }',
+  '',
+  '    /* ТУТ: получи пять элементов через document.getElementById */',
+  '',
+  '',
+  '    /* ТУТ: обработчик клика по кнопке:',
+  '       1) прочитать P, n и i через Number();',
+  '       2) проверить: все три — положительные числа, иначе сообщение и return;',
+  '       3) посчитать payment, total и overpay;',
+  '       4) вывести три строки в textContent трёх абзацев. */',
+  '  </' + 'script>',
+  '',
+  '</body>',
+  '</html>'
+].join("\n");
+
 /* Соответствие: счётчик → калькулятор */
 const MAP_ROWS = [
   {
@@ -395,75 +467,8 @@ const MAP_ROWS = [
 const TASK = {
   id:"t1",
   title:"Калькулятор кредита",
-  desc:"Собери страницу-калькулятор по образцу счётчика заказа. Разметка: заголовок <code>&lt;h1&gt;</code>, три поля с подписями — сумма <code>P</code> (руб.), срок <code>n</code> (мес.), процент <code>i</code> (годовых), кнопка <code>&lt;button id=\"calcBtn\" type=\"button\"&gt;</code> и три пустых абзаца для результата: <code>#outPayment</code>, <code>#outTotal</code>, <code>#outOverpay</code>.<br><br><b>Дано готовое (вставь как есть и разберись в каждой строке):</b> функция <code>calcMonthlyPayment(P, n, annualPercent)</code> с формулой аннуитета и функция <code>formatMoney(value)</code> с форматированием «12 345.67 ₽». Обе есть в заготовке ниже.<br><br><b>Пишешь сам:</b> получение пяти элементов через <code>document.getElementById</code>; обработчик клика; внутри — чтение трёх полей через <code>Number()</code>, проверка «все три положительные числа» с сообщением и <code>return</code>, подсчёт <code>payment</code>, <code>total = payment * n</code>, <code>overpay = total - P</code> и вывод трёх строк шаблонными строками через <code>textContent</code>.<br><br><b>Правила:</b> только <code>const</code> и <code>let</code>, только <code>===</code> там, где сравниваешь, без <code>var</code>, <code>==</code> и <code>alert</code>. Результат — на странице, не в консоли. Скрипт — в конце <code>&lt;body&gt;</code>.",
-  note:"Заготовка уже содержит разметку, стили и две готовые функции. Допиши четыре помеченных места и проверь на наборах: 10000 / 3 / 12 и 100000 / 12 / 20.",
-  placeholder:[
-    '<!DOCTYPE html>',
-    '<html lang="ru">',
-    '<head>',
-    '  <meta charset="utf-8">',
-    '  <title>Кредит</title>',
-    '  <style>',
-    '    *, *::before, *::after { box-sizing: border-box; }',
-    '    body { font-family: Arial, Helvetica, sans-serif; padding: 24px; line-height: 1.5; }',
-    '    label { display: block; margin-bottom: 4px; font-weight: 600; }',
-    '    input, button { font-family: inherit; font-size: 16px; padding: 8px 12px; }',
-    '    #outPayment, #outTotal, #outOverpay { margin: 6px 0; font-size: 18px; }',
-    '  </style>',
-    '</head>',
-    '<body>',
-    '',
-    '  <h1>Расчёт кредита</h1>',
-    '',
-    '  <p>',
-    '    <label for="P">Сумма (руб.)</label>',
-    '    <input type="number" id="P" value="10000" min="1000" max="1000000">',
-    '  </p>',
-    '  <p>',
-    '    <label for="n">Срок (мес.)</label>',
-    '    <input type="number" id="n" value="3" min="1" max="30">',
-    '  </p>',
-    '  <p>',
-    '    <label for="i">Процент (годовых, %)</label>',
-    '    <input type="number" id="i" value="12" min="1" max="25">',
-    '  </p>',
-    '',
-    '  <button id="calcBtn" type="button">Посчитать</button>',
-    '',
-    '  <p id="outPayment"></p>',
-    '  <p id="outTotal"></p>',
-    '  <p id="outOverpay"></p>',
-    '',
-    '  <script>',
-    '    /* ДАНО 1. Формула аннуитетного платежа. Вставь как есть.',
-    '       i — процент в месяц: годовые делим на 100 и на 12.',
-    '       ** — возведение в степень: (1 + i) ** (-n) это (1 + i) в степени минус n. */',
-    '    function calcMonthlyPayment(P, n, annualPercent) {',
-    '      const i = annualPercent / 100 / 12;',
-    '      return (P * i) / (1 - (1 + i) ** (-n));',
-    '    }',
-    '',
-    '    /* ДАНО 2. Формат денег по-русски: 12 345.67 ₽ */',
-    '    function formatMoney(value) {',
-    '      return value.toLocaleString("ru-RU", {',
-    '        minimumFractionDigits: 2,',
-    '        maximumFractionDigits: 2',
-    '      }) + " ₽";',
-    '    }',
-    '',
-    '    /* ТУТ: получи пять элементов через document.getElementById */',
-    '',
-    '',
-    '    /* ТУТ: обработчик клика по кнопке:',
-    '       1) прочитать P, n и i через Number();',
-    '       2) проверить: все три — положительные числа, иначе сообщение и return;',
-    '       3) посчитать payment, total и overpay;',
-    '       4) вывести три строки в textContent трёх абзацев. */',
-    '  </' + 'script>',
-    '',
-    '</body>',
-    '</html>'
-  ].join("\n")
+  desc:"Собери страницу-калькулятор по образцу счётчика заказа. Заготовка лежит отдельным блоком с кнопкой «Копировать»: внутри уже есть разметка, стили и две данные функции. Порядок работы: скопируй заготовку в свой редактор (Блокнот, VS Code или онлайн-редактор) → допиши четыре помеченных места → проверь в браузере на наборах 10000 / 3 / 12 и 100000 / 12 / 20 → вставь готовый файл целиком в поле «Твой итоговый код».<br><br><b>Дано готовое (разберись в каждой строке):</b> функция <code>calcMonthlyPayment(P, n, annualPercent)</code> с формулой аннуитета и функция <code>formatMoney(value)</code> с форматированием «12 345.67 ₽».<br><br><b>Пишешь сам:</b> получение пяти элементов через <code>document.getElementById</code>; обработчик клика; внутри — чтение трёх полей через <code>Number()</code>, проверка «все три положительные числа» с сообщением и <code>return</code>, подсчёт <code>payment</code>, <code>total = payment * n</code>, <code>overpay = total - P</code> и вывод трёх строк шаблонными строками через <code>textContent</code>.<br><br><b>Правила:</b> только <code>const</code> и <code>let</code>, только <code>===</code> там, где сравниваешь, без <code>var</code>, <code>==</code> и <code>alert</code>. Результат — на странице, не в консоли. Скрипт — в конце <code>&lt;body&gt;</code>.",
+  note:"Заготовка уже содержит разметку, стили и две данные функции. Допиши четыре помеченных места и проверь на наборах: 10000 / 3 / 12 и 100000 / 12 / 20."
 };
 
 const PROMPT_TEMPLATE = [
@@ -721,10 +726,9 @@ function renderPractice(){
   const promptDone = state.prompt.response.trim() && allChecked && state.prompt.weak.trim();
   const practiceDone = taskDone && promptDone;
 
-  /* ИСПРАВЛЕНО: обычный тернарный оператор с двоеточием, без запятой */
   const codeInfo = state.task.code.trim()
     ? 'Заполнено символов: ' + state.task.code.length + '.'
-    : '<span style="color:#b45309">Код задания ещё не написан — сначала напиши калькулятор, потом проси разбор.</span>';
+    : '<span style="color:#b45309">Код задания ещё не вставлен — сначала напиши калькулятор, потом проси разбор.</span>';
 
   const mapRows = MAP_ROWS.map(function(r){
     return '<tr><td>' + r.a + '</td><td>' + r.b + '</td></tr>';
@@ -747,21 +751,18 @@ function renderPractice(){
     '      Как работать через блокнот',
     '    </div>',
     '    <ol>',
-    '      <li>Открой <b>Блокнот</b> (в меню «Пуск» набери «Блокнот»).</li>',
-    '      <li>Вставь заготовку задания и допиши помеченные места. HTML, CSS и JavaScript живут в одном файле.</li>',
-    '      <li>Нажми <b>Файл → Сохранить как</b>. В поле «Тип файла» выбери <b>«Все файлы»</b>. В поле «Имя файла» напиши <b>index.html</b>. В поле «Кодировка» выбери <b>UTF-8</b>.</li>',
-    '      <li>Открой файл двойным кликом — он откроется в браузере.</li>',
-    '      <li>Поправил код? Сохрани в блокноте → нажми <b>F5</b> в браузере.</li>',
+    '      <li>Нажми <b>«Копировать»</b> на блоке заготовки в задании ниже и вставь её в свой редактор: Блокнот, VS Code или онлайн-редактор.</li>',
+    '      <li>Сохрани как <b>index.html</b>: «Файл → Сохранить как», тип файла <b>«Все файлы»</b>, кодировка <b>UTF-8</b>.</li>',
+    '      <li>Допиши четыре помеченных места прямо в редакторе.</li>',
+    '      <li>Открой файл двойным кликом — он откроется в браузере. Поправил код? Сохрани → нажми <b>F5</b>.</li>',
     '      <li>Если страница не считает — открой <b>F12</b>, вкладка Console: ошибка называет строку. Первое место, куда смотрят при поломке.</li>',
+    '      <li>Когда всё считает — скопируй готовый файл целиком и вставь в поле «Твой итоговый код» ниже.</li>',
     '    </ol>',
     '    <div class="algo-note">',
     '      <b>Важно:</b> скрипт живёт в конце <code>&lt;body&gt;</code>. Поставишь его в <code>&lt;head&gt;</code> — <code>getElementById</code> вернёт <code>null</code>: элементов ещё нет в документе.',
     '    </div>',
     '    <div class="algo-note">',
-    '      <b>Альтернатива 1:</b> онлайн HTML-редактор показывает результат сразу и имеет консоль рядом. Удобно для отладки обработчика.',
-    '    </div>',
-    '    <div class="algo-note">',
-    '      <b>Альтернатива 2:</b> VS Code подсвечивает JavaScript, видит незакрытые скобки и предлагает имена функций. Создай файл <code>index.html</code> — редактор сам поймёт, что внутри три языка.',
+    '      <b>Альтернатива:</b> онлайн HTML-редактор показывает результат сразу и имеет консоль рядом; VS Code подсвечивает JavaScript и видит незакрытые скобки. Заготовку можно вставить туда так же — одной кнопкой.',
     '    </div>',
     '  </div>',
     '',
@@ -797,14 +798,21 @@ function renderPractice(){
     '    </div>',
     '    <div class="task-card-note">',
     '      <span>💡</span>',
-    '      <span><b>По образцу эталона.</b> ' + escapeHtml(TASK.note) + '</span>',
+    '      <span><b>Продолжение по образцу эталона.</b> ' + escapeHtml(TASK.note) + '</span>',
     '    </div>',
     '    <p class="task-card-desc">' + TASK.desc + '</p>',
     '    <div class="field">',
-    '      <label class="field-label" for="task-code-t1">Твой код <span class="field-hint">(HTML + CSS + JavaScript в одном файле)</span></label>',
+    '      <span class="field-label">Заготовка <span class="field-hint">скопируй в свой редактор и допиши помеченные места</span></span>',
+    '      <div class="code-block scaffold-block">',
+    '        <button class="copy-btn" data-action="copy-scaffold" type="button" aria-label="Скопировать заготовку">Копировать</button>',
+    escapeHtml(SCAFFOLD_CODE),
+    '      </div>',
+    '    </div>',
+    '    <div class="field" style="margin-top:14px">',
+    '      <label class="field-label" for="task-code-t1">Твой итоговый код <span class="field-hint">(вставь сюда готовый файл целиком)</span></label>',
     '      <textarea class="field-input code ' + (state.task.code.trim() ? 'filled' : '') + '"',
     '        id="task-code-t1" data-task-key="code" data-task-id="t1"',
-    '        placeholder="' + escapeHtml(TASK.placeholder) + '">' + escapeHtml(state.task.code) + '</textarea>',
+    '        placeholder="Сюда — твой готовый файл: HTML, CSS и JavaScript целиком, после проверки в браузере">' + escapeHtml(state.task.code) + '</textarea>',
     '    </div>',
     '    <div class="field">',
     '      <label class="field-label" for="task-note-t1">Что получилось? Что было сложно? <span class="field-hint">(1–2 предложения)</span></label>',
@@ -817,7 +825,7 @@ function renderPractice(){
     '  <div class="divider"></div>',
     '',
     '  <h3 class="sub-title">Построчный разбор через ИИ</h3>',
-    '  <p class="section-sub" style="margin-bottom:14px">Цель разбора — не проверка, а понимание: после таблицы ты обязан объяснить каждую строку своего кода сам. На проверку уйдёт код из задания выше, включая две данные функции.</p>',
+    '  <p class="section-sub" style="margin-bottom:14px">Цель разбора — не проверка, а понимание: после таблицы ты обязан объяснить каждую строку своего кода сам. На проверку уйдёт код из поля «Твой итоговый код», включая две данные функции.</p>',
     '',
     '  <div class="ai-links">',
     '    <a class="ai-link" href="https://chat.deepseek.com/" target="_blank" rel="noopener"><span class="ai-link-dot deepseek"></span>DeepSeek</a>',
@@ -826,7 +834,7 @@ function renderPractice(){
     '  </div>',
     '',
     '  <div class="instruction" style="margin-bottom:14px">',
-    '    <b>Будет отправлен код из задания «Калькулятор кредита».</b> ' + codeInfo,
+    '    <b>Будет отправлен код из поля «Твой итоговый код».</b> ' + codeInfo,
     '  </div>',
     '',
     '  <div class="prompt-box" aria-label="Текст промпта">',
@@ -996,6 +1004,10 @@ function handleAction(e){
     state.ethalonOpen = !state.ethalonOpen;
     saveState();
     render();
+  } else if(action === "copy-scaffold"){
+    copyToClipboard(SCAFFOLD_CODE, e.currentTarget);
+  } else if(action === "copy-prompt"){
+    copyToClipboard(buildPrompt(), e.currentTarget);
   } else if(action === "finish"){
     const p = countProgress();
     if(p.percent < 70){
@@ -1010,13 +1022,11 @@ function handleAction(e){
     state.finished = false;
     saveState();
     render();
-  } else if(action === "copy-prompt"){
-    copyToClipboard(buildPrompt(), e.currentTarget);
   }
 }
 
 function buildPrompt(){
-  const code = state.task.code || "(код пока не написан)";
+  const code = state.task.code || "(код пока не вставлен)";
   return PROMPT_TEMPLATE.replace("{CODE}", code);
 }
 
