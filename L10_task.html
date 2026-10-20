@@ -814,7 +814,6 @@ function renderPools(){
   return '<aside class="pools" aria-label="Куски кода по блокам">' + BLOCKS.map(function(b){
     const gaps = gapsOf(b.id);
     const ok = blockOkCount(b.id);
-    const filled = blockFilledCount(b.id);
     const chips = (state.order[b.id] || []).map(function(cid){
       const chip = chipById(cid);
       const used = placedChips().indexOf(cid) !== -1;
@@ -897,14 +896,16 @@ function renderPractice(){
     '',
     '  <div class="instruction" style="margin-bottom:14px">',
     '    <b>Будет отправлен обработчик нажатия из блока 5.</b> ' +
+    '<span data-b5-info>' +
     (b5filled === b5total
       ? 'Все ' + b5total + ' строки на месте.'
-      : '<span style="color:#b45309">Строк на месте: ' + b5filled + ' из ' + b5total + '. Собери блок 5, иначе промпт уйдёт с дырками.</span>'),
+      : '<span style="color:#b45309">Строк на месте: ' + b5filled + ' из ' + b5total + '. Собери блок 5, иначе промпт уйдёт с дырками.</span>') +
+    '</span>',
     '  </div>',
     '',
     '  <div class="prompt-box" aria-label="Текст промпта">',
     '    <button class="copy-btn" data-action="copy-prompt" type="button" aria-label="Скопировать промпт с кодом">Копировать</button>',
-    escapeHtml(buildPrompt()),
+    '    <span data-prompt-text>' + escapeHtml(buildPrompt()) + '</span>',
     '  </div>',
     '',
     '  <div class="field">',
@@ -1032,6 +1033,22 @@ function paintPool(blockId){
   });
 }
 
+/* ИСПРАВЛЕНО: живое обновление строки статуса и текста промпта */
+function paintPrompt(){
+  const info = document.querySelector("[data-b5-info]");
+  if(info){
+    const filled = blockFilledCount("b5");
+    const total = gapsOf("b5").length;
+    if(filled === total){
+      info.textContent = "Все " + total + " строки на месте.";
+    } else {
+      info.innerHTML = '<span style="color:#b45309">Строк на месте: ' + filled + " из " + total + ". Собери блок 5, иначе промпт уйдёт с дырками.</span>";
+    }
+  }
+  const pt = document.querySelector("[data-prompt-text]");
+  if(pt) pt.textContent = buildPrompt();
+}
+
 function paintSectionStatus(){
   const el = document.querySelector('#practice-title');
   if(!el) return;
@@ -1079,7 +1096,6 @@ function placeChip(chipId, gapId){
   const gap = gapById(gapId);
   if(!chip || !gap) return;
   if(chip.block !== gap.block) return;
-  // если кусок уже где-то стоит — освободить
   Object.keys(state.gaps).forEach(function(k){
     if(state.gaps[k] === chipId) state.gaps[k] = null;
   });
@@ -1092,6 +1108,7 @@ function placeChip(chipId, gapId){
   applyPickedHints();
   paintSectionStatus();
   updateProgress();
+  paintPrompt();
 }
 
 function returnChip(gapId){
@@ -1105,6 +1122,7 @@ function returnChip(gapId){
   applyPickedHints();
   paintSectionStatus();
   updateProgress();
+  paintPrompt();
 }
 
 function setPicked(chipId){
