@@ -1,0 +1,1325 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 10 · DOM и события</title>
+<style>
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  button, input, textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+  .topbar{
+    position:sticky; top:0; z-index:10;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{max-width:1100px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px}
+  .brand{display:flex; flex-direction:column; min-width:0; flex:1}
+  .brand-title{font-size:14px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .progress-wrap{display:flex; align-items:center; gap:10px; min-width:140px}
+  .progress-bar{flex:1; height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; min-width:80px}
+  .progress-fill{height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:38px; text-align:right}
+
+  main{max-width:1100px; margin:0 auto; padding:28px 20px 120px}
+
+  .hero{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .hero-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px, 4vw, 36px); font-weight:700; letter-spacing:-0.02em; margin:18px 0 10px; line-height:1.15}
+  .hero p{color:var(--text-2); font-size:16px; max-width:600px; margin:0 auto 24px}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:28px}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--surface-2); border-radius:999px; font-size:13px; color:var(--text-2)}
+  .chip b{color:var(--text); font-weight:600}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 22px; border-radius:12px; border:1px solid transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .15s ease; user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent; color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2); color:var(--text)}
+  .btn-lg{min-height:52px; padding:0 28px; font-size:16px; border-radius:14px}
+  .btn-sm{min-height:36px; padding:0 14px; font-size:13px; border-radius:10px}
+
+  .section{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; margin-bottom:20px; box-shadow:var(--shadow-sm)}
+  .section-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:18px}
+  .section-num{flex-shrink:0; width:36px; height:36px; border-radius:10px; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px}
+  .section-num.theory{background:#0f172a}
+  .section-num.practice{background:var(--accent)}
+  .section-title-wrap{flex:1; min-width:0}
+  .section-title{font-size:20px; font-weight:700; letter-spacing:-0.01em; margin:0 0 4px}
+  .section-sub{font-size:14px; color:var(--text-2); margin:0}
+  .section-status{flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--text-3)}
+  .section-status.done{background:var(--success-soft); color:var(--success)}
+
+  .instruction{background:var(--surface-2); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; font-size:14px; color:var(--text-2)}
+  .instruction ol, .instruction ul{margin:0; padding-left:18px}
+  .instruction li{margin-bottom:4px}
+  .instruction li::marker{color:var(--accent); font-weight:600}
+
+  .terms-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:24px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; cursor:pointer; transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent); background:#f8fbff}
+  .term-head{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .term-name{font-weight:700; font-size:15px; font-family:var(--mono); color:var(--accent)}
+  .term-check{margin-left:auto; width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex-shrink:0}
+  .term.learned .term-check{background:var(--success); border-color:var(--success)}
+  .term-check svg{width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:14px; color:var(--text-2); line-height:1.5}
+
+  .tags-table{width:100%; border-collapse:collapse; font-size:14px; margin-bottom:16px}
+  .tags-table th{text-align:left; padding:10px 12px; background:var(--surface-2); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .tags-table td{padding:12px; border-bottom:1px solid var(--border); vertical-align:top}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tags-table tr:hover td{background:var(--surface-2)}
+  .tag-code{font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:600; background:var(--accent-soft); padding:2px 8px; border-radius:6px; white-space:nowrap}
+  .tag-used{display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--warn-soft); color:#92400e; margin-left:6px; letter-spacing:.03em}
+
+  .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.6; overflow-x:auto; white-space:pre; margin-bottom:16px; position:relative}
+  .code-block::before{content:"index.html"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .code-block.asm{margin-bottom:0}
+
+  /* ---------- Сборка кода ---------- */
+  .asm-wrap{display:grid; gap:16px; grid-template-columns:1fr; margin-bottom:16px}
+  @media (min-width:960px){
+    .asm-wrap{grid-template-columns:minmax(0,1fr) 350px; align-items:start}
+  }
+  .pools{display:grid; gap:12px; align-content:start}
+  @media (min-width:960px){
+    .pools{position:sticky; top:70px; max-height:calc(100vh - 90px); overflow:auto; padding-right:4px}
+  }
+  .pool{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px}
+  .pool-head{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+  .pool-num{width:24px; height:24px; border-radius:7px; background:var(--surface-2); color:var(--text-2); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0}
+  .pool.ok .pool-num{background:var(--success); color:#fff}
+  .pool-title{font-size:13px; font-weight:700; flex:1; line-height:1.3}
+  .pool-status{font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface-2); color:var(--text-3); white-space:nowrap}
+  .pool-status.ok{background:var(--success-soft); color:var(--success)}
+  .pool-chips{display:flex; flex-direction:column; gap:6px}
+  .chip-code{
+    font-family:var(--mono); font-size:12px; line-height:1.45;
+    text-align:left; padding:8px 10px; border-radius:8px;
+    border:1px solid var(--border-strong); background:var(--surface-2);
+    cursor:grab; white-space:pre; overflow-x:auto;
+    transition:all .15s ease; min-height:34px;
+  }
+  .chip-code:hover{border-color:var(--accent); background:#f8fbff}
+  .chip-code:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .chip-code.picked{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); background:#f8fbff}
+  .chip-code.used{display:none}
+  .pool-check{margin-top:8px; width:100%}
+
+  .gap{
+    display:block; width:100%; text-align:left;
+    font-family:var(--mono); font-size:12.5px; line-height:1.5;
+    color:var(--code-text);
+    background:rgba(255,255,255,.06);
+    border:1.5px dashed #475569;
+    border-radius:8px;
+    padding:8px 10px;
+    margin:6px 0;
+    cursor:pointer;
+    white-space:pre;
+    overflow-x:auto;
+    min-height:40px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .gap:hover{border-color:var(--accent)}
+  .gap:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .gap .gap-label{color:#94a3b8; font-style:italic; white-space:normal; display:block}
+  .gap.hint{border-color:var(--accent); background:rgba(37,99,235,.14)}
+  .gap.filled{border-style:solid; border-color:#64748b; background:rgba(255,255,255,.1)}
+  .gap.ok{border-color:var(--success); background:rgba(22,163,74,.16)}
+  .gap.bad{border-color:#f87171; background:rgba(248,113,113,.14)}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block; font-size:13px; color:var(--text-2); margin-bottom:6px; font-weight:600}
+  .field-hint{font-size:12px; color:var(--text-3); font-weight:400; margin-left:4px}
+  .field-input{width:100%; min-height:40px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:14px; transition:border-color .15s ease, background .15s ease}
+  .field-input::placeholder{color:var(--text-3)}
+  .field-input:hover{border-color:var(--border-strong)}
+  .field-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff; border-color:var(--accent)}
+  textarea.field-input{min-height:100px; resize:vertical; line-height:1.5; font-family:var(--font)}
+
+  .algo{background:linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%); border:1px solid #fde68a; border-radius:var(--radius); padding:18px; margin-bottom:20px}
+  .algo-title{font-weight:700; font-size:15px; color:#78350f; margin-bottom:10px; display:flex; align-items:center; gap:8px}
+  .algo ol{margin:0; padding-left:20px; color:#78350f}
+  .algo li{margin-bottom:6px; font-size:14px}
+  .algo li::marker{font-weight:700}
+  .algo-note{margin-top:12px; padding:10px 12px; background:rgba(255,255,255,.5); border-radius:8px; font-size:13px; color:#78350f; line-height:1.5}
+  .algo-note b{font-weight:700}
+  .algo-note code{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.7); padding:1px 5px; border-radius:4px}
+
+  .prompt-box{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:16px; position:relative; word-break:break-word}
+  .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease; z-index:2}
+  .copy-btn:hover{background:rgba(255,255,255,.15); color:#fff}
+  .copy-btn.copied{background:var(--success); color:#fff; border-color:var(--success)}
+
+  .ai-links{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .ai-link{display:inline-flex; align-items:center; gap:8px; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); text-decoration:none; font-size:14px; font-weight:500; transition:all .15s ease; min-height:44px}
+  .ai-link:hover{border-color:var(--accent); background:var(--accent-soft)}
+  .ai-link-dot{width:8px; height:8px; border-radius:50%}
+  .ai-link-dot.deepseek{background:#4d6bfe}
+  .ai-link-dot.alice{background:#fc3f1d}
+  .ai-link-dot.qwen{background:#615ced}
+
+  .checklist{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px}
+  .checklist-title{font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:12px; text-transform:uppercase; letter-spacing:.05em}
+  .check-item{display:flex; align-items:flex-start; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:background .15s ease; user-select:none}
+  .check-item:hover{background:var(--surface-2)}
+  .check-item.checked{background:var(--success-soft)}
+  .check-box{flex-shrink:0; width:22px; height:22px; border:2px solid var(--border-strong); border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all .15s ease; margin-top:1px}
+  .check-item.checked .check-box{background:var(--success); border-color:var(--success)}
+  .check-box svg{width:14px; height:14px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .check-item.checked .check-box svg{opacity:1}
+  .check-text{font-size:14px; color:var(--text); flex:1}
+
+  .divider{height:1px; background:var(--border); margin:24px 0}
+  .sub-title{font-size:16px; font-weight:700; letter-spacing:-0.01em; margin:0 0 12px; color:var(--text)}
+
+  .actions{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.9); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-top:1px solid var(--border); padding:12px 20px; z-index:10}
+  .actions-inner{max-width:1100px; margin:0 auto; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+
+  .finish{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .finish-icon{width:64px; height:64px; border-radius:50%; background:var(--success-soft); color:var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 20px}
+  .finish-icon svg{width:32px; height:32px; stroke:currentColor; fill:none; stroke-width:2.5}
+  .finish h2{font-size:28px; font-weight:700; letter-spacing:-0.02em; margin:0 0 8px}
+  .finish p{color:var(--text-2); margin:0 0 24px}
+  .stats{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:28px}
+  .stat{background:var(--surface-2); border-radius:var(--radius); padding:16px 12px}
+  .stat-val{font-size:24px; font-weight:700; color:var(--accent); letter-spacing:-0.02em}
+  .stat-lbl{font-size:12px; color:var(--text-3); margin-top:2px}
+  .finish-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+
+  .hidden{display:none !important}
+
+  @media print{
+    @page{size:A4; margin:15mm}
+    body{background:#fff}
+    .topbar, .actions, .copy-btn, .btn-ghost, .pools, .pool-check{display:none !important}
+    main{padding:0; max-width:100%}
+    .section, .hero, .finish{box-shadow:none; break-inside:avoid; page-break-inside:avoid}
+    .field-input, textarea.field-input{border:1px solid #cbd5e1 !important; background:#fff !important}
+    .code-block, .prompt-box{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .gap{background:#fff !important; color:#0f172a !important; border:1px solid #94a3b8}
+    .gap .gap-label{color:#64748b}
+    .term.learned{border-color:#2563eb !important}
+    .check-item.checked .check-box{background:#16a34a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .asm-wrap{grid-template-columns:1fr !important}
+  }
+
+  @media (max-width:480px){
+    .topbar-inner{padding:10px 14px; gap:10px}
+    .brand-title{font-size:13px}
+    .brand-sub{font-size:11px}
+    .progress-wrap{min-width:110px}
+    main{padding:16px 14px 110px}
+    .section{padding:20px 18px}
+    .hero{padding:28px 20px}
+    .hero h1{font-size:24px}
+    .section-title{font-size:17px}
+    .stats{grid-template-columns:1fr}
+    .actions{padding:10px 14px}
+    .actions-inner{gap:8px}
+    .actions-inner .btn{flex:1; padding:0 14px}
+    .tags-table{font-size:13px}
+    .tags-table th, .tags-table td{padding:8px}
+    .code-block{font-size:11.5px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 10 · DOM и события
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title: "Рабочий лист · Занятие 10",
+  subtitle: "DOM и события",
+  teacher: "Масликов М. М.",
+  grade: "10–11 класс",
+  time: "80 минут"
+};
+
+const TERMS = [
+  { key:"dom", name:"DOM", def:"Дерево объектов, которое браузер строит из разметки. Каждый тег — узел." },
+  { key:"node", name:"Узел", def:"Один элемент в дереве DOM. У узлов есть родители, дети и соседи." },
+  { key:"document", name:"document", def:"Объект всего документа. Точка входа для любого поиска." },
+  { key:"qs", name:"querySelector", def:"Найти первый элемент по селектору CSS. Не нашёл — null." },
+  { key:"qsa", name:"querySelectorAll", def:"Найти все подходящие элементы. Возвращает список, похожий на массив." },
+  { key:"textcontent", name:"textContent", def:"Текст внутри элемента. Разметку не разбирает. Для всего, что пришло от пользователя и из данных." },
+  { key:"innerhtml", name:"innerHTML", def:"Разметка внутри элемента. Строка разбирается как HTML. Только своя разметка, одним присваиванием." },
+  { key:"classlist", name:"classList", def:"Управление классами: add, remove, toggle, contains. Способ показать и скрыть окно." },
+  { key:"dataset", name:"dataset", def:"Доступ к атрибутам data-*. Атрибут data-id читается как dataset.id." },
+  { key:"render", name:"Отрисовка из данных", def:"Построение разметки из массива: map → join → innerHTML. Одно присваивание, не в цикле." },
+  { key:"event", name:"Событие", def:"То, что произошло на странице: нажатие, ввод, клавиша." },
+  { key:"handler", name:"Обработчик", def:"Функция, которая выполняется, когда событие произошло. Передаётся без скобок." },
+  { key:"ael", name:"addEventListener", def:"Назначение обработчика. Единственный способ, принятый на курсе." },
+  { key:"eobj", name:"Объект события", def:"То, что обработчик получает на вход: сведения о произошедшем." },
+  { key:"etarget", name:"event.target", def:"Элемент, по которому реально произошло событие. Может быть вложенным, а не тем, на котором висит обработчик." },
+  { key:"ekey", name:"event.key", def:"Название нажатой клавиши: \"Enter\", \"Escape\"." },
+  { key:"bubble", name:"Всплытие", def:"Событие происходит на элементе и поднимается вверх по дереву к родителям." },
+  { key:"deleg", name:"Делегирование", def:"Один обработчик на контейнер вместо обработчика на каждом ребёнке. Переживает перерисовку списка." },
+  { key:"closest", name:"closest", def:"Подняться вверх от элемента и найти ближайшего подходящего предка." },
+  { key:"modal", name:"Модальное окно", def:"Блок поверх страницы. Лежит в разметке всегда, скрыт классом; скрипт класс переключает." }
+];
+
+const TAGS = [
+  { code:"document.querySelector(\"#menu\")", desc:"Найти один раз наверху и сохранить в переменную.", used:true },
+  { code:"элемент.textContent", desc:"Вывод данных и любого пользовательского текста.", used:true },
+  { code:"map → join → innerHTML", desc:"Отрисовка списка одним присваиванием, не в цикле.", used:true },
+  { code:"classList.remove(\"hidden\")", desc:"Показать окно: снять класс скрытия.", used:true },
+  { code:"classList.add(\"hidden\")", desc:"Скрыть окно: вернуть класс.", used:true },
+  { code:"card.dataset.id", desc:"Прочитать data-id карточки и найти объект в массиве.", used:true },
+  { code:"addEventListener(\"click\", fn)", desc:"Назначить обработчик. fn без скобок.", used:true },
+  { code:"event.target.closest(\".card\")", desc:"Подняться от места нажатия до карточки: работает и по заголовку внутри.", used:true },
+  { code:"if (card === null) return;", desc:"Защита: клик мимо карточки не должен ничего делать.", used:true },
+  { code:"Обработчик на контейнере", desc:"Делегирование: переживает любую перерисовку списка.", used:true },
+  { code:"document.addEventListener(\"keydown\", …)", desc:"Escape слушают на всём документе.", used:true },
+  { code:"onclick= в разметке", desc:"Поведение вперемешку с разметкой, обработчик только один. Запрещено.", used:false },
+  { code:"innerHTML в цикле", desc:"Каждая итерация перестраивает страницу. Запрещено.", used:false },
+  { code:"Пользовательский текст в innerHTML", desc:"Браузер выполнит вставленное. Запрещено.", used:false }
+];
+
+/* ---------- Код страницы с пропусками ---------- */
+const SEG = [
+  { c: [
+    '<!DOCTYPE html>',
+    '<html lang="ru">',
+    '<head>',
+    '  <meta charset="utf-8">',
+    '  <title>Меню буфета</title>',
+    '  <style>',
+    '    *, *::before, *::after { box-sizing: border-box; }',
+    '    body { font-family: Arial, Helvetica, sans-serif; padding: 24px; line-height: 1.5; }',
+    '    .filters { display: flex; gap: 8px; margin-bottom: 16px; }',
+    '    .filters button { font: inherit; padding: 8px 16px; border-radius: 999px;',
+    '                      border: 2px solid #e3e7e1; background: #fff; cursor: pointer; }',
+    '    .menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));',
+    '            gap: 16px; list-style: none; padding-left: 0; }',
+    '    .card { border: 1px solid #e3e7e1; border-radius: 14px; padding: 16px; cursor: pointer; }',
+    '    .card h3 { margin: 0 0 8px; font-size: 18px; }',
+    '    .price { font-weight: 700; color: #5fa22e; }',
+    '    .modal { position: fixed; inset: 0; background: rgba(17,19,18,.5);',
+    '             display: grid; place-items: center; padding: 16px; }',
+    '    .modal.hidden { display: none; }',
+    '    .modal__box { background: #fff; border-radius: 14px; padding: 24px; max-width: 420px; width: 100%; }',
+    '  </style>',
+    '</head>',
+    '<body>',
+    '',
+    '  <h2>Меню на сегодня</h2>',
+    '',
+    '  <div class="filters" id="filters">',
+    '    <button type="button" data-kind="все">Все</button>',
+    '    <button type="button" data-kind="солёное">Солёное</button>',
+    '    <button type="button" data-kind="сладкое">Сладкое</button>',
+    '  </div>',
+    '',
+    '  <ul class="menu" id="menu"></ul>',
+    '',
+    '  <div class="modal hidden" id="modal">',
+    '    <div class="modal__box">',
+    '      <h3 id="modalTitle"></h3>',
+    '      <p id="modalText"></p>',
+    '      <button type="button" id="modalClose">Закрыть</button>',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <' + 'script>',
+    '    const PIES = [',
+    '      { id: "kalitka",  name: "Калитка с картошкой", price: 45, kind: "солёное",',
+    '        parts: "Тесто ржаное, картофельное пюре, сметана, масло" },',
+    '      { id: "rybnik",   name: "Рыбник",              price: 90, kind: "солёное",',
+    '        parts: "Тесто дрожжевое, филе трески, лук, специи" },',
+    '      { id: "brusnika", name: "Брусничный пирог",    price: 70, kind: "сладкое",',
+    '        parts: "Тесто песочное, брусника, сахар, крахмал" },',
+    '      { id: "cherniga", name: "Черничная ватрушка",  price: 60, kind: "сладкое",',
+    '        parts: "Тесто сдобное, творог, черника, сахар" }',
+    '    ];',
+    '',
+    '    const menu = document.querySelector("#menu");',
+    '    const filters = document.querySelector("#filters");',
+    '    const modal = document.querySelector("#modal");',
+    '    const modalTitle = document.querySelector("#modalTitle");',
+    '    const modalText = document.querySelector("#modalText");',
+    '    const modalClose = document.querySelector("#modalClose");',
+    '',
+    '    /* 1. Отрисовка меню: renderMenu(pies) */'
+  ].join("\n") },
+  { g: "b1g1" }, { g: "b1g2" }, { g: "b1g3" }, { g: "b1g4" },
+  { c: [
+    '',
+    '    /* 2. Модальное окно: openModal(pie) и closeModal() */'
+  ].join("\n") },
+  { g: "b2g1" }, { g: "b2g2" }, { g: "b2g3" }, { g: "b2g4" }, { g: "b2g5" },
+  { c: [
+    '',
+    '    /* 3. Первая отрисовка */'
+  ].join("\n") },
+  { g: "b3g1" },
+  { c: [
+    '',
+    '    /* 4. Обработчик фильтров */'
+  ].join("\n") },
+  { g: "b4g1" }, { g: "b4g2" }, { g: "b4g3" }, { g: "b4g4" },
+  { c: [
+    '',
+    '    /* 5. Обработчик нажатия по карточке: делегирование */'
+  ].join("\n") },
+  { g: "b5g1" }, { g: "b5g2" }, { g: "b5g3" }, { g: "b5g4" },
+  { c: [
+    '',
+    '    /* 6. Закрытие окна: кнопка и Escape */'
+  ].join("\n") },
+  { g: "b6g1" }, { g: "b6g2" },
+  { c: [
+    '  </' + 'script>',
+    '',
+    '</body>',
+    '</html>'
+  ].join("\n") }
+];
+
+/* ---------- Блоки, слоты и куски кода ---------- */
+const BLOCKS = [
+  { id:"b1", num:1, title:"Отрисовка меню" },
+  { id:"b2", num:2, title:"Модальное окно" },
+  { id:"b3", num:3, title:"Первая отрисовка" },
+  { id:"b4", num:4, title:"Обработчик фильтров" },
+  { id:"b5", num:5, title:"Нажатие по карточке" },
+  { id:"b6", num:6, title:"Закрытие окна" }
+];
+
+const GAPS = [
+  { id:"b1g1", block:"b1", label:"① шапка функции с параметром", expect:"c_b1g1" },
+  { id:"b1g2", block:"b1", label:"② пустой массив: сообщение и выход", expect:"c_b1g2" },
+  { id:"b1g3", block:"b1", label:"③ карточки из данных: map и join", expect:"c_b1g3" },
+  { id:"b1g4", block:"b1", label:"④ закрывающая скобка функции", expect:"c_b1g4" },
+
+  { id:"b2g1", block:"b2", label:"① шапка функции открытия", expect:"c_b2g1" },
+  { id:"b2g2", block:"b2", label:"② содержимое окна через textContent", expect:"c_b2g2" },
+  { id:"b2g3", block:"b2", label:"③ показать окно и закрыть функцию", expect:"c_b2g3" },
+  { id:"b2g4", block:"b2", label:"④ шапка функции закрытия", expect:"c_b2g4" },
+  { id:"b2g5", block:"b2", label:"⑤ спрятать окно и закрыть функцию", expect:"c_b2g5" },
+
+  { id:"b3g1", block:"b3", label:"① нарисовать все пироги при старте", expect:"c_b3g1" },
+
+  { id:"b4g1", block:"b4", label:"① обработчик на контейнер фильтров", expect:"c_b4g1" },
+  { id:"b4g2", block:"b4", label:"② какая кнопка нажата + защита", expect:"c_b4g2" },
+  { id:"b4g3", block:"b4", label:"③ выбор: все или по виду", expect:"c_b4g3" },
+  { id:"b4g4", block:"b4", label:"④ закрыть обработчик", expect:"c_b4g4" },
+
+  { id:"b5g1", block:"b5", label:"① обработчик на контейнер меню", expect:"c_b5g1" },
+  { id:"b5g2", block:"b5", label:"② найти карточку от места клика + защита", expect:"c_b5g2" },
+  { id:"b5g3", block:"b5", label:"③ объект по id и открыть окно", expect:"c_b5g3" },
+  { id:"b5g4", block:"b5", label:"④ закрыть обработчик", expect:"c_b5g4" },
+
+  { id:"b6g1", block:"b6", label:"① кнопка «Закрыть»", expect:"c_b6g1" },
+  { id:"b6g2", block:"b6", label:"② клавиша Escape на всём документе", expect:"c_b6g2" }
+];
+
+const CHIPS = [
+  { id:"c_b1g1", block:"b1", code:'function renderMenu(pies) {' },
+  { id:"c_b1g2", block:"b1", code:'  if (pies.length === 0) {\n    menu.innerHTML = "<li>Ничего не найдено</li>";\n    return;\n  }' },
+  { id:"c_b1g3", block:"b1", code:'  menu.innerHTML = pies\n    .map((pie) => `<li class="card" data-id="${pie.id}"><h3>${pie.name}</h3><span class="price">${pie.price} ₽</span></li>`)\n    .join("");' },
+  { id:"c_b1g4", block:"b1", code:'}' },
+  { id:"d1", block:"b1", distractor:true, code:'  for (const pie of pies) {\n    menu.innerHTML += pie.name;\n  }' },
+
+  { id:"c_b2g1", block:"b2", code:'function openModal(pie) {' },
+  { id:"c_b2g2", block:"b2", code:'  modalTitle.textContent = pie.name;\n  modalText.textContent = pie.parts;' },
+  { id:"c_b2g3", block:"b2", code:'  modal.classList.remove("hidden");\n}' },
+  { id:"c_b2g4", block:"b2", code:'function closeModal() {' },
+  { id:"c_b2g5", block:"b2", code:'  modal.classList.add("hidden");\n}' },
+  { id:"d2", block:"b2", distractor:true, code:'  modal.style.display = "block";' },
+
+  { id:"c_b3g1", block:"b3", code:'renderMenu(PIES);' },
+
+  { id:"c_b4g1", block:"b4", code:'filters.addEventListener("click", (event) => {' },
+  { id:"c_b4g2", block:"b4", code:'  const btn = event.target.closest("button");\n  if (btn === null) return;\n  const kind = btn.dataset.kind;' },
+  { id:"c_b4g3", block:"b4", code:'  if (kind === "все") {\n    renderMenu(PIES);\n  } else {\n    renderMenu(PIES.filter((pie) => pie.kind === kind));\n  }' },
+  { id:"c_b4g4", block:"b4", code:'});' },
+  { id:"d4", block:"b4", distractor:true, code:'  const btn = event.target;' },
+
+  { id:"c_b5g1", block:"b5", code:'menu.addEventListener("click", (event) => {' },
+  { id:"c_b5g2", block:"b5", code:'  const card = event.target.closest(".card");\n  if (card === null) return;' },
+  { id:"c_b5g3", block:"b5", code:'  const pie = PIES.find((p) => p.id === card.dataset.id);\n  openModal(pie);' },
+  { id:"c_b5g4", block:"b5", code:'});' },
+  { id:"d5", block:"b5", distractor:true, code:'  const card = event.target;' },
+
+  { id:"c_b6g1", block:"b6", code:'modalClose.addEventListener("click", closeModal);' },
+  { id:"c_b6g2", block:"b6", code:'document.addEventListener("keydown", (event) => {\n  if (event.key === "Escape") closeModal();\n});' },
+  { id:"d6", block:"b6", distractor:true, code:'modal.addEventListener("click", closeModal);' }
+];
+
+const PROMPT_TEMPLATE = [
+  'Ты объясняешь готовый код построчно ученику, который вторую неделю пишет на JavaScript.',
+  '',
+  'Контекст: страница школьного буфета. Карточки рисуются из массива объектов, обработчик нажатия назначен на контейнер. Ученик знает: переменные, функции, filter, map, find, шаблонные строки, addEventListener. Не знает: классы, модули, асинхронность.',
+  '',
+  'Задача: объясни мой обработчик нажатия построчно. Отдельно ответь на вопрос: что произойдёт, если убрать строку с closest, и что — если убрать проверку на null.',
+  '',
+  'Ограничения: не переписывай мой код и не предлагай улучшений; не упоминай библиотеки, классы и асинхронность; каждый термин, которого нет в моём коде, объясняй сразу; пиши по-русски короткими предложениями.',
+  '',
+  'Формат ответа: таблица из трёх колонок — строка кода, что делает, что сломается без неё. После таблицы — два абзаца ответов на вопросы про closest и про проверку.',
+  '',
+  'Критерии проверки: разобрана каждая строка; ответы про closest и null конкретные, с описанием того, что увидит пользователь.',
+  '',
+  'Вот мой код:',
+  '',
+  '{CODE}'
+].join("\n");
+
+const CHECKLIST = [
+  "Разобрана каждая строка моего обработчика",
+  "Объяснение совпадает с моим собственным пониманием",
+  "Ответ про closest конкретный: что увидит пользователь без этой строки",
+  "Ответ про проверку null конкретный: что увидит пользователь без неё",
+  "Модель не переписывала мой код и не предлагала улучшений",
+  "Модель не упоминала библиотеки, классы и асинхронность",
+  "Каждый термин, которого нет в моём коде, объяснён сразу",
+  "Я сам могу объяснить каждую строку обработчика вслух"
+];
+
+const STORAGE_KEY = "wdc-l10-worksheet-v1";
+
+let state = {
+  started: false,
+  finished: false,
+  termsLearned: {},
+  order: null,
+  picked: null,
+  gaps: {},
+  mark: {},
+  prompt: {
+    response: "",
+    checklist: CHECKLIST.map(function(){ return false; }),
+    weak: "",
+    fix: ""
+  }
+};
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state = deepMerge(state, parsed);
+    }
+    if(!Array.isArray(state.prompt.checklist) || state.prompt.checklist.length !== CHECKLIST.length){
+      state.prompt.checklist = CHECKLIST.map(function(){ return false; });
+    }
+  }catch(e){}
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])){
+      out[k] = deepMerge(target[k] || {}, source[k]);
+    } else {
+      out[k] = source[k];
+    }
+  }
+  return out;
+}
+
+function ensureOrder(){
+  if(state.order && typeof state.order === "object"){
+    const missing = BLOCKS.some(function(b){
+      return !Array.isArray(state.order[b.id]) ||
+        state.order[b.id].length !== CHIPS.filter(function(c){ return c.block === b.id; }).length;
+    });
+    if(!missing) return;
+  }
+  const order = {};
+  BLOCKS.forEach(function(b){
+    const ids = CHIPS.filter(function(c){ return c.block === b.id; }).map(function(c){ return c.id; });
+    for(let i = ids.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      const t = ids[i]; ids[i] = ids[j]; ids[j] = t;
+    }
+    order[b.id] = ids;
+  });
+  state.order = order;
+}
+
+function chipById(id){
+  return CHIPS.find(function(c){ return c.id === id; }) || null;
+}
+function gapById(id){
+  return GAPS.find(function(g){ return g.id === id; }) || null;
+}
+function placedChips(){
+  return Object.keys(state.gaps).filter(function(k){ return state.gaps[k]; });
+}
+function gapsOf(blockId){
+  return GAPS.filter(function(g){ return g.block === blockId; });
+}
+function blockOkCount(blockId){
+  return gapsOf(blockId).filter(function(g){ return state.gaps[g.id] === g.expect; }).length;
+}
+function blockFilledCount(blockId){
+  return gapsOf(blockId).filter(function(g){ return !!state.gaps[g.id]; }).length;
+}
+function allBlocksOk(){
+  return BLOCKS.every(function(b){ return blockOkCount(b.id) === gapsOf(b.id).length; });
+}
+
+function countProgress(){
+  let filled = 0, total = 0;
+
+  TERMS.forEach(function(t){
+    total++;
+    if(state.termsLearned[t.key]) filled++;
+  });
+
+  GAPS.forEach(function(g){
+    total++;
+    if(state.gaps[g.id]) filled++;
+  });
+
+  total++;
+  if(state.prompt.response.trim()) filled++;
+  CHECKLIST.forEach(function(_, i){
+    total++;
+    if(state.prompt.checklist[i]) filled++;
+  });
+  total++;
+  if(state.prompt.weak.trim()) filled++;
+
+  return { filled: filled, total: total, percent: total ? Math.round(filled / total * 100) : 0 };
+}
+function termsCount(){
+  return Object.values(state.termsLearned).filter(Boolean).length;
+}
+function gapsOkCount(){
+  return GAPS.filter(function(g){ return state.gaps[g.id] === g.expect; }).length;
+}
+
+/* ---------- Рендер ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  ensureOrder();
+  const progress = countProgress();
+
+  let html = renderTopbar(progress);
+  html += "<main>";
+
+  if(!state.started){
+    html += renderHero();
+  } else if(state.finished){
+    html += renderFinish(progress);
+  } else {
+    html += renderTheory();
+    html += renderPractice();
+  }
+
+  html += "</main>";
+
+  if(state.started && !state.finished){
+    html += renderActions(progress);
+  }
+
+  app.innerHTML = html;
+  bindHandlers();
+  applyPickedHints();
+}
+
+function renderTopbar(progress){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <div class="brand-title">' + escapeHtml(COURSE.title) + '</div>',
+    '      <div class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · ' + escapeHtml(COURSE.grade) + '</div>',
+    '    </div>',
+    '    <div class="progress-wrap" aria-label="Прогресс заполнения">',
+    '      <div class="progress-bar" role="progressbar" aria-valuenow="' + progress.percent + '" aria-valuemin="0" aria-valuemax="100">',
+    '        <div class="progress-fill" style="width:' + progress.percent + '%"></div>',
+    '      </div>',
+    '      <div class="progress-num">' + progress.percent + '%</div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderHero(){
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Занятие 10 из 24</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.subtitle) + '</h1>',
+    '  <p>Переломное занятие: страница начинает рисоваться из данных и отвечать на нажатия. Сегодня ты соберёшь меню буфета из кусков кода по одной схеме, которая не изменится до конца курса: найти → назначить обработчик → изменить.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    '    <span class="chip">🎓 ' + escapeHtml(COURSE.grade) + '</span>',
+    '    <span class="chip">⏱ ' + escapeHtml(COURSE.time) + '</span>',
+    '  </div>',
+    '  <button class="btn btn-primary btn-lg" data-action="start">',
+    '    Начать работу',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '  </button>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTheory(){
+  const learned = termsCount();
+  const theoryDone = learned === TERMS.length;
+  return [
+    '<section class="section" aria-labelledby="theory-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num theory">Т</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="theory-title">Теория: термины и приёмы DOM</h2>',
+    '      <p class="section-sub">Прочитай каждый термин и отметь те, что понял. Ниже — таблица приёмов, которые встречаются в коде практики.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (theoryDone ? 'done' : '') + '">' + learned + '/' + TERMS.length + ' отмечено</span>',
+    '  </div>',
+    '',
+    '  <div class="instruction">',
+    '    <ol>',
+    '      <li>Внимательно прочитай каждый термин.</li>',
+    '      <li>Если понял — отметь галочкой. Это подтверждение, что ты готов идти дальше.</li>',
+    '      <li>Все двадцать терминов должны быть отмечены, прежде чем ты перейдёшь к практике.</li>',
+    '    </ol>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Ключевые термины</h3>',
+    '  <div class="terms-grid" role="list">',
+    TERMS.map(renderTerm).join(""),
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Приёмы занятия</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Жёлтая плашка «на занятии» означает, что приём есть в коде, который ты собираешь в практике.</p>',
+    '  <div style="overflow-x:auto; margin-bottom:0">',
+    '    <table class="tags-table">',
+    '      <thead><tr><th>Приём</th><th>Что делает</th></tr></thead>',
+    '      <tbody>',
+    TAGS.map(renderTagRow).join(""),
+    '      </tbody>',
+    '    </table>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return [
+    '<div class="term ' + (learned ? 'learned' : '') + '" data-term="' + t.key + '" role="listitem" tabindex="0" aria-pressed="' + learned + '">',
+    '  <div class="term-head">',
+    '    <span class="term-name">' + escapeHtml(t.name) + '</span>',
+    '    <span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+    '  </div>',
+    '  <div class="term-def">' + escapeHtml(t.def) + '</div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTagRow(tag){
+  return [
+    '<tr>',
+    '  <td><span class="tag-code">' + escapeHtml(tag.code) + '</span>' + (tag.used ? '<span class="tag-used">НА ЗАНЯТИИ</span>' : '') + '</td>',
+    '  <td>' + escapeHtml(tag.desc) + '</td>',
+    '</tr>'
+  ].join("\n");
+}
+
+function gapHtml(g){
+  const chipId = state.gaps[g.id];
+  const chip = chipId ? chipById(chipId) : null;
+  const mark = state.mark[g.id];
+  let cls = "gap";
+  if(chip) cls += " filled";
+  if(mark === "ok") cls += " ok";
+  if(mark === "bad") cls += " bad";
+  const inner = chip
+    ? escapeHtml(chip.code)
+    : '<span class="gap-label">' + escapeHtml(g.label) + '</span>';
+  return '<button type="button" class="' + cls + '" data-gap="' + g.id + '" aria-label="Пропуск: ' + escapeHtml(g.label) + '">' + inner + '</button>';
+}
+
+function renderCodeWithGaps(){
+  let out = "";
+  SEG.forEach(function(seg){
+    if(seg.c !== undefined){
+      out += escapeHtml(seg.c);
+    } else {
+      out += gapHtml(gapById(seg.g));
+    }
+  });
+  return '<pre class="code-block asm" aria-label="Код страницы с пропусками">' + out + '</pre>';
+}
+
+function renderPools(){
+  return '<aside class="pools" aria-label="Куски кода по блокам">' + BLOCKS.map(function(b){
+    const gaps = gapsOf(b.id);
+    const ok = blockOkCount(b.id);
+    const filled = blockFilledCount(b.id);
+    const chips = (state.order[b.id] || []).map(function(cid){
+      const chip = chipById(cid);
+      const used = placedChips().indexOf(cid) !== -1;
+      return '<button type="button" class="chip-code' + (used ? ' used' : '') + (state.picked === cid ? ' picked' : '') + '" data-chip="' + cid + '" draggable="true" aria-label="Кусок кода блока ' + b.num + '">' + escapeHtml(chip.code) + '</button>';
+    }).join("");
+    const statusCls = ok === gaps.length ? 'pool-status ok' : 'pool-status';
+    return [
+      '<div class="pool' + (ok === gaps.length ? ' ok' : '') + '" data-pool="' + b.id + '">',
+      '  <div class="pool-head">',
+      '    <span class="pool-num">' + b.num + '</span>',
+      '    <span class="pool-title">' + escapeHtml(b.title) + '</span>',
+      '    <span class="' + statusCls + '" data-pool-status>' + ok + '/' + gaps.length + '</span>',
+      '  </div>',
+      '  <div class="pool-chips">' + chips + '</div>',
+      '  <button type="button" class="btn btn-secondary btn-sm pool-check" data-check-block="' + b.id + '">Проверить блок</button>',
+      '</div>'
+    ].join("\n");
+  }).join("\n") + '</aside>';
+}
+
+function renderPractice(){
+  const allChecked = state.prompt.checklist.every(Boolean);
+  const promptDone = state.prompt.response.trim() && allChecked && state.prompt.weak.trim();
+  const asmDone = allBlocksOk();
+  const practiceDone = asmDone && promptDone;
+  const b5filled = blockFilledCount("b5");
+  const b5total = gapsOf("b5").length;
+
+  return [
+    '<section class="section" aria-labelledby="practice-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num practice">П</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="practice-title">Практика: сборка кода и разбор обработчика</h2>',
+    '      <p class="section-sub">Код страницы открыт целиком, но шесть блоков пусты. Собери их из кусков справа, проверь каждый блок, скопируй файл и отправь обработчик на разбор ИИ.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (practiceDone ? 'done' : '') + '">' + gapsOkCount() + '/' + GAPS.length + ' верно</span>',
+    '  </div>',
+    '',
+    '  <div class="algo">',
+    '    <div class="algo-title">',
+    '      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+    '      Как собирать',
+    '    </div>',
+    '    <ol>',
+    '      <li>Кликни по куску кода справа — он «встанет в руку». Пустые пропуски его блока подсветятся.</li>',
+    '      <li>Кликни по подсвеченному пропуску в коде — кусок встанет туда. Кусок можно и перетащить мышью.</li>',
+    '      <li>Клик по установленному куску возвращает его в пул. В каждом блоке есть лишний кусок-ловушка: для него места нет.</li>',
+    '      <li>Нажми «Проверить блок»: верные куски станут зелёными, неверные — красными.</li>',
+    '      <li>Когда все шесть блоков зелёные — нажми «Скопировать собранный файл», сохрани как index.html и открой в браузере.</li>',
+    '    </ol>',
+    '    <div class="algo-note">',
+    '      <b>Схема занятия одна на все блоки:</b> найти элемент → назначить обработчик → изменить страницу. Карточек в момент запуска скрипта ещё нет, поэтому обработчики висят на контейнерах, а не на карточках.',
+    '    </div>',
+    '    <div class="algo-note">',
+    '      <b>Куда пойдёт твой код:</b> обработчик из блока 5 подставляется в промпт ниже автоматически — теми строками, которые ты поставил в пропуски.',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Собери код из кусков</h3>',
+    '  <div class="asm-wrap">',
+    renderCodeWithGaps(),
+    renderPools(),
+    '  </div>',
+    '  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px">',
+    '    <button class="btn btn-secondary" data-action="copy-full" type="button">Скопировать собранный файл</button>',
+    '    <button class="btn btn-ghost" data-action="clear-gaps" type="button">Очистить все пропуски</button>',
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Построчный разбор обработчика через ИИ</h3>',
+    '  <p class="section-sub" style="margin-bottom:14px">Цель — не проверка, а понимание: после таблицы ты обязан объяснить каждую строку обработчика сам, включая строку с closest и проверку на null.</p>',
+    '',
+    '  <div class="ai-links">',
+    '    <a class="ai-link" href="https://chat.deepseek.com/" target="_blank" rel="noopener"><span class="ai-link-dot deepseek"></span>DeepSeek</a>',
+    '    <a class="ai-link" href="https://alice.yandex.ru/" target="_blank" rel="noopener"><span class="ai-link-dot alice"></span>Яндекс Алиса</a>',
+    '    <a class="ai-link" href="https://chat.qwen.ai/" target="_blank" rel="noopener"><span class="ai-link-dot qwen"></span>Qwen</a>',
+    '  </div>',
+    '',
+    '  <div class="instruction" style="margin-bottom:14px">',
+    '    <b>Будет отправлен обработчик нажатия из блока 5.</b> ' +
+    (b5filled === b5total
+      ? 'Все ' + b5total + ' строки на месте.'
+      : '<span style="color:#b45309">Строк на месте: ' + b5filled + ' из ' + b5total + '. Собери блок 5, иначе промпт уйдёт с дырками.</span>'),
+    '  </div>',
+    '',
+    '  <div class="prompt-box" aria-label="Текст промпта">',
+    '    <button class="copy-btn" data-action="copy-prompt" type="button" aria-label="Скопировать промпт с кодом">Копировать</button>',
+    escapeHtml(buildPrompt()),
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-response">Ответ нейросети (вставь сюда)</label>',
+    '    <textarea class="field-input ' + (state.prompt.response.trim() ? 'filled' : '') + '"',
+    '      id="prompt-response" data-prompt-key="response"',
+    '      placeholder="Сюда — таблицу и два абзаца про closest и null"',
+    '      style="min-height:180px">' + escapeHtml(state.prompt.response) + '</textarea>',
+    '  </div>',
+    '',
+    '  <div class="checklist" role="group" aria-label="Чек-лист проверки разбора">',
+    '    <div class="checklist-title">Чек-лист проверки разбора</div>',
+    CHECKLIST.map(function(text, i){
+      const checked = state.prompt.checklist[i] ? 'checked' : '';
+      return [
+        '<div class="check-item ' + checked + '"',
+        '     data-check-idx="' + i + '" role="checkbox" aria-checked="' + state.prompt.checklist[i] + '" tabindex="0">',
+        '  <span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+        '  <span class="check-text">' + escapeHtml(text) + '</span>',
+        '</div>'
+      ].join("\n");
+    }).join(""),
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-weak">Строка, которую модель объяснила неверно или пропустила</label>',
+    '    <textarea class="field-input ' + (state.prompt.weak.trim() ? 'filled' : '') + '"',
+    '      id="prompt-weak" data-prompt-key="weak"',
+    '      placeholder="Например: «сказала, что без closest окно откроется по любой карточке, — а на деле card была бы undefined»">' + escapeHtml(state.prompt.weak) + '</textarea>',
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-fix">Что из объяснения ты переписал своими словами? <span class="field-hint">(необязательно)</span></label>',
+    '    <textarea class="field-input ' + (state.prompt.fix.trim() ? 'filled' : '') + '"',
+    '      id="prompt-fix" data-prompt-key="fix"',
+    '      placeholder="Свободное поле — можно оставить пустым">' + escapeHtml(state.prompt.fix) + '</textarea>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderActions(progress){
+  const canFinish = progress.percent >= 70;
+  const disabledAttr = canFinish ? '' : 'disabled style="opacity:.5;cursor:not-allowed"';
+  return [
+    '<div class="actions" role="toolbar" aria-label="Действия">',
+    '  <div class="actions-inner">',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Сбросить</button>',
+    '    <button class="btn btn-secondary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-primary" data-action="finish" type="button" ' + disabledAttr + '>Завершить</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderFinish(progress){
+  const checkCount = state.prompt.checklist.filter(Boolean).length;
+  return [
+    '<section class="finish" aria-labelledby="fin-title">',
+    '  <div class="finish-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>',
+    '  <h2 id="fin-title">Рабочий лист заполнен</h2>',
+    '  <p>Сохрани PDF и передай учителю. Помни правило курса: сдаётся только то, что ты можешь объяснить вслух.</p>',
+    '  <div class="stats">',
+    '    <div class="stat"><div class="stat-val">' + termsCount() + '/' + TERMS.length + '</div><div class="stat-lbl">терминов отмечено</div></div>',
+    '    <div class="stat"><div class="stat-val">' + gapsOkCount() + '/' + GAPS.length + '</div><div class="stat-lbl">пропусков собрано верно</div></div>',
+    '    <div class="stat"><div class="stat-val">' + checkCount + '/' + CHECKLIST.length + '</div><div class="stat-lbl">пунктов чек-листа</div></div>',
+    '  </div>',
+    '  <div class="finish-actions">',
+    '    <button class="btn btn-secondary" data-action="back" type="button">Вернуться и проверить</button>',
+    '    <button class="btn btn-primary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Начать заново</button>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+/* ---------- Точечная перерисовка ---------- */
+function paintGap(gapId){
+  const g = gapById(gapId);
+  const el = document.querySelector('[data-gap="' + gapId + '"]');
+  if(!el) return;
+  const chipId = state.gaps[gapId];
+  const chip = chipId ? chipById(chipId) : null;
+  const mark = state.mark[gapId];
+  let cls = "gap";
+  if(chip) cls += " filled";
+  if(mark === "ok") cls += " ok";
+  if(mark === "bad") cls += " bad";
+  if(state.picked && !chip){
+    const pc = chipById(state.picked);
+    if(pc && pc.block === g.block) cls += " hint";
+  }
+  el.className = cls;
+  if(chip){
+    el.textContent = chip.code;
+  } else {
+    el.textContent = "";
+    const span = document.createElement("span");
+    span.className = "gap-label";
+    span.textContent = g.label;
+    el.appendChild(span);
+  }
+}
+
+function paintPool(blockId){
+  const pool = document.querySelector('[data-pool="' + blockId + '"]');
+  if(!pool) return;
+  const gaps = gapsOf(blockId);
+  const ok = blockOkCount(blockId);
+  pool.classList.toggle("ok", ok === gaps.length);
+  const status = pool.querySelector("[data-pool-status]");
+  if(status){
+    status.textContent = ok + "/" + gaps.length;
+    status.className = ok === gaps.length ? "pool-status ok" : "pool-status";
+  }
+  pool.querySelectorAll("[data-chip]").forEach(function(btn){
+    btn.classList.toggle("used", placedChips().indexOf(btn.dataset.chip) !== -1);
+    btn.classList.toggle("picked", state.picked === btn.dataset.chip);
+  });
+}
+
+function paintSectionStatus(){
+  const el = document.querySelector('#practice-title');
+  if(!el) return;
+  const status = el.closest(".section-head").querySelector(".section-status");
+  if(status){
+    status.textContent = gapsOkCount() + "/" + GAPS.length + " верно";
+    status.classList.toggle("done", allBlocksOk() && state.prompt.response.trim() && state.prompt.checklist.every(Boolean) && state.prompt.weak.trim());
+  }
+}
+
+function applyPickedHints(){
+  const pc = state.picked ? chipById(state.picked) : null;
+  document.querySelectorAll(".gap").forEach(function(el){
+    const g = gapById(el.dataset.gap);
+    el.classList.toggle("hint", !!pc && pc.block === g.block && !state.gaps[g.id]);
+  });
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent + "%";
+  if(num) num.textContent = p.percent + "%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+
+  const finishBtn = document.querySelector('[data-action="finish"]');
+  if(finishBtn){
+    if(p.percent >= 70){
+      finishBtn.disabled = false;
+      finishBtn.style.opacity = "";
+      finishBtn.style.cursor = "";
+    } else {
+      finishBtn.disabled = true;
+      finishBtn.style.opacity = ".5";
+      finishBtn.style.cursor = "not-allowed";
+    }
+  }
+}
+
+/* ---------- Действия с кусками ---------- */
+function placeChip(chipId, gapId){
+  const chip = chipById(chipId);
+  const gap = gapById(gapId);
+  if(!chip || !gap) return;
+  if(chip.block !== gap.block) return;
+  // если кусок уже где-то стоит — освободить
+  Object.keys(state.gaps).forEach(function(k){
+    if(state.gaps[k] === chipId) state.gaps[k] = null;
+  });
+  state.gaps[gapId] = chipId;
+  delete state.mark[gapId];
+  state.picked = null;
+  saveState();
+  paintGap(gapId);
+  paintPool(gap.block);
+  applyPickedHints();
+  paintSectionStatus();
+  updateProgress();
+}
+
+function returnChip(gapId){
+  const gap = gapById(gapId);
+  if(!gap || !state.gaps[gapId]) return;
+  state.gaps[gapId] = null;
+  delete state.mark[gapId];
+  saveState();
+  paintGap(gapId);
+  paintPool(gap.block);
+  applyPickedHints();
+  paintSectionStatus();
+  updateProgress();
+}
+
+function setPicked(chipId){
+  state.picked = (state.picked === chipId) ? null : chipId;
+  saveState();
+  BLOCKS.forEach(function(b){ paintPool(b.id); });
+  applyPickedHints();
+}
+
+function checkBlock(blockId){
+  gapsOf(blockId).forEach(function(g){
+    if(!state.gaps[g.id]){
+      delete state.mark[g.id];
+    } else {
+      state.mark[g.id] = (state.gaps[g.id] === g.expect) ? "ok" : "bad";
+    }
+    paintGap(g.id);
+  });
+  paintPool(blockId);
+  paintSectionStatus();
+  saveState();
+  updateProgress();
+}
+
+function buildFullCode(){
+  let out = "";
+  SEG.forEach(function(seg){
+    if(seg.c !== undefined){
+      out += seg.c;
+    } else {
+      const chipId = state.gaps[seg.g];
+      out += chipId ? chipById(chipId).code : "    /* строка не установлена */";
+    }
+  });
+  return out;
+}
+
+function buildPrompt(){
+  const lines = gapsOf("b5").map(function(g){
+    const chipId = state.gaps[g.id];
+    return chipId ? chipById(chipId).code : "…строка не установлена…";
+  });
+  return PROMPT_TEMPLATE.replace("{CODE}", lines.join("\n"));
+}
+
+/* ---------- Обработчики ---------- */
+function bindHandlers(){
+  app.querySelectorAll("[data-action]").forEach(function(btn){
+    btn.addEventListener("click", handleAction);
+  });
+
+  app.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      saveState();
+      render();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-chip]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      setPicked(btn.dataset.chip);
+    });
+    btn.addEventListener("dragstart", function(e){
+      e.dataTransfer.setData("text/plain", btn.dataset.chip);
+      e.dataTransfer.effectAllowed = "move";
+    });
+  });
+
+  app.querySelectorAll("[data-gap]").forEach(function(el){
+    el.addEventListener("click", function(){
+      const gapId = el.dataset.gap;
+      if(state.gaps[gapId]){
+        returnChip(gapId);
+        return;
+      }
+      if(state.picked){
+        placeChip(state.picked, gapId);
+      }
+    });
+    el.addEventListener("dragover", function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+    el.addEventListener("drop", function(e){
+      e.preventDefault();
+      const chipId = e.dataTransfer.getData("text/plain");
+      if(chipId) placeChip(chipId, el.dataset.gap);
+    });
+  });
+
+  app.querySelectorAll("[data-check-block]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      checkBlock(btn.dataset.checkBlock);
+    });
+  });
+
+  app.querySelectorAll("[data-prompt-key]").forEach(function(input){
+    input.addEventListener("input", function(e){
+      state.prompt[e.target.dataset.promptKey] = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      updateProgress();
+      saveState();
+    });
+  });
+
+  app.querySelectorAll("[data-check-idx]").forEach(function(item){
+    const handler = function(){
+      const idx = parseInt(item.dataset.checkIdx, 10);
+      state.prompt.checklist[idx] = !state.prompt.checklist[idx];
+      item.classList.toggle("checked", state.prompt.checklist[idx]);
+      item.setAttribute("aria-checked", String(state.prompt.checklist[idx]));
+      updateProgress();
+      saveState();
+    };
+    item.addEventListener("click", handler);
+    item.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){
+    state.started = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "reset"){
+    if(confirm("Сбросить все заполненные поля и собранную сборку? Это действие нельзя отменить.")){
+      localStorage.removeItem(STORAGE_KEY);
+      state = {
+        started:false, finished:false,
+        termsLearned:{},
+        order:null,
+        picked:null,
+        gaps:{},
+        mark:{},
+        prompt:{ response:"", checklist: CHECKLIST.map(function(){ return false; }), weak:"", fix:"" }
+      };
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+  } else if(action === "print"){
+    window.print();
+  } else if(action === "clear-gaps"){
+    state.gaps = {};
+    state.mark = {};
+    state.picked = null;
+    saveState();
+    render();
+  } else if(action === "copy-full"){
+    copyToClipboard(buildFullCode(), e.currentTarget);
+  } else if(action === "copy-prompt"){
+    copyToClipboard(buildPrompt(), e.currentTarget);
+  } else if(action === "finish"){
+    const p = countProgress();
+    if(p.percent < 70){
+      alert("Заполни ещё немного — сейчас заполнено " + p.percent + "%. Для завершения нужно 70%.");
+      return;
+    }
+    state.finished = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "back"){
+    state.finished = false;
+    saveState();
+    render();
+  }
+}
+
+async function copyToClipboard(text, btn){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(err){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    document.body.removeChild(ta);
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Скопировано";
+  btn.classList.add("copied");
+  setTimeout(function(){
+    btn.textContent = original;
+    btn.classList.remove("copied");
+  }, 1600);
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function init(){
+  loadState();
+  render();
+}
+init();
+</script>
+</body>
+</html>
