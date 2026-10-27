@@ -1,0 +1,1410 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 11 · Компоненты и валидация форм</title>
+<style>
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --err: #c24545;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    background:var(--bg);
+    color:var(--text);
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  button, input, textarea{font-family:inherit;font-size:inherit;color:inherit}
+
+  .topbar{
+    position:sticky; top:0; z-index:10;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--border);
+  }
+  .topbar-inner{max-width:960px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px}
+  .brand{display:flex; flex-direction:column; min-width:0; flex:1}
+  .brand-title{font-size:14px; font-weight:600; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .progress-wrap{display:flex; align-items:center; gap:10px; min-width:140px}
+  .progress-bar{flex:1; height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; min-width:80px}
+  .progress-fill{height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:38px; text-align:right}
+
+  main{max-width:960px; margin:0 auto; padding:28px 20px 120px}
+
+  .hero{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .hero-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px, 4vw, 36px); font-weight:700; letter-spacing:-0.02em; margin:18px 0 10px; line-height:1.15}
+  .hero p{color:var(--text-2); font-size:16px; max-width:600px; margin:0 auto 24px}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:28px}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--surface-2); border-radius:999px; font-size:13px; color:var(--text-2)}
+  .chip b{color:var(--text); font-weight:600}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 22px; border-radius:12px; border:1px solid transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .15s ease; user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent; color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2); color:var(--text)}
+  .btn-lg{min-height:52px; padding:0 28px; font-size:16px; border-radius:14px}
+  .btn-sm{min-height:38px; padding:0 14px; font-size:13px; border-radius:10px}
+
+  .section{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px; margin-bottom:20px; box-shadow:var(--shadow-sm)}
+  .section-head{display:flex; align-items:flex-start; gap:14px; margin-bottom:18px}
+  .section-num{flex-shrink:0; width:36px; height:36px; border-radius:10px; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px}
+  .section-num.theory{background:#0f172a}
+  .section-num.practice{background:var(--accent)}
+  .section-title-wrap{flex:1; min-width:0}
+  .section-title{font-size:20px; font-weight:700; letter-spacing:-0.01em; margin:0 0 4px}
+  .section-sub{font-size:14px; color:var(--text-2); margin:0}
+  .section-status{flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--text-3)}
+  .section-status.done{background:var(--success-soft); color:var(--success)}
+
+  .instruction{background:var(--surface-2); border-radius:var(--radius); padding:14px 16px; margin-bottom:20px; font-size:14px; color:var(--text-2)}
+  .instruction ol, .instruction ul{margin:0; padding-left:18px}
+  .instruction li{margin-bottom:4px}
+  .instruction li::marker{color:var(--accent); font-weight:600}
+
+  .terms-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:24px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; cursor:pointer; transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent); background:#f8fbff}
+  .term-head{display:flex; align-items:center; gap:10px; margin-bottom:6px}
+  .term-name{font-weight:700; font-size:15px; font-family:var(--mono); color:var(--accent)}
+  .term-check{margin-left:auto; width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex-shrink:0}
+  .term.learned .term-check{background:var(--success); border-color:var(--success)}
+  .term-check svg{width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:14px; color:var(--text-2); line-height:1.5}
+
+  .tags-table{width:100%; border-collapse:collapse; font-size:14px; margin-bottom:16px}
+  .tags-table th{text-align:left; padding:10px 12px; background:var(--surface-2); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .tags-table td{padding:12px; border-bottom:1px solid var(--border); vertical-align:top}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tags-table tr:hover td{background:var(--surface-2)}
+  .tag-code{font-family:var(--mono); font-size:13px; color:var(--accent); font-weight:600; background:var(--accent-soft); padding:2px 8px; border-radius:6px; white-space:nowrap}
+  .tag-used{display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--warn-soft); color:#92400e; margin-left:6px; letter-spacing:.03em}
+
+  .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.6; overflow-x:auto; white-space:pre; margin-bottom:16px; position:relative}
+  .code-block::before{content:"index.html"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .code-block.tall{max-height:440px; overflow:auto}
+
+  /* ---------- Полигон ---------- */
+  .pg-wrap{display:grid; gap:16px; grid-template-columns:1fr; margin-bottom:16px}
+  @media (min-width:820px){.pg-wrap{grid-template-columns:minmax(0,1fr) 300px; align-items:start}}
+  .pg{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px}
+  .pg h4{margin:0 0 12px; font-size:15px}
+  .pg .field{margin-bottom:12px; max-width:360px}
+  .pg label{display:block; font-weight:600; margin-bottom:4px; font-size:14px}
+  .pg input{font:inherit; padding:8px 10px; border:1px solid var(--border); border-radius:8px; width:100%; font-size:14px}
+  .pg input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .pg input[aria-invalid="true"]{border-color:var(--err)}
+  .pg .field__error{display:block; min-height:1.2em; margin-top:4px; color:var(--err); font-size:13px; line-height:1.4}
+  .pg button[type="submit"]{font:inherit; font-weight:600; padding:10px 22px; border:none; border-radius:999px; background:var(--accent); color:#fff; cursor:pointer; min-height:44px}
+  .pg button[type="submit"]:hover{background:var(--accent-hover)}
+  .pg #pg-status{margin-top:14px; font-weight:700; min-height:1.5em; font-size:14px; color:var(--success)}
+  .pg-cases{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px}
+  .pg-cases h4{margin:0 0 8px; font-size:14px}
+  .pg-cases p{margin:0 0 10px; font-size:13px; color:var(--text-2); line-height:1.5}
+  .case-list{display:flex; flex-direction:column; gap:6px}
+  .case-btn{min-height:40px; text-align:left; padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); font-size:13px; cursor:pointer; transition:all .15s ease; line-height:1.4}
+  .case-btn:hover{border-color:var(--accent); background:#f8fbff}
+  .case-btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+
+  /* ---------- Тест ---------- */
+  .quiz-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+  .quiz-q{font-weight:600; font-size:14px; margin-bottom:10px; line-height:1.6}
+  .quiz-q code{font-family:var(--mono); font-size:12.5px; background:var(--surface-2); padding:2px 6px; border-radius:4px; color:var(--accent); display:inline-block; margin-top:4px; word-break:break-word; white-space:pre-wrap}
+  .quiz-options{display:grid; gap:8px}
+  .quiz-opt{min-height:44px; text-align:left; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; font-size:14px; transition:all .15s ease; line-height:1.4}
+  .quiz-opt:hover:not(:disabled){border-color:var(--border-strong); background:var(--surface-2)}
+  .quiz-opt:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .quiz-opt:disabled{cursor:default}
+  .quiz-opt.correct{background:var(--success-soft); border-color:var(--success); color:#14532d}
+  .quiz-opt.wrong{background:var(--danger-soft); border-color:var(--danger); color:#7f1d1d}
+  .quiz-feedback{margin-top:10px; font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5}
+  .quiz-feedback.good{background:var(--success-soft); color:#14532d}
+  .quiz-feedback.bad{background:var(--danger-soft); color:#7f1d1d}
+  .quiz-score{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--surface-2); font-size:13px; font-weight:600; color:var(--text-2); margin-bottom:14px}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block; font-size:13px; color:var(--text-2); margin-bottom:6px; font-weight:600}
+  .field-hint{font-size:12px; color:var(--text-3); font-weight:400; margin-left:4px}
+  .field-input{width:100%; min-height:40px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:14px; transition:border-color .15s ease, background .15s ease}
+  .field-input::placeholder{color:var(--text-3)}
+  .field-input:hover{border-color:var(--border-strong)}
+  .field-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff; border-color:var(--accent)}
+  textarea.field-input{min-height:100px; resize:vertical; line-height:1.5; font-family:var(--font)}
+  textarea.field-input.code{font-family:var(--mono); font-size:13px; line-height:1.6; min-height:200px; tab-size:2}
+
+  .radio{display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 16px; border:1px solid var(--border); border-radius:10px; background:var(--surface); cursor:pointer; font-size:14px; font-weight:500; color:var(--text-2); transition:all .15s ease; text-align:center}
+  .radio:hover{border-color:var(--border-strong)}
+  .radio input{position:absolute; opacity:0; pointer-events:none}
+  .radio.selected{background:var(--accent); border-color:var(--accent); color:#fff}
+  .radio:focus-within{outline:3px solid var(--accent-soft); outline-offset:2px}
+
+  .algo{background:linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%); border:1px solid #fde68a; border-radius:var(--radius); padding:18px; margin-bottom:20px}
+  .algo-title{font-weight:700; font-size:15px; color:#78350f; margin-bottom:10px; display:flex; align-items:center; gap:8px}
+  .algo ol{margin:0; padding-left:20px; color:#78350f}
+  .algo li{margin-bottom:6px; font-size:14px}
+  .algo li::marker{font-weight:700}
+  .algo-note{margin-top:12px; padding:10px 12px; background:rgba(255,255,255,.5); border-radius:8px; font-size:13px; color:#78350f; line-height:1.5}
+  .algo-note b{font-weight:700}
+  .algo-note code{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.7); padding:1px 5px; border-radius:4px}
+
+  .prompt-box{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:16px; position:relative; word-break:break-word}
+  .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease; z-index:2}
+  .copy-btn:hover{background:rgba(255,255,255,.15); color:#fff}
+  .copy-btn.copied{background:var(--success); color:#fff; border-color:var(--success)}
+
+  .ai-links{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+  .ai-link{display:inline-flex; align-items:center; gap:8px; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); text-decoration:none; font-size:14px; font-weight:500; transition:all .15s ease; min-height:44px}
+  .ai-link:hover{border-color:var(--accent); background:var(--accent-soft)}
+  .ai-link-dot{width:8px; height:8px; border-radius:50%}
+  .ai-link-dot.deepseek{background:#4d6bfe}
+  .ai-link-dot.alice{background:#fc3f1d}
+  .ai-link-dot.qwen{background:#615ced}
+
+  .checklist{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px}
+  .checklist-title{font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:12px; text-transform:uppercase; letter-spacing:.05em}
+  .check-item{display:flex; align-items:flex-start; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:background .15s ease; user-select:none}
+  .check-item:hover{background:var(--surface-2)}
+  .check-item.checked{background:var(--success-soft)}
+  .check-box{flex-shrink:0; width:22px; height:22px; border:2px solid var(--border-strong); border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all .15s ease; margin-top:1px}
+  .check-item.checked .check-box{background:var(--success); border-color:var(--success)}
+  .check-box svg{width:14px; height:14px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .check-item.checked .check-box svg{opacity:1}
+  .check-text{font-size:14px; color:var(--text); flex:1}
+
+  .divider{height:1px; background:var(--border); margin:24px 0}
+  .sub-title{font-size:16px; font-weight:700; letter-spacing:-0.01em; margin:0 0 12px; color:var(--text)}
+
+  .actions{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.9); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-top:1px solid var(--border); padding:12px 20px; z-index:10}
+  .actions-inner{max-width:960px; margin:0 auto; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+
+  .finish{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:40px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .finish-icon{width:64px; height:64px; border-radius:50%; background:var(--success-soft); color:var(--success); display:flex; align-items:center; justify-content:center; margin:0 auto 20px}
+  .finish-icon svg{width:32px; height:32px; stroke:currentColor; fill:none; stroke-width:2.5}
+  .finish h2{font-size:28px; font-weight:700; letter-spacing:-0.02em; margin:0 0 8px}
+  .finish p{color:var(--text-2); margin:0 0 24px}
+  .stats{display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; margin-bottom:28px}
+  .stat{background:var(--surface-2); border-radius:var(--radius); padding:16px 12px}
+  .stat-val{font-size:24px; font-weight:700; color:var(--accent); letter-spacing:-0.02em}
+  .stat-lbl{font-size:12px; color:var(--text-3); margin-top:2px}
+  .finish-actions{display:flex; gap:10px; justify-content:center; flex-wrap:wrap}
+
+  .hidden{display:none !important}
+
+  @media print{
+    @page{size:A4; margin:15mm}
+    body{background:#fff}
+    .topbar, .actions, .copy-btn, .btn-ghost, .pg-cases{display:none !important}
+    main{padding:0; max-width:100%}
+    .section, .hero, .finish{box-shadow:none; break-inside:avoid; page-break-inside:avoid}
+    .field-input, textarea.field-input{border:1px solid #cbd5e1 !important; background:#fff !important}
+    .code-block, .prompt-box{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .code-block.tall{max-height:none !important}
+    .term.learned{border-color:#2563eb !important}
+    .check-item.checked .check-box{background:#16a34a !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-opt.correct{background:#dcfce7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-opt.wrong{background:#fee2e2 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .pg input[aria-invalid="true"]{border-color:var(--err) !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  }
+
+  @media (max-width:480px){
+    .topbar-inner{padding:10px 14px; gap:10px}
+    .brand-title{font-size:13px}
+    .brand-sub{font-size:11px}
+    .progress-wrap{min-width:110px}
+    main{padding:16px 14px 110px}
+    .section{padding:20px 18px}
+    .hero{padding:28px 20px}
+    .hero h1{font-size:24px}
+    .section-title{font-size:17px}
+    .stats{grid-template-columns:1fr}
+    .actions{padding:10px 14px}
+    .actions-inner{gap:8px}
+    .actions-inner .btn{flex:1; padding:0 14px}
+    .tags-table{font-size:13px}
+    .tags-table th, .tags-table td{padding:8px}
+    .code-block{font-size:11.5px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 11 · Компоненты и валидация форм
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title: "Рабочий лист · Занятие 11",
+  subtitle: "Компоненты и валидация форм",
+  teacher: "Масликов М. М.",
+  grade: "10–11 класс",
+  time: "80 минут"
+};
+
+const TERMS = [
+  { key:"valid", name:"Валидация", def:"Проверка введённых данных до того, как их принять." },
+  { key:"client", name:"Клиентская проверка", def:"Проверка в браузере. Помогает человеку не ошибиться. Её можно обойти, поэтому она не защищает." },
+  { key:"server", name:"Серверная проверка", def:"Проверка на сервере. Защищает систему от плохих данных. Клиентскую не заменяет и не заменяется ею." },
+  { key:"submit", name:"Событие submit", def:"Попытка отправить форму. Возникает при всех способах отправки, включая Enter из поля." },
+  { key:"prevent", name:"preventDefault", def:"Отмена стандартного поведения браузера. Для формы — отмена отправки и перезагрузки страницы." },
+  { key:"trim", name:".trim()", def:"Обрезка пробелов по краям строки. Обязательна перед проверкой текстового поля." },
+  { key:"checkfn", name:"Функция проверки", def:"Принимает значение, возвращает текст ошибки или пустую строку. Не true и false." },
+  { key:"regexp", name:"Регулярное выражение", def:"Шаблон для проверки текста. .test(строка) возвращает true, если строка подходит." },
+  { key:"msg", name:"Сообщение об ошибке", def:"Текст рядом с полем, объясняющий, что исправить. Не «ошибка», а инструкция." },
+  { key:"describedby", name:"aria-describedby", def:"Атрибут в разметке: указывает id элемента, который описывает поле. Ставится один раз." },
+  { key:"invalid", name:"aria-invalid", def:"Атрибут из скрипта: сообщает программе чтения, что поле заполнено неверно. Снимается при исправлении." },
+  { key:"focus", name:".focus()", def:"Установка курсора в поле. Ставится в первое неверное поле после неудачной отправки." },
+  { key:"reset", name:"form.reset()", def:"Возврат всех полей формы к исходным значениям." },
+  { key:"refactor", name:"Рефакторинг", def:"Переписывание кода так, чтобы он стал понятнее, а работал точно так же. Поведение не меняется." },
+  { key:"descarr", name:"Массив описаний", def:"Данные об однотипных объектах (полях формы), позволяющие обработать их одним циклом вместо копий кода." }
+];
+
+const TAGS = [
+  { code:"form.addEventListener(\"submit\", …)", desc:"Обработчик на форме, не на кнопке: ловит и клик, и Enter из поля.", used:true },
+  { code:"event.preventDefault()", desc:"Первая строка обработчика: страница не перезагружается.", used:true },
+  { code:"value.trim()", desc:"Три пробела — не значение. Обрезка краёв перед проверкой.", used:true },
+  { code:"return \"текст ошибки\" / return \"\"", desc:"Функция проверки отдаёт текст или пустую строку, не true/false.", used:true },
+  { code:"/^\\d{1,2}[А-Яа-я]$/.test(text)", desc:"Регулярное выражение: шаблон «одна-две цифры и буква».", used:true },
+  { code:"errorBox.textContent = message", desc:"Ошибка живёт рядом со своим полем, а не в общем блоке.", used:true },
+  { code:"input.setAttribute(\"aria-invalid\", \"true\")", desc:"Программе чтения слышно, что поле неверно. CSS красит рамку тем же селектором.", used:true },
+  { code:"aria-describedby в разметке", desc:"Поле и его ошибка связаны ещё до скрипта.", used:true },
+  { code:"массив FIELDS + forEach", desc:"Шесть строк описаний вместо шести копий обработчика.", used:true },
+  { code:"firstInvalid.focus()", desc:"Курсор в первое неверное поле: человек сразу видит, где чинить.", used:true },
+  { code:"Все ошибки сразу", desc:"Цикл проходит все поля до конца, не выходит на первой ошибке.", used:true },
+  { code:"required и type=email вместо своей проверки", desc:"Браузерная валидация не заменяет свою: тексты и момент показа не твои. На занятии не подменяет.", used:false },
+  { code:"onclick= на кнопке", desc:"Пропустит Enter из поля. Запрещено.", used:false }
+];
+
+/* Эталон: форма с валидацией */
+const REFERENCE_CODE = [
+  '<!DOCTYPE html>',
+  '<html lang="ru">',
+  '<head>',
+  '  <meta charset="utf-8">',
+  '  <title>Проверка формы</title>',
+  '  <style>',
+  '    *, *::before, *::after { box-sizing: border-box; }',
+  '    :root { --err: #c24545; --border: #e3e7e1; }',
+  '    body { font-family: Arial, Helvetica, sans-serif; padding: 24px; line-height: 1.5; }',
+  '    .field { margin-bottom: 16px; max-width: 360px; }',
+  '    label { display: block; font-weight: 600; margin-bottom: 4px; }',
+  '    input { font: inherit; padding: 8px 10px; border: 1px solid var(--border);',
+  '            border-radius: 8px; width: 100%; }',
+  '    input[aria-invalid="true"] { border-color: var(--err); }',
+  '    .field__error { display: block; min-height: 1.2em; margin-top: 4px;',
+  '                    color: var(--err); font-size: 14px; }',
+  '    button { font: inherit; padding: 10px 22px; border: none; border-radius: 999px;',
+  '             background: #7cc142; cursor: pointer; }',
+  '    #status { margin-top: 16px; font-weight: 700; min-height: 1.5em; }',
+  '  </style>',
+  '</head>',
+  '<body>',
+  '',
+  '  <h2>Записаться в буфет</h2>',
+  '',
+  '  <form id="orderForm">',
+  '    <div class="field">',
+  '      <label for="name">Имя</label>',
+  '      <input type="text" id="name" name="name" aria-describedby="nameError">',
+  '      <span class="field__error" id="nameError"></span>',
+  '    </div>',
+  '',
+  '    <div class="field">',
+  '      <label for="cls">Класс</label>',
+  '      <input type="text" id="cls" name="cls" aria-describedby="clsError" placeholder="9А">',
+  '      <span class="field__error" id="clsError"></span>',
+  '    </div>',
+  '',
+  '    <div class="field">',
+  '      <label for="count">Сколько штук</label>',
+  '      <input type="number" id="count" name="count" aria-describedby="countError">',
+  '      <span class="field__error" id="countError"></span>',
+  '    </div>',
+  '',
+  '    <button type="submit">Записаться</button>',
+  '  </form>',
+  '',
+  '  <p id="status"></p>',
+  '',
+  '  <script>',
+  '    const CLASS_PATTERN = /^\\d{1,2}[А-Яа-я]$/;',
+  '',
+  '    const form = document.querySelector("#orderForm");',
+  '    const status = document.querySelector("#status");',
+  '',
+  '    function checkName(value) {',
+  '      const text = value.trim();',
+  '      if (text === "") return "Напиши имя — как к тебе обращаться?";',
+  '      if (text.length < 2) return "Слишком короткое имя, напиши полностью";',
+  '      return "";',
+  '    }',
+  '',
+  '    function checkClass(value) {',
+  '      const text = value.trim();',
+  '      if (text === "") return "Укажи класс";',
+  '      if (!CLASS_PATTERN.test(text)) return "Класс пишется как 9А или 11Б";',
+  '      return "";',
+  '    }',
+  '',
+  '    function checkCount(value) {',
+  '      const count = Number(value);',
+  '      if (value.trim() === "" || Number.isNaN(count)) return "Укажи количество цифрой";',
+  '      if (count < 1 || count > 5) return "От 1 до 5 штук за раз";',
+  '      return "";',
+  '    }',
+  '',
+  '    function showError(input, errorBox, message) {',
+  '      errorBox.textContent = message;',
+  '      input.setAttribute("aria-invalid", "true");',
+  '    }',
+  '',
+  '    function clearError(input, errorBox) {',
+  '      errorBox.textContent = "";',
+  '      input.removeAttribute("aria-invalid");',
+  '    }',
+  '',
+  '    const FIELDS = [',
+  '      { input: "#name",  error: "#nameError",  check: checkName  },',
+  '      { input: "#cls",   error: "#clsError",   check: checkClass },',
+  '      { input: "#count", error: "#countError", check: checkCount }',
+  '    ];',
+  '',
+  '    const fields = FIELDS.map((item) => ({',
+  '      input: document.querySelector(item.input),',
+  '      errorBox: document.querySelector(item.error),',
+  '      check: item.check',
+  '    }));',
+  '',
+  '    form.addEventListener("submit", (event) => {',
+  '      event.preventDefault();',
+  '',
+  '      let firstInvalid = null;',
+  '',
+  '      fields.forEach((field) => {',
+  '        const message = field.check(field.input.value);',
+  '        if (message === "") {',
+  '          clearError(field.input, field.errorBox);',
+  '        } else {',
+  '          showError(field.input, field.errorBox, message);',
+  '          if (firstInvalid === null) {',
+  '            firstInvalid = field.input;',
+  '          }',
+  '        }',
+  '      });',
+  '',
+  '      if (firstInvalid !== null) {',
+  '        status.textContent = "";',
+  '        firstInvalid.focus();',
+  '        return;',
+  '      }',
+  '',
+  '      status.textContent = "Заявка принята, подходи к буфету";',
+  '    });',
+  '  </' + 'script>',
+  '',
+  '</body>',
+  '</html>'
+].join("\n");
+
+/* Скриптовая часть эталона — её отправляем в промпт */
+const REFERENCE_JS = [
+  'const CLASS_PATTERN = /^\\d{1,2}[А-Яа-я]$/.source ? null : /^\\d{1,2}[А-Яа-я]$/;'
+].join("\n"); /* заглушка не используется, см. REFERENCE_JS_LINES ниже */
+
+const REFERENCE_JS_LINES = [
+  'const CLASS_PATTERN = /^\\d{1,2}[А-Яа-я]$/;',
+  '',
+  'const form = document.querySelector("#orderForm");',
+  'const status = document.querySelector("#status");',
+  '',
+  'function checkName(value) {',
+  '  const text = value.trim();',
+  '  if (text === "") return "Напиши имя — как к тебе обращаться?";',
+  '  if (text.length < 2) return "Слишком короткое имя, напиши полностью";',
+  '  return "";',
+  '}',
+  '',
+  'function checkClass(value) {',
+  '  const text = value.trim();',
+  '  if (text === "") return "Укажи класс";',
+  '  if (!CLASS_PATTERN.test(text)) return "Класс пишется как 9А или 11Б";',
+  '  return "";',
+  '}',
+  '',
+  'function checkCount(value) {',
+  '  const count = Number(value);',
+  '  if (value.trim() === "" || Number.isNaN(count)) return "Укажи количество цифрой";',
+  '  if (count < 1 || count > 5) return "От 1 до 5 штук за раз";',
+  '  return "";',
+  '}',
+  '',
+  'function showError(input, errorBox, message) {',
+  '  errorBox.textContent = message;',
+  '  input.setAttribute("aria-invalid", "true");',
+  '}',
+  '',
+  'function clearError(input, errorBox) {',
+  '  errorBox.textContent = "";',
+  '  input.removeAttribute("aria-invalid");',
+  '}',
+  '',
+  'const FIELDS = [',
+  '  { input: "#name",  error: "#nameError",  check: checkName  },',
+  '  { input: "#cls",   error: "#clsError",   check: checkClass },',
+  '  { input: "#count", error: "#countError", check: checkCount }',
+  '];',
+  '',
+  'const fields = FIELDS.map((item) => ({',
+  '  input: document.querySelector(item.input),',
+  '  errorBox: document.querySelector(item.error),',
+  '  check: item.check',
+  '}));',
+  '',
+  'form.addEventListener("submit", (event) => {',
+  '  event.preventDefault();',
+  '',
+  '  let firstInvalid = null;',
+  '',
+  '  fields.forEach((field) => {',
+  '    const message = field.check(field.input.value);',
+  '    if (message === "") {',
+  '      clearError(field.input, field.errorBox);',
+  '    } else {',
+  '      showError(field.input, field.errorBox, message);',
+  '      if (firstInvalid === null) {',
+  '        firstInvalid = field.input;',
+  '      }',
+  '    }',
+  '  });',
+  '',
+  '  if (firstInvalid !== null) {',
+  '    status.textContent = "";',
+  '    firstInvalid.focus();',
+  '    return;',
+  '  }',
+  '',
+  '  status.textContent = "Заявка принята, подходи к буфету";',
+  '});'
+];
+
+/* Тест: 10 вопросов по строкам эталона */
+const QUIZ = [
+  {
+    code:'const CLASS_PATTERN = /^\\d{1,2}[А-Яа-я]$/;',
+    options:[
+      "Регулярное выражение: шаблон класса — одна-две цифры и одна буква",
+      "Строка, с которой сравнивают введённый класс",
+      "Функция, которая проверяет класс по буквам"
+    ],
+    correct:0,
+    why:"Регулярное выражение — шаблон поиска. .test(text) вернёт true, если строка подходит под шаблон: \\d{1,2} — одна-две цифры, [А-Яа-я] — одна буква, ^ и $ — границы строки целиком."
+  },
+  {
+    code:'form.addEventListener("submit", (event) => {',
+    options:[
+      "Обработчик весит на форме и ловит submit: и клик по кнопке, и Enter из поля",
+      "Обработчик весит на кнопке и ловит только клик",
+      "В этот момент форма отправляется на сервер"
+    ],
+    correct:0,
+    why:"Форму отправляют тремя способами: мышью по кнопке, Enter из поля, Enter по кнопке. Событие submit возникает во всех трёх, click — не всегда. Поэтому слушают форму."
+  },
+  {
+    code:'event.preventDefault();',
+    options:[
+      "Отменяет отправку по умолчанию: страница не перезагружается, человек остаётся с формой",
+      "Запрещает нажимать кнопку повторно",
+      "Очищает все поля формы"
+    ],
+    correct:0,
+    why:"Без этой строки браузер отправил бы форму и перезагрузил страницу: все ошибки и весь ввод исчезли бы. preventDefault оставляют человека на странице."
+  },
+  {
+    code:'const text = value.trim();',
+    options:[
+      "Обрезает пробелы по краям: поле из одних пробелов станет пустой строкой",
+      "Убирает переносы строк внутри текста",
+      "Приводит текст к нижнему регистру"
+    ],
+    correct:0,
+    why:"Три пробела для === \"\" — не пустая строка, заявка ушла бы без имени. trim() превращает \"   \" в \"\", и проверка ловит этот случай."
+  },
+  {
+    code:'if (text === "") return "Напиши имя — как к тебе обращаться?";',
+    options:[
+      "Функция проверки возвращает текст ошибки, а не true/false: его можно сразу показать",
+      "Функция возвращает true, если поле пустое",
+      "Сообщение печатается в консоль для отладки"
+    ],
+    correct:0,
+    why:"Контракт функции проверки: текст ошибки или пустая строка. Пустая строка значит «ошибки нет» — вызывающий код смотрит только на это и больше ни на что."
+  },
+  {
+    code:'errorBox.textContent = message;',
+    options:[
+      "Текст ошибки встаёт рядом со своим полем; textContent не разбирает строку как разметку",
+      "Сообщение вставляется как HTML через innerHTML",
+      "Значение поля подменяется сообщением об ошибке"
+    ],
+    correct:0,
+    why:"Сообщение — текст, тегов в нём нет. textContent безопасен. Сама рамка ошибки уже связана с полем атрибутом aria-describedby в разметке."
+  },
+  {
+    code:'input.setAttribute("aria-invalid", "true");',
+    options:[
+      "Сообщает программе чтения, что поле неверно; тем же селектором CSS красит рамку",
+      "Запрещает вводить в поле дальше",
+      "Делает поле обязательным для заполнения"
+    ],
+    correct:0,
+    why:"Один атрибут делает две вещи: голос объявляет состояние поля, а селектор input[aria-invalid=\"true\"] красит рамку. Снимается в clearError через removeAttribute."
+  },
+  {
+    code:'const fields = FIELDS.map((item) => ({ input: document.querySelector(item.input), … }));',
+    options:[
+      "Превращает массив описаний в рабочие объекты: элементы каждого поля ищутся один раз при старте",
+      "Рисует поля формы на странице",
+      "Проверяет все поля сразу при загрузке"
+    ],
+    correct:0,
+    why:"Описания живут данными: селекторы и функции в массиве FIELDS. Элементы находятся один раз. Добавилось поле — одна строка в FIELDS, а не копия обработчика."
+  },
+  {
+    code:'if (firstInvalid === null) { firstInvalid = field.input; }',
+    options:[
+      "Запоминает первое неверное поле, чтобы после цикла поставить в него курсор",
+      "Останавливает проверку на первой ошибке",
+      "Очищает ошибку первого поля"
+    ],
+    correct:0,
+    why:"Цикл не прерывается: человек видит все ошибки сразу. Но чинить начнёт с первой — её и запоминаем. Без условия null фокус уходил бы на последнюю ошибку."
+  },
+  {
+    code:'firstInvalid.focus();',
+    options:[
+      "Ставит курсор в первое неверное поле: человек сразу видит, где чинить",
+      "Подсвечивает поле красной рамкой",
+      "Отправляет форму повторно после исправления"
+    ],
+    correct:0,
+    why:"Красная рамка видна глазу, но курсор говорит клавиатуре и пальцу, куда печатать. Это забота о том, кто ходит по странице без мыши."
+  }
+];
+
+const PROMPT_TEMPLATE = [
+  'Ты помогаешь провести рефакторинг кода начинающего разработчика.',
+  '',
+  'Контекст: страница школьного буфета, проверка формы предзаказа. Чистый JavaScript, без библиотек. Ученик знает: функции, массивы объектов, filter/map/find, addEventListener, делегирование, textContent, classList. Не знает: классы, модули, асинхронность.',
+  '',
+  'Задача: в моём коде повторяются одинаковые куски для разных полей формы. Предложи, как убрать повторы, сохранив поведение абсолютно тем же.',
+  '',
+  'Ограничения: не меняй тексты сообщений об ошибках; не убирай preventDefault, .trim(), aria-invalid и постановку фокуса; не предлагай библиотеки, классы, модули и встроенную браузерную валидацию вместо моей; не сокращай так, чтобы стало непонятно четырнадцатилетнему; пиши по-русски.',
+  '',
+  'Формат ответа: сначала список того, что именно повторяется, — не больше четырёх пунктов. Потом переписанный код. Потом таблица: что было, что стало, что при этом не изменилось в поведении.',
+  '',
+  'Критерии проверки: поведение идентично исходному; все проверки на месте; количество строк уменьшилось; код читается без дополнительных объяснений.',
+  '',
+  'Вот мой код:',
+  '',
+  '{CODE}'
+].join("\n");
+
+const CHECKLIST = [
+  "Поведение идентично исходному: те же ввода — те же сообщения",
+  "preventDefault, .trim(), aria-invalid и постановка фокуса на месте",
+  "Модель не подменила мою проверку на браузерную (required, type=email)",
+  "Тексты сообщений об ошибках не изменились",
+  "Модель не предложила библиотеки, классы, модули и асинхронность",
+  "Количество строк уменьшилось, код читается без дополнительных объяснений",
+  "Я прогнал обе версии на одинаковых вводах и сравнил результат",
+  "Я сам могу объяснить каждую строку переписанного кода"
+];
+
+const STORAGE_KEY = "wdc-l11-worksheet-v1";
+
+let state = {
+  started: false,
+  finished: false,
+  termsLearned: {},
+  pg: { name:"", cls:"", count:"" },
+  quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+  prompt: {
+    source: "ref",
+    customCode: "",
+    response: "",
+    checklist: CHECKLIST.map(function(){ return false; }),
+    weak: "",
+    fix: ""
+  }
+};
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state = deepMerge(state, parsed);
+    }
+    if(!Array.isArray(state.quiz) || state.quiz.length !== QUIZ.length){
+      state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+    }
+    if(!Array.isArray(state.prompt.checklist) || state.prompt.checklist.length !== CHECKLIST.length){
+      state.prompt.checklist = CHECKLIST.map(function(){ return false; });
+    }
+  }catch(e){}
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])){
+      out[k] = deepMerge(target[k] || {}, source[k]);
+    } else {
+      out[k] = source[k];
+    }
+  }
+  return out;
+}
+
+function countProgress(){
+  let filled = 0, total = 0;
+
+  TERMS.forEach(function(t){
+    total++;
+    if(state.termsLearned[t.key]) filled++;
+  });
+
+  QUIZ.forEach(function(_, i){
+    total++;
+    if(state.quiz[i].correct) filled++;
+  });
+
+  total++;
+  if(state.prompt.response.trim()) filled++;
+  CHECKLIST.forEach(function(_, i){
+    total++;
+    if(state.prompt.checklist[i]) filled++;
+  });
+  total++;
+  if(state.prompt.weak.trim()) filled++;
+
+  return { filled: filled, total: total, percent: total ? Math.round(filled / total * 100) : 0 };
+}
+function termsCount(){
+  return Object.values(state.termsLearned).filter(Boolean).length;
+}
+function quizScore(){
+  return state.quiz.filter(function(q){ return q.correct; }).length;
+}
+
+const app = document.getElementById("app");
+
+function render(){
+  const progress = countProgress();
+
+  let html = renderTopbar(progress);
+  html += "<main>";
+
+  if(!state.started){
+    html += renderHero();
+  } else if(state.finished){
+    html += renderFinish(progress);
+  } else {
+    html += renderTheory();
+    html += renderPractice();
+  }
+
+  html += "</main>";
+
+  if(state.started && !state.finished){
+    html += renderActions(progress);
+  }
+
+  app.innerHTML = html;
+  bindHandlers();
+  initPlayground();
+
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = document.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+}
+
+function renderTopbar(progress){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <div class="brand-title">' + escapeHtml(COURSE.title) + '</div>',
+    '      <div class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · ' + escapeHtml(COURSE.grade) + '</div>',
+    '    </div>',
+    '    <div class="progress-wrap" aria-label="Прогресс заполнения">',
+    '      <div class="progress-bar" role="progressbar" aria-valuenow="' + progress.percent + '" aria-valuemin="0" aria-valuemax="100">',
+    '        <div class="progress-fill" style="width:' + progress.percent + '%"></div>',
+    '      </div>',
+    '      <div class="progress-num">' + progress.percent + '%</div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderHero(){
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Занятие 11 из 24</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.subtitle) + '</h1>',
+    '  <p>Форма перестаёт принимать мусор и начинает объяснять, что не так. Сегодня ты ломаешь форму эталона десятью способами и учишься писать ошибки, которые помогают, а не пугают.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    '    <span class="chip">🎓 ' + escapeHtml(COURSE.grade) + '</span>',
+    '    <span class="chip">⏱ ' + escapeHtml(COURSE.time) + '</span>',
+    '  </div>',
+    '  <button class="btn btn-primary btn-lg" data-action="start">',
+    '    Начать работу',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '  </button>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTheory(){
+  const learned = termsCount();
+  const theoryDone = learned === TERMS.length;
+  return [
+    '<section class="section" aria-labelledby="theory-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num theory">Т</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="theory-title">Теория: термины и приёмы валидации</h2>',
+    '      <p class="section-sub">Прочитай каждый термин и отметь те, что понял. Ниже — таблица приёмов, которые встречаются в эталоне.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (theoryDone ? 'done' : '') + '" data-terms-status>' + learned + '/' + TERMS.length + ' отмечено</span>',
+    '  </div>',
+    '',
+    '  <div class="instruction">',
+    '    <ol>',
+    '      <li>Внимательно прочитай каждый термин.</li>',
+    '      <li>Если понял — отметь галочкой. Это подтверждение, что ты готов идти дальше.</li>',
+    '      <li>Все пятнадцать терминов должны быть отмечены, прежде чем ты перейдёшь к практике.</li>',
+    '    </ol>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Ключевые термины</h3>',
+    '  <div class="terms-grid" role="list">',
+    TERMS.map(renderTerm).join(""),
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Приёмы занятия</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Жёлтая плашка «на занятии» означает, что приём есть в эталоне.</p>',
+    '  <div style="overflow-x:auto; margin-bottom:0">',
+    '    <table class="tags-table">',
+    '      <thead><tr><th>Приём</th><th>Что делает</th></tr></thead>',
+    '      <tbody>',
+    TAGS.map(renderTagRow).join(""),
+    '      </tbody>',
+    '    </table>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return [
+    '<div class="term ' + (learned ? 'learned' : '') + '" data-term="' + t.key + '" role="listitem" tabindex="0" aria-pressed="' + learned + '">',
+    '  <div class="term-head">',
+    '    <span class="term-name">' + escapeHtml(t.name) + '</span>',
+    '    <span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+    '  </div>',
+    '  <div class="term-def">' + escapeHtml(t.def) + '</div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTagRow(tag){
+  return [
+    '<tr>',
+    '  <td><span class="tag-code">' + escapeHtml(tag.code) + '</span>' + (tag.used ? '<span class="tag-used">НА ЗАНЯТИИ</span>' : '') + '</td>',
+    '  <td>' + escapeHtml(tag.desc) + '</td>',
+    '</tr>'
+  ].join("\n");
+}
+
+function renderPractice(){
+  const quizDone = state.quiz.every(function(q){ return q.answered; });
+  const allChecked = state.prompt.checklist.every(Boolean);
+  const promptDone = state.prompt.response.trim() && allChecked && state.prompt.weak.trim();
+  const practiceDone = quizDone && promptDone;
+
+  return [
+    '<section class="section" aria-labelledby="practice-title">',
+    '  <div class="section-head">',
+    '    <div class="section-num practice">П</div>',
+    '    <div class="section-title-wrap">',
+    '      <h2 class="section-title" id="practice-title">Практика: полигон, тест по строкам и рефакторинг</h2>',
+    '      <p class="section-sub">Сначала сломай живую копию формы тестовыми наборами, потом объясни десять строк эталона, в конце отправь скрипт ИИ на рефакторинг и проверь ответ.</p>',
+    '    </div>',
+    '    <span class="section-status ' + (practiceDone ? 'done' : '') + '">' + quizScore() + '/' + QUIZ.length + ' тест</span>',
+    '  </div>',
+    '',
+    '  <div class="algo">',
+    '    <div class="algo-title">',
+    '      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
+    '      План практики',
+    '    </div>',
+    '    <ol>',
+    '      <li>Прочитай эталон целиком: разметка формы, три функции проверки, обработчик submit.</li>',
+    '      <li>На полигоне ниже вставь тестовые наборы кнопками и нажми «Записаться». Смотри, что появилось и куда встал курсор.</li>',
+    '      <li>Ответь на десять вопросов о строках эталона. Попытка одна, объяснение после ответа обязательное.</li>',
+    '      <li>Отправь скрипт эталона ИИ на рефакторинг, вставь ответ и пройди чек-лист.</li>',
+    '      <li>Сохрани лист в PDF — это результат занятия.</li>',
+    '    </ol>',
+    '    <div class="algo-note">',
+    '      <b>Что смотреть на полигоне:</b> все ошибки появляются сразу, а не по одной; курсор встаёт в первое неверное поле; поле из трёх пробелов считается пустым; сообщение объясняет, что сделать, а не кричит.',
+    '    </div>',
+    '    <div class="algo-note">',
+    '      <b>Правило курса:</b> клиентская проверка помогает человеку, но не защищает систему — её обходят за минуту через DevTools. Защищает только серверная. Сегодня учимся первой.',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <h3 class="sub-title">Эталон: форма предзаказа с проверкой</h3>',
+    '  <div class="code-block tall">' + escapeHtml(REFERENCE_CODE) + '</div>',
+    '',
+    '  <h3 class="sub-title">Полигон: сломай форму</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Рабочая копия эталонной формы живёт прямо в листе и никуда не отправляется. Кнопки справа подставляют вредные наборы, «Записаться» запускает проверку.</p>',
+    '  <div class="pg-wrap">',
+    '    <div class="pg" data-playground>',
+    '      <h4>Записаться в буфет</h4>',
+    '      <form id="pg-form" novalidate>',
+    '        <div class="field">',
+    '          <label for="pg-name">Имя</label>',
+    '          <input type="text" id="pg-name" name="name" aria-describedby="pg-name-err" autocomplete="off">',
+    '          <span class="field__error" id="pg-name-err"></span>',
+    '        </div>',
+    '        <div class="field">',
+    '          <label for="pg-cls">Класс</label>',
+    '          <input type="text" id="pg-cls" name="cls" aria-describedby="pg-cls-err" placeholder="9А" autocomplete="off">',
+    '          <span class="field__error" id="pg-cls-err"></span>',
+    '        </div>',
+    '        <div class="field">',
+    '          <label for="pg-count">Сколько штук</label>',
+    '          <input type="number" id="pg-count" name="count" aria-describedby="pg-count-err" autocomplete="off">',
+    '          <span class="field__error" id="pg-count-err"></span>',
+    '        </div>',
+    '        <button type="submit">Записаться</button>',
+    '      </form>',
+    '      <p id="pg-status" data-pg-status></p>',
+    '    </div>',
+    '    <div class="pg-cases">',
+    '      <h4>Тестовые наборы</h4>',
+    '      <p>Кнопка подставляет значения в поля. Потом нажми «Записаться» и смотри реакцию: ошибки перепроверяются при каждой отправке.</p>',
+    '      <div class="case-list">',
+    '        <button type="button" class="case-btn" data-case="spaces">Имя: три пробела</button>',
+    '        <button type="button" class="case-btn" data-case="emptyname">Имя: пусто</button>',
+    '        <button type="button" class="case-btn" data-case="shortname">Имя: одна буква</button>',
+    '        <button type="button" class="case-btn" data-case="badclass">Класс: 9a латиницей и строчная</button>',
+    '        <button type="button" class="case-btn" data-case="goodclass">Класс: 9А как надо</button>',
+    '        <button type="button" class="case-btn" data-case="bigcount">Количество: 7</button>',
+    '        <button type="button" class="case-btn" data-case="emptycount">Количество: пусто</button>',
+    '        <button type="button" class="case-btn" data-case="allgood">Всё верно: Аня, 9А, 3</button>',
+    '        <button type="button" class="case-btn" data-case="clear">Очистить поля</button>',
+    '      </div>',
+    '    </div>',
+    '  </div>',
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Тест: что делает эта строка</h3>',
+    '  <p class="section-sub" style="margin-bottom:12px">Десять строк из эталона. Выбери, что каждая делает и зачем она там. Если сомневаешься — проверь догадку на полигоне.</p>',
+    '  <span class="quiz-score">Верно с первой попытки: ' + quizScore() + ' из ' + QUIZ.length + '</span>',
+    QUIZ.map(renderQuizCard).join(""),
+    '',
+    '  <div class="divider"></div>',
+    '',
+    '  <h3 class="sub-title">Рефакторинг через ИИ</h3>',
+    '  <p class="section-sub" style="margin-bottom:14px">Модель предложит убрать повторы, сохранив поведение. Твоя работа — проверить, что поведение действительно то же: прогони её версию на тех же наборах, что и на полигоне.</p>',
+    '',
+    '  <div class="ai-links">',
+    '    <a class="ai-link" href="https://chat.deepseek.com/" target="_blank" rel="noopener"><span class="ai-link-dot deepseek"></span>DeepSeek</a>',
+    '    <a class="ai-link" href="https://alice.yandex.ru/" target="_blank" rel="noopener"><span class="ai-link-dot alice"></span>Яндекс Алиса</a>',
+    '    <a class="ai-link" href="https://chat.qwen.ai/" target="_blank" rel="noopener"><span class="ai-link-dot qwen"></span>Qwen</a>',
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label">Какой код отправить на рефакторинг?</label>',
+    '    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px">',
+    '      <label class="radio ' + (state.prompt.source === "ref" ? "selected" : "") + '">',
+    '        <input type="radio" name="promptSource" value="ref" ' + (state.prompt.source === "ref" ? "checked" : "") + ' data-prompt-source/>',
+    '        Скрипт эталона',
+    '      </label>',
+    '      <label class="radio ' + (state.prompt.source === "custom" ? "selected" : "") + '">',
+    '        <input type="radio" name="promptSource" value="custom" ' + (state.prompt.source === "custom" ? "checked" : "") + ' data-prompt-source/>',
+    '        Мой код из тренажёра',
+    '      </label>',
+    '    </div>',
+    '  </div>',
+    state.prompt.source === "custom"
+      ? [
+          '<div class="field">',
+          '  <label class="field-label" for="prompt-custom">Твой код валидации</label>',
+          '  <textarea class="field-input code ' + (state.prompt.customCode.trim() ? 'filled' : '') + '"',
+          '    id="prompt-custom" data-prompt-key="customCode"',
+          '    placeholder="Вставь сюда свой скрипт проверки формы">' + escapeHtml(state.prompt.customCode) + '</textarea>',
+          '</div>'
+        ].join("\n")
+      : '<div class="instruction" style="margin-bottom:14px"><b>Будет отправлен скрипт эталона</b> (всё, что внутри &lt;script&gt;): три функции проверки, showError и clearError, массив FIELDS и обработчик submit. ' + REFERENCE_JS_LINES.length + ' строк.</div>',
+    '',
+    '  <div class="prompt-box" aria-label="Текст промпта">',
+    '    <button class="copy-btn" data-action="copy-prompt" type="button" aria-label="Скопировать промпт с кодом">Копировать</button>',
+    '    <span data-prompt-text>' + escapeHtml(buildPrompt()) + '</span>',
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-response">Ответ нейросети (вставь сюда)</label>',
+    '    <textarea class="field-input ' + (state.prompt.response.trim() ? 'filled' : '') + '"',
+    '      id="prompt-response" data-prompt-key="response"',
+    '      placeholder="Сюда — список повторов, переписанный код и таблицу «было / стало / не изменилось»"',
+    '      style="min-height:180px">' + escapeHtml(state.prompt.response) + '</textarea>',
+    '  </div>',
+    '',
+    '  <div class="checklist" role="group" aria-label="Чек-лист проверки рефакторинга">',
+    '    <div class="checklist-title">Чек-лист проверки рефакторинга</div>',
+    CHECKLIST.map(function(text, i){
+      const checked = state.prompt.checklist[i] ? 'checked' : '';
+      return [
+        '<div class="check-item ' + checked + '"',
+        '     data-check-idx="' + i + '" role="checkbox" aria-checked="' + state.prompt.checklist[i] + '" tabindex="0">',
+        '  <span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+        '  <span class="check-text">' + escapeHtml(text) + '</span>',
+        '</div>'
+      ].join("\n");
+    }).join(""),
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-weak">Где поведение её версии отличается от исходного</label>',
+    '    <textarea class="field-input ' + (state.prompt.weak.trim() ? 'filled' : '') + '"',
+    '      id="prompt-weak" data-prompt-key="weak"',
+    '      placeholder="Например: «в её версии фокус ставится до показа ошибок — клавиатура объявляет поле раньше, чем человек видит текст»">' + escapeHtml(state.prompt.weak) + '</textarea>',
+    '  </div>',
+    '',
+    '  <div class="field">',
+    '    <label class="field-label" for="prompt-fix">Что из её версии ты заберёшь в свой код? <span class="field-hint">(необязательно)</span></label>',
+    '    <textarea class="field-input ' + (state.prompt.fix.trim() ? 'filled' : '') + '"',
+    '      id="prompt-fix" data-prompt-key="fix"',
+    '      placeholder="Свободное поле — можно оставить пустым">' + escapeHtml(state.prompt.fix) + '</textarea>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderQuizCard(q, i){
+  return [
+    '<div class="quiz-card" data-quiz="' + i + '">',
+    '  <div class="quiz-q">' + (i + 1) + '. Что делает эта строка эталона?<br><code>' + escapeHtml(q.code) + '</code></div>',
+    '  <div class="quiz-options" role="group" aria-label="Варианты ответа">',
+    q.options.map(function(opt, j){
+      return '<button type="button" class="quiz-opt" data-quiz-opt="' + i + ':' + j + '">' + escapeHtml(opt) + '</button>';
+    }).join(""),
+    '  </div>',
+    '  <div class="quiz-feedback hidden"></div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderActions(progress){
+  const canFinish = progress.percent >= 70;
+  const disabledAttr = canFinish ? '' : 'disabled style="opacity:.5;cursor:not-allowed"';
+  return [
+    '<div class="actions" role="toolbar" aria-label="Действия">',
+    '  <div class="actions-inner">',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Сбросить</button>',
+    '    <button class="btn btn-secondary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-primary" data-action="finish" type="button" ' + disabledAttr + '>Завершить</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderFinish(progress){
+  const checkCount = state.prompt.checklist.filter(Boolean).length;
+  return [
+    '<section class="finish" aria-labelledby="fin-title">',
+    '  <div class="finish-icon" aria-hidden="true"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 10 18 20 6"/></svg></div>',
+    '  <h2 id="fin-title">Рабочий лист заполнен</h2>',
+    '  <p>Сохрани PDF и передай учителю. Помни правило курса: сдаётся только то, что ты можешь объяснить вслух.</p>',
+    '  <div class="stats">',
+    '    <div class="stat"><div class="stat-val">' + termsCount() + '/' + TERMS.length + '</div><div class="stat-lbl">терминов отмечено</div></div>',
+    '    <div class="stat"><div class="stat-val">' + quizScore() + '/' + QUIZ.length + '</div><div class="stat-lbl">тест с первой попытки</div></div>',
+    '    <div class="stat"><div class="stat-val">' + checkCount + '/' + CHECKLIST.length + '</div><div class="stat-lbl">пунктов чек-листа</div></div>',
+    '  </div>',
+    '  <div class="finish-actions">',
+    '    <button class="btn btn-secondary" data-action="back" type="button">Вернуться и проверить</button>',
+    '    <button class="btn btn-primary" data-action="print" type="button">',
+    '      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>',
+    '      Сохранить PDF',
+    '    </button>',
+    '    <button class="btn btn-ghost" data-action="reset" type="button">Начать заново</button>',
+    '  </div>',
+    '</section>'
+  ].join("\n");
+}
+
+/* ---------- Полигон: живая копия формы ---------- */
+function pgCheckName(v){
+  const t = v.trim();
+  if(t === "") return "Напиши имя — как к тебе обращаться?";
+  if(t.length < 2) return "Слишком короткое имя, напиши полностью";
+  return "";
+}
+function pgCheckClass(v){
+  const t = v.trim();
+  if(t === "") return "Укажи класс";
+  if(!/^\d{1,2}[А-Яа-я]$/.test(t)) return "Класс пишется как 9А или 11Б";
+  return "";
+}
+function pgCheckCount(v){
+  const n = Number(v);
+  if(v.trim() === "" || Number.isNaN(n)) return "Укажи количество цифрой";
+  if(n < 1 || n > 5) return "От 1 до 5 штук за раз";
+  return "";
+}
+
+function initPlayground(){
+  const root = document.querySelector("[data-playground]");
+  if(!root) return;
+  const form = root.querySelector("form");
+  const statusEl = root.querySelector("[data-pg-status]");
+  const desc = [
+    { key:"name",  input: root.querySelector("#pg-name"),  box: root.querySelector("#pg-name-err"),  check: pgCheckName },
+    { key:"cls",   input: root.querySelector("#pg-cls"),   box: root.querySelector("#pg-cls-err"),   check: pgCheckClass },
+    { key:"count", input: root.querySelector("#pg-count"), box: root.querySelector("#pg-count-err"), check: pgCheckCount }
+  ];
+
+  desc.forEach(function(d){
+    d.input.value = state.pg[d.key] || "";
+    d.input.addEventListener("input", function(){
+      state.pg[d.key] = d.input.value;
+      saveState();
+    });
+  });
+
+  form.addEventListener("submit", function(event){
+    event.preventDefault();
+    let firstInvalid = null;
+    desc.forEach(function(f){
+      const message = f.check(f.input.value);
+      if(message === ""){
+        f.box.textContent = "";
+        f.input.removeAttribute("aria-invalid");
+      } else {
+        f.box.textContent = message;
+        f.input.setAttribute("aria-invalid", "true");
+        if(firstInvalid === null) firstInvalid = f.input;
+      }
+    });
+    if(firstInvalid !== null){
+      statusEl.textContent = "";
+      firstInvalid.focus();
+      return;
+    }
+    statusEl.textContent = "Заявка принята, подходи к буфету";
+  });
+
+  root.parentNode.parentNode.querySelectorAll("[data-case]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const c = btn.dataset.case;
+      const set = function(key, val){
+        const el = root.querySelector("#pg-" + key);
+        el.value = val;
+        state.pg[key] = val;
+      };
+      if(c === "spaces") set("name", "   ");
+      if(c === "emptyname") set("name", "");
+      if(c === "shortname") set("name", "А");
+      if(c === "badclass") set("cls", "9a");
+      if(c === "goodclass") set("cls", "9А");
+      if(c === "bigcount") set("count", "7");
+      if(c === "emptycount") set("count", "");
+      if(c === "allgood"){ set("name", "Аня"); set("cls", "9А"); set("count", "3"); }
+      if(c === "clear"){ set("name", ""); set("cls", ""); set("count", ""); }
+      statusEl.textContent = "";
+      saveState();
+    });
+  });
+}
+
+/* ---------- Точечная перерисовка ---------- */
+function paintQuiz(card, i){
+  const st = state.quiz[i];
+  const opts = card.querySelectorAll(".quiz-opt");
+  opts.forEach(function(btn, j){
+    btn.disabled = true;
+    btn.classList.remove("correct", "wrong");
+    if(j === QUIZ[i].correct) btn.classList.add("correct");
+    else if(j === st.chosen) btn.classList.add("wrong");
+  });
+  const fb = card.querySelector(".quiz-feedback");
+  fb.classList.remove("hidden", "good", "bad");
+  fb.classList.add(st.correct ? "good" : "bad");
+  fb.innerHTML = "<b>" + (st.correct ? "Верно. " : "Не совсем. Правильный ответ: «" + escapeHtml(QUIZ[i].options[QUIZ[i].correct]) + "». ") + "</b>" + escapeHtml(QUIZ[i].why);
+}
+
+function paintPrompt(){
+  const pt = document.querySelector("[data-prompt-text]");
+  if(pt) pt.textContent = buildPrompt();
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent + "%";
+  if(num) num.textContent = p.percent + "%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+
+  const score = document.querySelector(".quiz-score");
+  if(score) score.textContent = "Верно с первой попытки: " + quizScore() + " из " + QUIZ.length;
+
+  const st = document.querySelector('#practice-title');
+  if(st){
+    const badge = st.closest(".section-head").querySelector(".section-status");
+    if(badge) badge.textContent = quizScore() + "/" + QUIZ.length + " тест";
+  }
+
+  const finishBtn = document.querySelector('[data-action="finish"]');
+  if(finishBtn){
+    if(p.percent >= 70){
+      finishBtn.disabled = false;
+      finishBtn.style.opacity = "";
+      finishBtn.style.cursor = "";
+    } else {
+      finishBtn.disabled = true;
+      finishBtn.style.opacity = ".5";
+      finishBtn.style.cursor = "not-allowed";
+    }
+  }
+}
+
+function buildPrompt(){
+  const code = state.prompt.source === "custom"
+    ? (state.prompt.customCode || "(код пока не вставлен)")
+    : REFERENCE_JS_LINES.join("\n");
+  return PROMPT_TEMPLATE.replace("{CODE}", code);
+}
+
+/* ---------- Обработчики ---------- */
+function bindHandlers(){
+  app.querySelectorAll("[data-action]").forEach(function(btn){
+    btn.addEventListener("click", handleAction);
+  });
+
+  app.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      el.classList.toggle("learned", state.termsLearned[key]);
+      el.setAttribute("aria-pressed", String(state.termsLearned[key]));
+      const st = document.querySelector("[data-terms-status]");
+      if(st){
+        const n = termsCount();
+        st.textContent = n + "/" + TERMS.length + " отмечено";
+        st.classList.toggle("done", n === TERMS.length);
+      }
+      updateProgress();
+      saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-quiz-opt]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.quizOpt.split(":");
+      const qi = parseInt(parts[0], 10);
+      const oi = parseInt(parts[1], 10);
+      const st = state.quiz[qi];
+      if(st.answered) return;
+      st.answered = true;
+      st.chosen = oi;
+      st.correct = oi === QUIZ[qi].correct;
+      saveState();
+      paintQuiz(btn.closest(".quiz-card"), qi);
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-prompt-source]").forEach(function(radio){
+    radio.addEventListener("change", function(e){
+      state.prompt.source = e.target.value;
+      saveState();
+      render();
+    });
+  });
+
+  app.querySelectorAll("[data-prompt-key]").forEach(function(input){
+    input.addEventListener("input", function(e){
+      state.prompt[e.target.dataset.promptKey] = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      if(e.target.dataset.promptKey === "customCode") paintPrompt();
+      updateProgress();
+      saveState();
+    });
+  });
+
+  app.querySelectorAll("[data-check-idx]").forEach(function(item){
+    const handler = function(){
+      const idx = parseInt(item.dataset.checkIdx, 10);
+      state.prompt.checklist[idx] = !state.prompt.checklist[idx];
+      item.classList.toggle("checked", state.prompt.checklist[idx]);
+      item.setAttribute("aria-checked", String(state.prompt.checklist[idx]));
+      updateProgress();
+      saveState();
+    };
+    item.addEventListener("click", handler);
+    item.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){
+    state.started = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "reset"){
+    if(confirm("Сбросить все заполненные поля? Это действие нельзя отменить.")){
+      localStorage.removeItem(STORAGE_KEY);
+      state = {
+        started:false, finished:false,
+        termsLearned:{},
+        pg:{ name:"", cls:"", count:"" },
+        quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+        prompt:{ source:"ref", customCode:"", response:"", checklist: CHECKLIST.map(function(){ return false; }), weak:"", fix:"" }
+      };
+      render();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+  } else if(action === "print"){
+    window.print();
+  } else if(action === "copy-prompt"){
+    copyToClipboard(buildPrompt(), e.currentTarget);
+  } else if(action === "finish"){
+    const p = countProgress();
+    if(p.percent < 70){
+      alert("Заполни ещё немного — сейчас заполнено " + p.percent + "%. Для завершения нужно 70%.");
+      return;
+    }
+    state.finished = true;
+    saveState();
+    render();
+    window.scrollTo({top:0, behavior:"smooth"});
+  } else if(action === "back"){
+    state.finished = false;
+    saveState();
+    render();
+  }
+}
+
+async function copyToClipboard(text, btn){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(err){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    document.body.removeChild(ta);
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Скопировано";
+  btn.classList.add("copied");
+  setTimeout(function(){
+    btn.textContent = original;
+    btn.classList.remove("copied");
+  }, 1600);
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function init(){
+  loadState();
+  render();
+}
+init();
+</script>
+</body>
+</html>
