@@ -1,0 +1,1443 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 12 · Асинхронность, API и итоговый контроль</title>
+<style>
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--font); background:var(--bg); color:var(--text); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+  button, input, textarea, select{font-family:inherit; font-size:inherit; color:inherit}
+
+  .topbar{position:sticky; top:0; z-index:20; background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-bottom:1px solid var(--border)}
+  .topbar-inner{max-width:1000px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .brand{display:flex; flex-direction:column; min-width:0; flex:1}
+  .brand-title{font-size:14px; font-weight:700; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .progress-wrap{display:flex; align-items:center; gap:10px; min-width:150px}
+  .progress-bar{flex:1; height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; min-width:90px}
+  .progress-fill{height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:38px; text-align:right}
+
+  /* ---------- Вкладки ---------- */
+  .tabnav{max-width:1000px; margin:0 auto; padding:0 20px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none}
+  .tabnav::-webkit-scrollbar{display:none}
+  .tab-btn{flex-shrink:0; min-height:44px; padding:0 16px; border:1px solid var(--border); border-bottom:none; border-radius:12px 12px 0 0; background:var(--surface-2); color:var(--text-2); font-size:14px; font-weight:600; cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; gap:8px}
+  .tab-btn:hover{background:var(--surface); color:var(--text)}
+  .tab-btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .tab-btn.active{background:var(--surface); color:var(--accent); border-color:var(--border-strong); box-shadow:0 -2px 6px rgba(15,23,42,.05)}
+  .tab-badge{font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface); color:var(--text-3); border:1px solid var(--border)}
+  .tab-btn.active .tab-badge{background:var(--accent-soft); color:var(--accent); border-color:transparent}
+  .tab-badge.done{background:var(--success-soft); color:var(--success); border-color:transparent}
+  .tab-badge.lock{background:var(--warn-soft); color:#92400e; border-color:transparent}
+
+  main{max-width:1000px; margin:0 auto; padding:0 20px 120px}
+  main.no-tabs{padding-top:28px}
+  .tab-page{background:var(--surface); border:1px solid var(--border-strong); border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg); padding:28px; box-shadow:var(--shadow-sm)}
+  .tab-page[hidden]{display:none}
+
+  /* ---------- Стартовый экран ---------- */
+  .hero{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:44px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .hero-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px, 4vw, 36px); font-weight:700; letter-spacing:-0.02em; margin:18px 0 10px; line-height:1.15}
+  .hero p{color:var(--text-2); font-size:16px; max-width:620px; margin:0 auto 24px}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:28px}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--surface-2); border-radius:999px; font-size:13px; color:var(--text-2)}
+  .chip b{color:var(--text); font-weight:600}
+
+  .hero-mini{margin-bottom:22px}
+  .hero-mini h1{font-size:clamp(22px, 3.4vw, 30px); font-weight:700; letter-spacing:-0.02em; margin:12px 0 6px; line-height:1.2}
+  .hero-mini p{color:var(--text-2); font-size:15px; margin:0; max-width:680px}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 22px; border-radius:12px; border:1px solid transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .15s ease; user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent; color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2); color:var(--text)}
+  .btn-lg{min-height:52px; padding:0 28px; font-size:16px; border-radius:14px}
+  .btn-sm{min-height:38px; padding:0 14px; font-size:13px; border-radius:10px}
+
+  .section-head{display:flex; align-items:flex-start; gap:14px; margin:26px 0 14px}
+  .section-num{flex-shrink:0; width:34px; height:34px; border-radius:10px; background:#0f172a; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px}
+  .section-num.blue{background:var(--accent)}
+  .section-title{font-size:18px; font-weight:700; letter-spacing:-0.01em; margin:0 0 3px}
+  .section-sub{font-size:14px; color:var(--text-2); margin:0}
+  .section-title-wrap{flex:1; min-width:0}
+  .section-status{flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--text-3)}
+  .section-status.done{background:var(--success-soft); color:var(--success)}
+
+  .instruction{background:var(--surface-2); border-radius:var(--radius); padding:12px 16px; margin-bottom:18px; font-size:14px; color:var(--text-2)}
+  .instruction ol, .instruction ul{margin:0; padding-left:18px}
+  .instruction li{margin-bottom:4px}
+  .instruction li::marker{color:var(--accent); font-weight:600}
+
+  .terms-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:20px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px 15px; cursor:pointer; transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent); background:#f8fbff}
+  .term-head{display:flex; align-items:center; gap:10px; margin-bottom:5px}
+  .term-name{font-weight:700; font-size:14px; font-family:var(--mono); color:var(--accent)}
+  .term-check{margin-left:auto; width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex-shrink:0}
+  .term.learned .term-check{background:var(--success); border-color:var(--success)}
+  .term-check svg{width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:13.5px; color:var(--text-2); line-height:1.5}
+
+  .tags-table{width:100%; border-collapse:collapse; font-size:14px; margin-bottom:16px}
+  .tags-table th{text-align:left; padding:10px 12px; background:var(--surface-2); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .tags-table td{padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.5}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tag-code{font-family:var(--mono); font-size:12.5px; color:var(--accent); font-weight:600; background:var(--accent-soft); padding:2px 8px; border-radius:6px; white-space:nowrap}
+  .tag-used{display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--warn-soft); color:#92400e; margin-left:6px; letter-spacing:.03em}
+
+  .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.65; overflow-x:auto; white-space:pre; margin-bottom:16px}
+  .code-block::before{content:attr(data-file); display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+
+  /* ---------- Обзор модулей ---------- */
+  .mod-cards{display:grid; gap:12px; grid-template-columns:1fr}
+  @media (min-width:760px){.mod-cards{grid-template-columns:1fr 1fr}}
+  .mod-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px}
+  .mod-card h3{margin:0 0 4px; font-size:15px}
+  .mod-card .mod-range{font-size:12px; color:var(--text-3); font-weight:600; display:block; margin-bottom:10px}
+  .mod-card ul{margin:0; padding-left:18px; font-size:13.5px; color:var(--text-2); line-height:1.55}
+  .mod-card li{margin-bottom:5px}
+  .mod-card li b{color:var(--text)}
+  .mod-keys{margin-top:12px; padding:10px 12px; background:var(--accent-soft); border-radius:10px; font-size:12.5px; color:#1e3a8a; line-height:1.5}
+  .mod-keys b{display:block; margin-bottom:6px; font-size:11px; text-transform:uppercase; letter-spacing:.05em}
+  .mod-keys ul{margin:0; padding-left:16px}
+  .mod-keys li{margin-bottom:4px}
+  .mod-keys code{font-family:var(--mono); font-size:11.5px; background:#fff; padding:1px 5px; border-radius:4px; color:var(--accent-hover)}
+
+  /* ---------- Контроль ---------- */
+  .quiz-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+  .quiz-mod{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); border-radius:5px; padding:2px 7px; margin-bottom:6px}
+  .quiz-q{font-weight:600; font-size:14px; margin-bottom:10px; line-height:1.5}
+  .quiz-options{display:grid; gap:8px}
+  .quiz-opt{min-height:44px; text-align:left; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; font-size:14px; transition:all .15s ease; line-height:1.4}
+  .quiz-opt:hover:not(:disabled){border-color:var(--border-strong); background:var(--surface-2)}
+  .quiz-opt:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .quiz-opt:disabled{cursor:default}
+  .quiz-opt.correct{background:var(--success-soft); border-color:var(--success); color:#14532d}
+  .quiz-opt.wrong{background:var(--danger-soft); border-color:var(--danger); color:#7f1d1d}
+  .quiz-feedback{margin-top:10px; font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5}
+  .quiz-feedback.good{background:var(--success-soft); color:#14532d}
+  .quiz-feedback.bad{background:var(--danger-soft); color:#7f1d1d}
+  .score-chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--surface-2); font-size:13px; font-weight:600; color:var(--text-2); margin:0 10px 14px 0}
+
+  .match-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:14px}
+  .match-card h4{margin:0 0 4px; font-size:15px}
+  .match-card p{margin:0 0 12px; font-size:13px; color:var(--text-2)}
+  .match-row{display:grid; grid-template-columns:1fr; gap:6px; padding:8px 0; border-top:1px solid var(--border)}
+  @media (min-width:640px){.match-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:center}}
+  .match-left{font-size:13.5px; font-weight:600; font-family:var(--mono); color:var(--text)}
+  .match-left.small{font-family:var(--font)}
+  .match-select{width:100%; min-height:44px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:13.5px; line-height:1.4}
+  .match-select:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .match-row.ok .match-select{border-color:var(--success); background:var(--success-soft)}
+  .match-row.bad .match-select{border-color:var(--danger); background:var(--danger-soft)}
+  .match-row .match-correct{grid-column:1 / -1; font-size:12.5px; color:#14532d; background:var(--success-soft); border-radius:8px; padding:6px 10px}
+  .part-actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+
+  .hint-box{margin-top:10px; padding:10px 12px; background:var(--warn-soft); color:#78350f; border-radius:10px; font-size:13px; line-height:1.55}
+  .hint-box b{font-weight:700}
+
+  .bug-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:14px}
+  .bug-line{display:block; width:100%; text-align:left; font-family:var(--mono); font-size:12.5px; line-height:1.6; padding:8px 12px; border:1.5px solid var(--border); border-radius:8px; background:var(--surface-2); margin-bottom:6px; cursor:pointer; transition:all .15s ease; white-space:pre-wrap; word-break:break-word}
+  .bug-line:hover{border-color:var(--border-strong)}
+  .bug-line:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .bug-line.picked{border-color:var(--warn); background:var(--warn-soft); color:#78350f}
+  .bug-line.ok{border-color:var(--success); background:var(--success-soft); color:#14532d}
+  .bug-line.miss{border-color:var(--warn); background:var(--warn-soft); color:#78350f}
+  .bug-line.extra{border-color:var(--danger); background:var(--danger-soft); color:#7f1d1d}
+  .bug-line:disabled{cursor:default}
+
+  .order-wrap{display:grid; gap:12px; grid-template-columns:1fr}
+  @media (min-width:760px){.order-wrap{grid-template-columns:1fr 1fr}}
+  .order-zone{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; min-height:180px}
+  .order-zone h5{margin:0 0 10px; font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3)}
+  .order-chip{display:block; width:100%; text-align:left; font-size:13.5px; line-height:1.45; padding:9px 12px; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface-2); margin-bottom:6px; cursor:pointer; transition:all .15s ease}
+  .order-chip:hover{border-color:var(--accent); background:#f8fbff}
+  .order-chip:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .order-chip .ord-num{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:6px; background:var(--accent); color:#fff; font-size:11px; font-weight:700; margin-right:8px; vertical-align:middle}
+  .order-zone.empty-hint::after{content:"Пусто. Кликай шаги слева по порядку."; font-size:12.5px; color:var(--text-3)}
+  .order-chip.ok{border-color:var(--success); background:var(--success-soft)}
+  .order-chip.bad{border-color:var(--danger); background:var(--danger-soft)}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block; font-size:13px; color:var(--text-2); margin-bottom:6px; font-weight:600}
+  .field-input{width:100%; min-height:40px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:14px; transition:border-color .15s ease, background .15s ease}
+  .field-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff; border-color:var(--accent)}
+  textarea.field-input{min-height:90px; resize:vertical; line-height:1.5}
+
+  /* ---------- Отчёт ---------- */
+  .rep-summary{display:grid; gap:10px; grid-template-columns:repeat(2,1fr); margin-bottom:18px}
+  @media (min-width:700px){.rep-summary{grid-template-columns:repeat(5,1fr)}}
+  .rep-stat{background:var(--surface-2); border-radius:var(--radius); padding:12px; text-align:center}
+  .rep-stat .v{font-size:20px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums}
+  .rep-stat .l{font-size:11px; color:var(--text-3); margin-top:2px}
+  .rep-table{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:18px}
+  .rep-table th{text-align:left; padding:8px 10px; background:var(--surface-2); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .rep-table td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.45}
+  .rep-table tr:last-child td{border-bottom:none}
+  .rep-table code{font-family:var(--mono); font-size:12px}
+  .rep-mark{font-weight:700}
+  .rep-mark.ok{color:var(--success)}
+  .rep-mark.bad{color:var(--danger)}
+  .rep-mark.wait{color:var(--text-3)}
+  .rep-note{font-size:13px; color:var(--text-2); background:var(--surface-2); border-radius:10px; padding:10px 12px; margin-bottom:16px; line-height:1.55}
+  .rep-reflect{font-size:14px; background:var(--warn-soft); color:#78350f; border-radius:10px; padding:12px 14px; line-height:1.55; white-space:pre-wrap}
+  .lock-list{list-style:none; margin:0 0 18px; padding:0; display:grid; gap:8px}
+  .lock-list li{display:flex; align-items:flex-start; gap:10px; background:var(--surface-2); border-radius:10px; padding:10px 12px; font-size:14px}
+  .lock-list .lk{flex-shrink:0; font-weight:700; font-size:12px; padding:2px 8px; border-radius:999px; background:var(--surface); border:1px solid var(--border); color:var(--text-2); margin-top:1px}
+  .lock-list .lk.ok{background:var(--success-soft); border-color:transparent; color:var(--success)}
+  .lock-list .lk.part{background:var(--warn-soft); border-color:transparent; color:#92400e}
+
+  .divider{height:1px; background:var(--border); margin:24px 0}
+  .sub-title{font-size:16px; font-weight:700; letter-spacing:-0.01em; margin:0 0 12px; color:var(--text)}
+
+  .actions{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.92); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-top:1px solid var(--border); padding:10px 20px; z-index:20}
+  .actions-inner{max-width:1000px; margin:0 auto; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+
+  @media print{
+    @page{size:A4; margin:14mm}
+    body{background:#fff}
+    .topbar, .tabnav, .actions, .no-print{display:none !important}
+    main{padding:0; max-width:100%}
+    .tab-page{border:none; box-shadow:none; padding:0; border-radius:0}
+    .tab-page[hidden]{display:none !important}
+    .code-block{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .quiz-opt.correct, .match-row.ok .match-select, .bug-line.ok, .order-chip.ok{background:#dcfce7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-opt.wrong, .match-row.bad .match-select, .bug-line.extra, .order-chip.bad{background:#fee2e2 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .rep-reflect, .hint-box{background:#fef3c7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-card, .match-card, .bug-card, .mod-card{break-inside:avoid}
+  }
+
+  @media (max-width:480px){
+    .topbar-inner{padding:8px 14px}
+    .tabnav{padding:0 14px}
+    main{padding:0 14px 110px}
+    main.no-tabs{padding-top:16px}
+    .tab-page{padding:20px 16px}
+    .hero{padding:30px 20px}
+    .hero h1{font-size:24px}
+    .hero-mini h1{font-size:22px}
+    .section-title{font-size:16px}
+    .tags-table{font-size:13px}
+    .tags-table th, .tags-table td{padding:8px}
+    .code-block{font-size:11.5px}
+    .actions-inner .btn{flex:1; padding:0 12px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 12 · Асинхронность, API
+   + итоговый контроль по модулям 1–4
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title: "Рабочий лист · Занятие 12",
+  subtitle: "Асинхронность, API и итоговый контроль",
+  teacher: "Масликов М. М.",
+  grade: "10–11 класс"
+};
+
+/* ================= ВКЛАДКА 1 · ЗАНЯТИЕ 12 ================= */
+
+const TERMS = [
+  { key:"sync", name:"Синхронный код", def:"Выполняется строка за строкой, по порядку. Всё, что ты писал до этого занятия." },
+  { key:"async", name:"Асинхронный код", def:"Запускает долгое дело и не ждёт его, продолжая работу. Результат обрабатывается, когда придёт." },
+  { key:"promise", name:"Promise", def:"Обещание результата. Ровно два исхода: resolve — получилось, reject — нет." },
+  { key:"asyncfn", name:"async", def:"Слово перед функцией, разрешающее использовать внутри await." },
+  { key:"await", name:"await", def:"«Подожди здесь результат». Останавливает функцию, но не блокирует браузер." },
+  { key:"try", name:"try / catch", def:"«Попробуй выполнить» и «если сломалось — сделай вот это». Без catch функция оборвётся молча." },
+  { key:"finally", name:"finally", def:"Блок, выполняющийся в любом исходе. Место разблокировать кнопку и снять индикатор." },
+  { key:"throw", name:"throw", def:"Бросить ошибку сознательно. Нужен, когда сервер ответил кодом 404 или 500: сам в catch он не попадёт." },
+  { key:"fetch", name:"fetch", def:"Встроенная функция запроса данных у сервера. Возвращает Promise." },
+  { key:"ok", name:"response.ok", def:"true при коде 200–299. Проверять вручную: ошибочный код ответа не считается ошибкой сети." },
+  { key:"status", name:"response.status", def:"Числовой код ответа сервера: 200, 404, 500." },
+  { key:"json", name:"JSON", def:"Текстовый формат обмена данными. Похож на объект, но это строка: её ещё надо разобрать." },
+  { key:"stload", name:"Состояние загрузки", def:"Индикатор и заблокированная кнопка, пока данных нет. Иначе нажмут пять раз." },
+  { key:"stempty", name:"Состояние «пусто»", def:"Ответ пришёл, данных нет. Не ошибка: сообщение спокойное, а не тревожное." },
+  { key:"fallback", name:"Фолбэк", def:"Запасные данные на случай сбоя сети. Пишется раньше запроса, показывается с честной пометкой." },
+  { key:"checklist", name:"Чек-лист запроса", def:"Отправили → дождались → проверили ответ → вывели данные → предусмотрели сообщение об ошибке." }
+];
+
+const TAGS = [
+  { code:"async function … () {", desc:"Функция, внутри которой можно ждать результат через await.", used:true },
+  { code:"await getMenu()", desc:"Ждём результат обещания здесь. Браузер при этом не заблокирован.", used:true },
+  { code:"if (!response.ok) throw …", desc:"Код 404 или 500 — не сбой сети: бросаем ошибку сами, чтобы поймать в catch.", used:true },
+  { code:"try / catch / finally", desc:"Три блока: попытка, обработка сбоя, действие при любом исходе.", used:true },
+  { code:"btn.disabled = true / false", desc:"Блокируем кнопку на время запроса, возвращаем в finally.", used:true },
+  { code:"await response.json()", desc:"Текст ответа разбираем в объект. Это тоже асинхронно.", used:true },
+  { code:"FALLBACK.items", desc:"Константа с сохранённой копией ответа: план Б при сбое сети.", used:true },
+  { code:"Четыре состояния экрана", desc:"Загрузка, данные, пусто, ошибка. Новички делают только «данные».", used:true },
+  { code:"console.log(result) вместо вывода", desc:"Результат запроса живёт на странице, а не в консоли. Запрещено.", used:false },
+  { code:"Использовать данные до await", desc:"Переменная ещё пустая: вывод произошёл раньше ответа. Запрещено.", used:false },
+  { code:"Запрос без catch", desc:"Сбой сети оборвёт функцию молча, индикатор зависнет навсегда. Запрещено.", used:false }
+];
+
+const ETALON = [
+  '/* План Б пишется ДО запроса, а не «если останется время» */',
+  'const FALLBACK = { items: [',
+  '  { name: "Калитка с картошкой", price: 45 },',
+  '  { name: "Рыбник", price: 90 }',
+  '] };',
+  '',
+  'async function loadMenu() {                 /* async разрешает await внутри */',
+  '  btn.disabled = true;                      /* состояние загрузки: кнопку блокируем до ответа */',
+  '  status.textContent = "Загрузка…";         /* человек видит, что страница работает */',
+  '',
+  '  try {                                     /* пробуем сделать запрос */',
+  '    const response = await getMenu();       /* await: ждём результат здесь, браузер не заморожен */',
+  '',
+  '    if (!response.ok) {                     /* 404 и 500 в catch НЕ попадут: ответ получен */',
+  '      throw new Error("сервер ответил " + response.status);  /* бросаем ошибку сами */',
+  '    }',
+  '',
+  '    const data = await response.json();     /* текст ответа разбираем в объект */',
+  '',
+  '    if (data.items.length === 0) {          /* состояние «пусто»: ответ пришёл, данных нет */',
+  '      status.textContent = "Сегодня буфет пуст";',
+  '      renderMenu([]);',
+  '      return;',
+  '    }',
+  '',
+  '    renderMenu(data.items);                 /* состояние «данные»: то, ради чего всё */',
+  '    status.textContent = "";',
+  '',
+  '  } catch (error) {                         /* сюда прилетает сбой сети и наш throw */',
+  '    renderMenu(FALLBACK.items);             /* меню из сохранённой копии */',
+  '    status.textContent = "Сеть сбоит — меню из копии";  /* честная пометка обязательна */',
+  '',
+  '  } finally {                               /* выполняется при любом исходе */',
+  '    btn.disabled = false;                   /* возвращаем кнопку: и при успехе, и при сбое */',
+  '  }',
+  '}'
+].join("\n");
+
+/* ================= ВКЛАДКА 2 · БАЗА ЗА 4 МОДУЛЯ ================= */
+
+const MODULE_REVIEW = [
+  {
+    num:1, title:"Модуль 1 · Как устроен сайт", range:"Занятие 1",
+    points:[
+      "<b>Клиент просит — сервер отвечает.</b> Никогда наоборот. Браузер рисует страницу из полученных файлов.",
+      "<b>DNS</b> переводит имя сайта в числовой адрес до основного запроса.",
+      "<b>DevTools (F12):</b> Elements показывает фактическое дерево, Console — ошибки, Network — запросы.",
+      "<b>Правило курса:</b> ИИ разрешён, сдаётся только то, что можешь объяснить."
+    ],
+    keys:[
+      { code:"200 · 404 · 403 · 500", note:"четыре кода ответа: успех, нет страницы, нельзя, сломалось у сервера" },
+      { code:"GET → ответ", note:"запрос и ответ укладываются в две строки текста" },
+      { code:"F12 → Elements / Console / Network", note:"дерево как оно есть, ошибки, список запросов" }
+    ]
+  },
+  {
+    num:2, title:"Модуль 2 · HTML: семантика, формы, таблицы", range:"Занятия 2–3",
+    points:[
+      "<b>Каркас:</b> header → один main → section с заголовком → footer. Один h1, уровни не перепрыгиваются.",
+      "<b>Перечень — список</b> ul/li, а не абзацы. Картинке — осмысленный alt, декоративной — пустой.",
+      "<b>Форма:</b> у каждого поля label, связанный парой for и id. placeholder подписью не является.",
+      "<b>Таблица для данных:</b> caption, th scope=\"col\" и scope=\"row\"."
+    ],
+    keys:[
+      { code:"<header> <main> <section> <footer>", note:"каркас страницы; main ровно один" },
+      { code:"<h1>…<h6>", note:"уровень заголовка — это место в иерархии, а не размер" },
+      { code:"<label for> + <input id>", note:"подпись и поле связаны парой атрибутов" },
+      { code:"<select> <button type=\"submit\">", note:"выбор из вариантов и настоящая кнопка" },
+      { code:"<caption> <th scope>", note:"таблица, которая называет свои данные" },
+      { code:"<img alt>", note:"описание содержимого вместо слова «картинка»" }
+    ]
+  },
+  {
+    num:3, title:"Модуль 3 · CSS: каскад, переменные, раскладки, кит", range:"Занятия 4–7",
+    points:[
+      "<b>Каскад:</b> при равной специфичности побеждает написанное ниже. Не работает стиль → DevTools → перечёркнутые правила.",
+      "<b>Переменные:</b> палитра в :root, ниже только var(). Тёмная тема — второй набор тех же имён.",
+      "<b>Mobile First:</b> база для узкого экрана, медиазапросы min-width в конце файла по возрастанию.",
+      "<b>UI-кит:</b> базовый класс + модификатор; состояния :hover, :focus-visible, :active; transition в базе.",
+      "<b>SVG:</b> viewBox обязателен, без width и height, stroke=\"currentColor\", мусор вычищаем руками."
+    ],
+    keys:[
+      { code:":root { --имя } + var(--имя)", note:"палитра в одном месте, ниже только по имени" },
+      { code:"html[data-theme=\"dark\"]", note:"тёмная тема теми же именами переменных" },
+      { code:"box-sizing: border-box", note:"первая строка любого CSS" },
+      { code:"display: flex / grid + gap", note:"ряды и сетки без margin у детей" },
+      { code:"@media (min-width: …)", note:"расширения в конце файла, по возрастанию" },
+      { code:":focus-visible + outline", note:"клавиатурный фокус, который нельзя убирать" }
+    ]
+  },
+  {
+    num:4, title:"Модуль 4 · JavaScript: данные, DOM, события, формы, запросы", range:"Занятия 8–12",
+    points:[
+      "<b>Скрипт в конце body.</b> Значение из поля — строка: Number() сразу. Только const/let и ===.",
+      "<b>Функция отдаёт через return</b>, а не печатает в консоль. Результат живёт на странице.",
+      "<b>Данные:</b> массив объектов; filter и map возвращают новый массив, find — один элемент или undefined, sort меняет на месте (сначала копия).",
+      "<b>DOM и события:</b> найти один раз → назначить обработчик на контейнер → изменить. closest поднимается от места клика, проверка на null обязательна.",
+      "<b>Формы:</b> submit + preventDefault первой строкой; проверка возвращает текст или \"\"; все ошибки сразу; фокус в первое неверное.",
+      "<b>Запросы:</b> async/await, try/catch/finally, проверка response.ok, четыре состояния экрана, фолбэк с пометкой."
+    ],
+    keys:[
+      { code:"Number(поле.value)", note:"строка из поля становится числом сразу при чтении" },
+      { code:"function … return …", note:"функция отдаёт результат, а не показывает его" },
+      { code:".filter / .map / .find / .sort", note:"много подходящих / столько же преобразованных / один / по порядку" },
+      { code:"addEventListener(\"submit\", fn)", note:"обработчик на форме, fn без скобок" },
+      { code:"event.preventDefault()", note:"первая строка перехвата отправки" },
+      { code:"closest + === null", note:"делегирование: контейнер переживает перерисовку" },
+      { code:"async / await + try / catch / finally", note:"запрос с планом Б и действием при любом исходе" }
+    ]
+  }
+];
+
+/* ================= ВКЛАДКА 3 · КОНТРОЛЬ ================= */
+
+const QUIZ = [
+  { m:1, q:"Что означает код ответа HTTP 404?",
+    options:["Запрос выполнен успешно","Такой страницы на сервере нет","Сервер запретил доступ","У сервера внутренняя ошибка"],
+    correct:1, why:"404 — «не найдено»: по этому адресу на сервере ничего нет. 200 — успех, 403 — запрет, 500 — поломка сервера." },
+  { m:1, q:"Кто рисует страницу из полученных файлов?",
+    options:["Сервер","DNS-служба","Браузер (клиент)","Текстовый редактор"],
+    correct:2, why:"Сервер хранит и отдаёт файлы, DNS ищет адрес, а рисует страницу браузер — это и есть сторона клиента." },
+  { m:1, q:"Где смотреть ошибку, из-за которой скрипт не работает?",
+    options:["Вкладка Console в DevTools","Вкладка Elements","Режим чтения браузера","Настройки операционной системы"],
+    correct:0, why:"Console — вкладка, куда браузер пишет ошибки выполнения: тип, описание и номер строки. Elements показывает дерево разметки." },
+  { m:2, q:"Сколько тегов main может быть на странице?",
+    options:["Сколько угодно секций — столько и main","По одному на каждую секцию","Можно вообще без него","Ровно один на страницу"],
+    correct:3, why:"main — основное содержимое страницы, и он один. Навигация и программы чтения прыгают сразу к нему." },
+  { m:2, q:"Что связывает подпись label с полем ввода?",
+    options:["Одинаковый class у обоих","Пара атрибутов: for у label и id у поля","Одинаковый name","placeholder и title"],
+    correct:1, why:"for и id должны совпадать полностью: тогда клик по подписи ставит курсор в поле, а программа чтения объявляет подпись вместе с полем." },
+  { m:2, q:"Что писать в alt у картинки, которая что-то сообщает?",
+    options:["Имя файла картинки","Слово «картинка» и её размер","Текстовое описание содержимого","Ничего, alt не обязателен"],
+    correct:2, why:"alt — замена картинки, а не подпись: его читают вслух и видят, если файл не загрузился. Слово «картинка» в нём не пишут." },
+  { m:3, q:"Где писать transition, чтобы наведение И увод мыши были плавными?",
+    options:["В правиле :hover","В правиле :active","В медиазапросе","В базовом правиле компонента"],
+    correct:3, why:"transition в базе работает в обе стороны: и вход в состояние, и выход. Написанный в :hover плавит только вход." },
+  { m:3, q:"Что задаёт запись grid-template-columns: repeat(3, 1fr)?",
+    options:["Три равные колонки, делящие свободное место","Три колонки шириной в один пиксель","Три строки сетки","Одну колонку, повторяющуюся при прокрутке"],
+    correct:0, why:"1fr — доля свободного места после промежутков. repeat(3, 1fr) — короткая запись для 1fr 1fr 1fr." },
+  { m:3, q:"Как в Mobile First располагаются медиазапросы?",
+    options:["В любом месте и в любом порядке","max-width, по убыванию ширины","min-width, по возрастанию, в конце файла","В начале файла, до базовых правил"],
+    correct:2, why:"База — для узкого экрана, расширения через min-width накапливаются. На широком истинны оба условия, побеждает написанный ниже." },
+  { m:4, q:"Что делает await внутри async-функции?",
+    options:["Блокирует весь браузер до ответа","Ждёт результат обещания в этом месте, не блокируя браузер","Превращает обещание в число","Ловит ошибку сети вместо catch"],
+    correct:1, why:"await останавливает выполнение функции до результата, но страница остаётся живой: браузер тем временем занимается другими делами." },
+  { m:4, q:"Зачем первой строкой обработчика отправки формы писать event.preventDefault()?",
+    options:["Чтобы страница не перезагружалась и человек остался с формой","Чтобы очистить все поля формы","Чтобы заблокировать кнопку навсегда","Чтобы скрыть сообщения об ошибках"],
+    correct:0, why:"Без отмены стандартного поведения браузер отправит форму и перезагрузит страницу: весь ввод и все ошибки исчезнут." },
+  { m:4, q:"Что возвращает pies.filter((p) => p.kind === \"сладкое\")?",
+    options:["Первый подходящий элемент","Строку из названий подходящих","Исходный массив, из которого удалены лишние","Новый массив из подходящих элементов"],
+    correct:3, why:"filter строит новый массив из элементов, для которых условие истинно. Исходный остаётся нетронутым, ничего не подошло — пустой массив." }
+];
+
+const MATCH_A = {
+  title:"Метод массива → что получается на выходе",
+  items:[
+    { id:"filter", left:"filter(…)", correct:"a" },
+    { id:"map", left:"map(…)", correct:"b" },
+    { id:"find", left:"find(…)", correct:"c" },
+    { id:"sort", left:"sort(…)", correct:"d" },
+    { id:"join", left:"join(\"; \")", correct:"e" }
+  ],
+  options:[
+    { id:"a", text:"Новый массив из подходящих, исходный цел" },
+    { id:"b", text:"Новый массив той же длины, каждый элемент преобразован" },
+    { id:"c", text:"Один элемент или undefined" },
+    { id:"d", text:"Порядок меняется на месте, поэтому сначала копия" },
+    { id:"e", text:"Одна строка, склеенная через разделитель" }
+  ]
+};
+
+const MATCH_B = {
+  title:"Симптом поломки → первое действие разработчика",
+  items:[
+    { id:"style", left:"Правило CSS не применяется", correct:"s1" },
+    { id:"undef", left:"На странице появилось undefined", correct:"s2" },
+    { id:"null", left:"В консоли Cannot read properties of null", correct:"s3" },
+    { id:"reload", left:"Форма перезагружает страницу при отправке", correct:"s4" },
+    { id:"icon", left:"Иконка не меняет цвет в тёмной теме", correct:"s5" }
+  ],
+  options:[
+    { id:"s1", text:"Открыть DevTools и посмотреть перечёркнутые правила" },
+    { id:"s2", text:"Проверить, что функция отдаёт результат через return" },
+    { id:"s3", text:"Проверить место скрипта и написание id" },
+    { id:"s4", text:"Проверить preventDefault в обработчике submit" },
+    { id:"s5", text:"Проверить, что цвет задан через currentColor, а не значением" }
+  ]
+};
+
+const BUGS = {
+  lines:[
+    { code:"const out = document.querySelector(\"#out\");", bug:false },
+    { code:"function sum(a, b) { console.log(a + b); }", bug:true, why:"Функция печатает результат, но не отдаёт: в total попадёт undefined. Нужен return." },
+    { code:"const total = sum(45, 3);", bug:false },
+    { code:"out.innerHTML = userName;", bug:true, why:"userName пришёл от человека: innerHTML разберёт его как разметку. Пользовательский текст — только в textContent." },
+    { code:"if (total == 48) { out.textContent = \"верно\"; }", bug:true, why:"Нестрогое сравнение приводит типы и прячет ошибки. На курсе только ===." },
+    { code:"btn.addEventListener(\"click\", sum);", bug:false }
+  ]
+};
+
+const ORDER_STEPS = [
+  { id:"s1", text:"Отправили: показали загрузку и заблокировали кнопку" },
+  { id:"s2", text:"Дождались: await внутри async-функции" },
+  { id:"s3", text:"Проверили ответ: код ответа и пустой список" },
+  { id:"s4", text:"Вывели данные: на страницу, а не в консоль" },
+  { id:"s5", text:"Предусмотрели ошибку: catch, фолбэк, пометка" }
+];
+const ORDER_CORRECT = ["s1","s2","s3","s4","s5"];
+
+/* Наводящие подсказки к частям 2–4: не ответ, а вопрос для размышления */
+const HINTS = {
+  matchA:"Спроси себя, на какой вопрос отвечает каждый метод. filter — «какие подходят?», и их может быть много. map — «во что превратить каждый?», и их столько же, сколько было. find — «который один?», и ответ — штука или ничего. sort — «в каком порядке?», и массив переставляется сам, поэтому перед ним делают копию. join — «как склеить в одну строку?». Сравнивай количество элементов до и после — пары встанут сами.",
+  matchB:"У каждого симптома спроси, на каком слое он родился. Стиль не применяется — кто решает, какое правило победило, и где видно проигравшее? undefined на странице — что функция должна была отдать, но не отдала? null в консоли — скрипт вообще нашёл элемент и когда по порядку загрузки происходит поиск? Страница перезагружается — какая строка отменяет стандартное поведение браузера? Иконка не темнеет — откуда она берёт цвет: от родителя или из жёсткого значения?",
+  bugs:"Здесь нарушены три правила курса, по одному на багованную строку. Первое: что функция должна отдать вызывающему коду и что она делает вместо этого? Второе: откуда приходит userName и какой способ вывода безопасен для чужого текста? Третье: какое сравнение прячет ошибки типов, а какое принято на курсе? Пройди шесть строк с этими тремя вопросами — лишние отметки не нужны.",
+  order:"Расставь шаги по времени, как они происходят на самом деле. Что человек видит в момент отправки, когда данных ещё нет? Когда код физически получает ответ? Что нужно проверить в ответе, прежде чем рисовать? Куда попадают данные, чтобы задание считалось выполненным? И только потом — что делаем, если что-то по пути не случилось. Шаг не может стоять раньше того, что делает его возможным."
+};
+
+const STORAGE_KEY = "wdc-l12-control-v2";
+
+let state = {
+  started: false,
+  tab: 1,
+  termsLearned: {},
+  quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+  matchA: { sel: MATCH_A.items.map(function(){ return ""; }), checked:false },
+  matchB: { sel: MATCH_B.items.map(function(){ return ""; }), checked:false },
+  bugs: { picked: BUGS.lines.map(function(){ return false; }), checked:false },
+  order: { pool: null, seq: [], checked:false },
+  hints: { matchA:false, matchB:false, bugs:false, order:false },
+  reflect: "",
+  finishedControl: false
+};
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw){
+      const old = localStorage.getItem("wdc-l12-control-v1");
+      if(old) state = deepMerge(state, JSON.parse(old));
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state = deepMerge(state, parsed);
+    }
+  }catch(e){}
+  if(!Array.isArray(state.quiz) || state.quiz.length !== QUIZ.length){
+    state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+  }
+  if(!Array.isArray(state.matchA.sel) || state.matchA.sel.length !== MATCH_A.items.length){
+    state.matchA.sel = MATCH_A.items.map(function(){ return ""; });
+  }
+  if(!Array.isArray(state.matchB.sel) || state.matchB.sel.length !== MATCH_B.items.length){
+    state.matchB.sel = MATCH_B.items.map(function(){ return ""; });
+  }
+  if(!Array.isArray(state.bugs.picked) || state.bugs.picked.length !== BUGS.lines.length){
+    state.bugs.picked = BUGS.lines.map(function(){ return false; });
+  }
+  if(!state.hints) state.hints = { matchA:false, matchB:false, bugs:false, order:false };
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])){
+      out[k] = deepMerge(target[k] || {}, source[k]);
+    } else {
+      out[k] = source[k];
+    }
+  }
+  return out;
+}
+function ensureOrderPool(){
+  if(Array.isArray(state.order.pool) && state.order.pool.length + state.order.seq.length === ORDER_STEPS.length) return;
+  const ids = ORDER_STEPS.map(function(s){ return s.id; });
+  for(let i = ids.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = ids[i]; ids[i] = ids[j]; ids[j] = t;
+  }
+  state.order.pool = ids;
+  state.order.seq = [];
+  state.order.checked = false;
+}
+
+/* ---------- Подсчёты ---------- */
+function quizScore(){ return state.quiz.filter(function(q){ return q.correct; }).length; }
+function quizAnswered(){ return state.quiz.filter(function(q){ return q.answered; }).length; }
+function matchState(m){ return m === MATCH_A ? state.matchA : state.matchB; }
+function matchScore(m){
+  let ok = 0;
+  m.items.forEach(function(it, i){
+    if(matchState(m).sel[i] === it.correct) ok++;
+  });
+  return ok;
+}
+function matchFilled(m){
+  return matchState(m).sel.filter(function(v){ return v; }).length;
+}
+function bugsScore(){
+  let ok = 0, extra = 0;
+  BUGS.lines.forEach(function(l, i){
+    if(state.bugs.picked[i] && l.bug) ok++;
+    if(state.bugs.picked[i] && !l.bug) extra++;
+  });
+  return { ok: ok, extra: extra };
+}
+function orderScore(){
+  let ok = 0;
+  state.order.seq.forEach(function(id, i){
+    if(id === ORDER_CORRECT[i]) ok++;
+  });
+  return ok;
+}
+function controlTotal(){
+  return quizScore() + matchScore(MATCH_A) + matchScore(MATCH_B) + bugsScore().ok + orderScore();
+}
+function controlMax(){
+  return QUIZ.length + MATCH_A.items.length + MATCH_B.items.length + BUGS.lines.filter(function(l){ return l.bug; }).length + ORDER_STEPS.length;
+}
+function hintsUsed(){
+  return Object.keys(state.hints).filter(function(k){ return state.hints[k]; });
+}
+function termsCount(){ return Object.values(state.termsLearned).filter(Boolean).length; }
+
+function countProgress(){
+  let filled = quizAnswered();
+  filled += matchFilled(MATCH_A);
+  filled += matchFilled(MATCH_B);
+  filled += state.bugs.checked ? 1 : 0;
+  filled += state.order.seq.length === ORDER_STEPS.length ? 1 : 0;
+  filled += state.reflect.trim() ? 1 : 0;
+  const total = QUIZ.length + MATCH_A.items.length + MATCH_B.items.length + 3;
+  return { filled: filled, total: total, percent: total ? Math.round(filled / total * 100) : 0 };
+}
+
+/* ---------- Рендер ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  ensureOrderPool();
+  const p = countProgress();
+  let html = renderTopbar(p);
+
+  if(!state.started){
+    html += '<main class="no-tabs">' + renderStart() + '</main>';
+    app.innerHTML = html;
+    bindHandlers();
+    return;
+  }
+
+  html += renderTabNav();
+  html += "<main>";
+  html += '<div class="tab-page" data-page="1"' + (state.tab === 1 ? "" : " hidden") + ">" + renderTab1() + "</div>";
+  html += '<div class="tab-page" data-page="2"' + (state.tab === 2 ? "" : " hidden") + ">" + renderTab2() + "</div>";
+  html += '<div class="tab-page" data-page="3"' + (state.tab === 3 ? "" : " hidden") + ">" + renderTab3() + "</div>";
+  html += '<div class="tab-page" data-page="4"' + (state.tab === 4 ? "" : " hidden") + ">" + renderTab4() + "</div>";
+  html += "</main>";
+  html += renderActions();
+  app.innerHTML = html;
+  bindHandlers();
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = document.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+}
+
+function renderTopbar(p){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <div class="brand-title">' + escapeHtml(COURSE.title) + '</div>',
+    '      <div class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · ' + escapeHtml(COURSE.grade) + ' · промежуточный контроль</div>',
+    '    </div>',
+    '    <div class="progress-wrap" aria-label="Прогресс заполнения">',
+    '      <div class="progress-bar" role="progressbar" aria-valuenow="' + p.percent + '" aria-valuemin="0" aria-valuemax="100">',
+    '        <div class="progress-fill" style="width:' + p.percent + '%"></div>',
+    '      </div>',
+    '      <div class="progress-num">' + p.percent + '%</div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderStart(){
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Занятие 12 из 24 · контрольная точка модуля 4</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.subtitle) + '</h1>',
+    '  <p>Сегодня две вещи сразу: новая тема — асинхронность и данные с сервера — и итоговый контроль за всё, что пройдено в модулях 1–4. Контроль живёт на этой странице: тест, сопоставления, поиск багов и отчёт для учителя.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    '    <span class="chip">🎓 ' + escapeHtml(COURSE.grade) + '</span>',
+    '    <span class="chip">🗂 4 вкладки: занятие · база · контроль · отчёт</span>',
+    '    <span class="chip">⏱ контроль ≈ 40 минут</span>',
+    '  </div>',
+    '  <button class="btn btn-primary btn-lg" data-action="start">',
+    '    Начать работу',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '  </button>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTabNav(){
+  const t1 = termsCount() + "/" + TERMS.length;
+  const t3 = controlTotal() + "/" + controlMax();
+  const done3 = controlTotal() === controlMax();
+  const repBadge = state.finishedControl
+    ? '<span class="tab-badge ' + (done3 ? "done" : "") + '">' + t3 + '</span>'
+    : '<span class="tab-badge lock">закрыт</span>';
+  return [
+    '<nav class="tabnav" aria-label="Вкладки листа">',
+    '  <button class="tab-btn ' + (state.tab === 1 ? "active" : "") + '" data-tab="1">1 · Занятие 12 <span class="tab-badge ' + (termsCount() === TERMS.length ? "done" : "") + '">' + t1 + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 2 ? "active" : "") + '" data-tab="2">2 · База за 4 модуля</button>',
+    '  <button class="tab-btn ' + (state.tab === 3 ? "active" : "") + '" data-tab="3">3 · Контроль <span class="tab-badge ' + (done3 ? "done" : "") + '">' + t3 + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 4 ? "active" : "") + '" data-tab="4">4 · Отчёт ' + repBadge + '</button>',
+    '</nav>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 1 ---------- */
+function renderTab1(){
+  const learned = termsCount();
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Занятие 12 из 24 · модуль 4, контрольная точка</span>',
+    '  <h1>Асинхронность и работа с API</h1>',
+    '  <p>Меню больше не зашито в код: страница идёт за данными на сервер и честно переживает сбои. Разбираешь эталон построчно — и идёшь во вкладку «Контроль».</p>',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">Т</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Термины занятия</h2>',
+    '    <p class="section-sub">Отметь те, что понял: все шестнадцать нужны для контрольной точки.</p>',
+    '  </div>',
+    '  <span class="section-status ' + (learned === TERMS.length ? "done" : "") + '" data-terms-status>' + learned + '/' + TERMS.length + '</span>',
+    '</div>',
+    '<div class="terms-grid" role="list">',
+    TERMS.map(renderTerm).join(""),
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">П</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Приёмы занятия</h2>',
+    '    <p class="section-sub">Жёлтая плашка — приём есть в эталоне ниже.</p>',
+    '  </div>',
+    '</div>',
+    '<div style="overflow-x:auto">',
+    '  <table class="tags-table">',
+    '    <thead><tr><th>Приём</th><th>Что делает</th></tr></thead>',
+    '    <tbody>',
+    TAGS.map(renderTagRow).join(""),
+    '    </tbody>',
+    '  </table>',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">Э</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Эталон с построчным разбором</h2>',
+    '    <p class="section-sub">Функция загрузки меню: четыре состояния экрана, проверка ответа, фолбэк с пометкой. Читай комментарии справа от строк.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="code-block" data-file="loadMenu.js">' + escapeHtml(ETALON) + '</div>',
+    '<div class="instruction">',
+    '  <b>Три точки отказа, которые ловит этот код:</b>',
+    '  <ol>',
+    '    <li>Сеть не ответила — срабатывает catch, рисуется FALLBACK с пометкой.</li>',
+    '    <li>Сервер ответил кодом 404 или 500 — это не сбой сети: ответ получен, поэтому ошибку бросаем сами через throw.</li>',
+    '    <li>Ответ пришёл, но меню пустое — состояние «пусто» со спокойным сообщением, а не тревожным.</li>',
+    '  </ol>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return [
+    '<div class="term ' + (learned ? "learned" : "") + '" data-term="' + t.key + '" role="listitem" tabindex="0" aria-pressed="' + learned + '">',
+    '  <div class="term-head">',
+    '    <span class="term-name">' + escapeHtml(t.name) + '</span>',
+    '    <span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+    '  </div>',
+    '  <div class="term-def">' + escapeHtml(t.def) + '</div>',
+    '</div>'
+  ].join("\n");
+}
+function renderTagRow(tag){
+  return [
+    '<tr>',
+    '  <td><span class="tag-code">' + escapeHtml(tag.code) + '</span>' + (tag.used ? '<span class="tag-used">НА ЗАНЯТИИ</span>' : '') + '</td>',
+    '  <td>' + escapeHtml(tag.desc) + '</td>',
+    '</tr>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 2 ---------- */
+function renderTab2(){
+  const cards = MODULE_REVIEW.map(function(m){
+    return [
+      '<div class="mod-card">',
+      '  <h3>' + m.num + '. ' + escapeHtml(m.title) + '</h3>',
+      '  <span class="mod-range">' + escapeHtml(m.range) + '</span>',
+      '  <ul>',
+      m.points.map(function(p){ return "<li>" + p + "</li>"; }).join(""),
+      '  </ul>',
+      '  <div class="mod-keys">',
+      '    <b>Основные теги и конструкции</b>',
+      '    <ul>',
+      m.keys.map(function(k){ return '<li><code>' + escapeHtml(k.code) + '</code> — ' + escapeHtml(k.note) + '</li>'; }).join(""),
+      '    </ul>',
+      '  </div>',
+      '</div>'
+    ].join("\n");
+  }).join("");
+
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Шпаргалка к контролю</span>',
+    '  <h1>База за четыре модуля</h1>',
+    '  <p>Одиннадцать занятий в четырёх карточках: что умеем и какими тегами и конструкциями это выражается. Это не новая тема, а то, что спрашивает контроль во вкладке 3.</p>',
+    '</div>',
+    '<div class="mod-cards">' + cards + '</div>',
+    '<div class="instruction" style="margin-top:16px">',
+    '  <b>Как пользоваться:</b> прочитай карточку и проговори вслух каждую конструкцию своими словами. Не можешь объяснить строку из синего блока — это и есть тема для повторения перед итоговым проектом.',
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 3 ---------- */
+function renderTab3(){
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Промежуточный контроль · модули 1–4</span>',
+    '  <h1>Контроль по пройденному</h1>',
+    '  <p>Двенадцать вопросов теста, два сопоставления, поиск багов и сборка чек-листа запроса. Всё делается здесь, на странице. Попытка одна: объяснения после ответа обязательны. К частям 2–4 есть наводящие подсказки — их использование попадёт в отчёт.</p>',
+    '</div>',
+    '',
+    '<h3 class="sub-title">Часть 1. Тест: 12 вопросов по четырём модулям</h3>',
+    '<span class="score-chip" data-quiz-score>Верно: ' + quizScore() + ' из ' + QUIZ.length + '</span>',
+    QUIZ.map(renderQuizCard).join(""),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 2. Сопоставление</h3>',
+    renderMatch(MATCH_A, "A"),
+    renderMatch(MATCH_B, "B"),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 3. Найди три бага</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Шесть строк чужого кода. Три из них содержат ошибки курса. Кликай по строкам, которые считаешь багами, потом нажми «Проверить».</p>',
+    renderBugs(),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 4. Собери чек-лист запроса по порядку</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Пять шагов работы с данными извне перемешаны. Кликай их в правильном порядке: шаг уйдёт в правую колонку. Клик по шагу справа возвращает его обратно.</p>',
+    renderOrder(),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<div class="field">',
+    '  <label class="field-label" for="reflect">Рефлексия: какая тема четырёх модулей самая шаткая и что повторить до итогового проекта?</label>',
+    '  <textarea class="field-input ' + (state.reflect.trim() ? "filled" : "") + '" id="reflect" data-reflect placeholder="Две-три строки своими словами. Этот текст попадёт в отчёт для учителя.">' + escapeHtml(state.reflect) + '</textarea>',
+    '</div>',
+    '',
+    '<div class="instruction">',
+    '  Когда всё проверено кнопками «Проверить» — переходи во вкладку <b>4 · Отчёт</b> и нажимай «Завершить контроль»: отчёт откроется и его можно сохранить в PDF.',
+    '</div>'
+  ].join("\n");
+}
+
+function renderQuizCard(q, i){
+  return [
+    '<div class="quiz-card" data-quiz="' + i + '">',
+    '  <span class="quiz-mod">МОДУЛЬ ' + q.m + '</span>',
+    '  <div class="quiz-q">' + (i + 1) + '. ' + escapeHtml(q.q) + '</div>',
+    '  <div class="quiz-options" role="group" aria-label="Варианты ответа">',
+    q.options.map(function(opt, j){
+      return '<button type="button" class="quiz-opt" data-quiz-opt="' + i + ':' + j + '">' + escapeHtml(opt) + '</button>';
+    }).join(""),
+    '  </div>',
+    '  <div class="quiz-feedback hidden"></div>',
+    '</div>'
+  ].join("\n");
+}
+
+function hintButton(part){
+  const used = state.hints[part];
+  return '<button type="button" class="btn btn-ghost btn-sm no-print" data-hint="' + part + '">' + (used ? "Подсказка открыта" : "Подсказка") + '</button>';
+}
+function hintBox(part){
+  if(!state.hints[part]) return "";
+  return '<div class="hint-box"><b>Подсказка.</b> ' + escapeHtml(HINTS[part]) + '</div>';
+}
+
+function renderMatch(m, letter){
+  const part = letter === "A" ? "matchA" : "matchB";
+  const st = matchState(m);
+  const rows = m.items.map(function(it, i){
+    const val = st.sel[i];
+    let rowCls = "";
+    let correctLine = "";
+    if(st.checked){
+      rowCls = val === it.correct ? " ok" : " bad";
+      if(val !== it.correct){
+        const right = m.options.find(function(o){ return o.id === it.correct; });
+        correctLine = '<div class="match-correct">Верно: ' + escapeHtml(right.text) + '</div>';
+      }
+    }
+    return [
+      '<div class="match-row' + rowCls + '">',
+      '  <span class="match-left">' + escapeHtml(it.left) + '</span>',
+      '  <select class="match-select" data-match="' + letter + '" data-row="' + i + '" ' + (st.checked ? "disabled" : "") + ' aria-label="Ответ для: ' + escapeHtml(it.left) + '">',
+      '    <option value="">— выбери —</option>',
+      m.options.map(function(o){
+        return '<option value="' + o.id + '"' + (val === o.id ? " selected" : "") + '>' + escapeHtml(o.text) + '</option>';
+      }).join(""),
+      '  </select>',
+      correctLine,
+      '</div>'
+    ].join("\n");
+  }).join("");
+
+  const score = matchScore(m);
+  return [
+    '<div class="match-card" data-match-card="' + letter + '">',
+    '  <h4>' + escapeHtml(m.title) + (state.hints[part] ? ' <span class="tab-badge lock">подсказка</span>' : '') + '</h4>',
+    '  <p>Каждому элементу слева подбери пару справа. ' + (st.checked ? "Результат: " + score + " из " + m.items.length + "." : "Когда всё выбрано — жми «Проверить».") + '</p>',
+    rows,
+    '  <div class="part-actions no-print">',
+    '    <button type="button" class="btn btn-secondary btn-sm" data-check-match="' + letter + '" ' + (st.checked ? "disabled" : "") + '>Проверить</button>',
+    hintButton(part),
+    '  </div>',
+    hintBox(part),
+    '</div>'
+  ].join("\n");
+}
+
+function renderBugs(){
+  const st = state.bugs;
+  const lines = BUGS.lines.map(function(l, i){
+    let cls = "bug-line";
+    if(!st.checked){
+      if(st.picked[i]) cls += " picked";
+    } else {
+      if(l.bug && st.picked[i]) cls += " ok";
+      if(l.bug && !st.picked[i]) cls += " miss";
+      if(!l.bug && st.picked[i]) cls += " extra";
+    }
+    return '<button type="button" class="' + cls + '" data-bug="' + i + '" ' + (st.checked ? "disabled" : "") + ' aria-pressed="' + st.picked[i] + '">' + escapeHtml(l.code) + '</button>';
+  }).join("");
+  const sc = bugsScore();
+  let note = "";
+  if(st.checked){
+    note = '<div class="instruction" style="margin-top:10px"><b>Разбор:</b><ul>' +
+      BUGS.lines.map(function(l, i){
+        if(!l.bug) return "";
+        return "<li>Строка " + (i + 1) + ": " + escapeHtml(l.why) + "</li>";
+      }).join("") +
+      "</ul>Найдено: " + sc.ok + " из 3" + (sc.extra ? ", лишних отметок: " + sc.extra : "") + ".</div>";
+  }
+  return [
+    '<div class="bug-card">',
+    lines,
+    '  <div class="part-actions no-print">',
+    '    <button type="button" class="btn btn-secondary btn-sm" data-check-bugs ' + (st.checked ? "disabled" : "") + '>Проверить</button>',
+    hintButton("bugs"),
+    '  </div>',
+    hintBox("bugs"),
+    note,
+    '</div>'
+  ].join("\n");
+}
+
+function renderOrder(){
+  const st = state.order;
+  const poolChips = st.pool.map(function(id){
+    const s = ORDER_STEPS.find(function(x){ return x.id === id; });
+    return '<button type="button" class="order-chip" data-order-pool="' + id + '">' + escapeHtml(s.text) + '</button>';
+  }).join("");
+  const seqChips = st.seq.map(function(id, i){
+    const s = ORDER_STEPS.find(function(x){ return x.id === id; });
+    let cls = "order-chip";
+    if(st.checked) cls += (id === ORDER_CORRECT[i]) ? " ok" : " bad";
+    return '<button type="button" class="' + cls + '" data-order-seq="' + i + '" ' + (st.checked ? "disabled" : "") + '><span class="ord-num">' + (i + 1) + '</span>' + escapeHtml(s.text) + '</button>';
+  }).join("");
+  let note = "";
+  if(st.checked){
+    note = '<div class="instruction" style="margin-top:10px"><b>Верный порядок:</b> ' + ORDER_CORRECT.map(function(id, i){
+      const s = ORDER_STEPS.find(function(x){ return x.id === id; });
+      return (i + 1) + ") " + escapeHtml(s.text);
+    }).join(" → ") + '. Совпало позиций: ' + orderScore() + " из 5.</div>";
+  }
+  return [
+    '<div class="bug-card">',
+    '  <div class="order-wrap">',
+    '    <div class="order-zone' + (st.pool.length === 0 ? " empty-hint" : "") + '"><h5>Шаги вперемешку</h5>' + poolChips + '</div>',
+    '    <div class="order-zone' + (st.seq.length === 0 ? " empty-hint" : "") + '"><h5>Твой порядок</h5>' + seqChips + '</div>',
+    '  </div>',
+    '  <div class="part-actions no-print">',
+    '    <button type="button" class="btn btn-secondary btn-sm" data-check-order ' + (st.checked || st.seq.length !== ORDER_STEPS.length ? "disabled" : "") + '>Проверить порядок</button>',
+    hintButton("order"),
+    '  </div>',
+    hintBox("order"),
+    note,
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 4 · Отчёт ---------- */
+function renderTab4(){
+  if(!state.finishedControl){
+    return renderTab4Locked();
+  }
+  return renderTab4Full();
+}
+
+function renderTab4Locked(){
+  const hu = hintsUsed();
+  const rows = [
+    lockRow("Часть 1 · Тест", quizAnswered() === QUIZ.length ? "ok" : (quizAnswered() > 0 ? "part" : ""), "отвечено " + quizAnswered() + " из " + QUIZ.length),
+    lockRow("Часть 2 · Методы", state.matchA.checked ? "ok" : (matchFilled(MATCH_A) === MATCH_A.items.length ? "part" : ""), state.matchA.checked ? "проверено" : "выбрано " + matchFilled(MATCH_A) + " из " + MATCH_A.items.length + ", не проверено"),
+    lockRow("Часть 2 · Симптомы", state.matchB.checked ? "ok" : (matchFilled(MATCH_B) === MATCH_B.items.length ? "part" : ""), state.matchB.checked ? "проверено" : "выбрано " + matchFilled(MATCH_B) + " из " + MATCH_B.items.length + ", не проверено"),
+    lockRow("Часть 3 · Баги", state.bugs.checked ? "ok" : (state.bugs.picked.some(Boolean) ? "part" : ""), state.bugs.checked ? "проверено" : "отмечено строк: " + state.bugs.picked.filter(Boolean).length + ", не проверено"),
+    lockRow("Часть 4 · Порядок", state.order.checked ? "ok" : (state.order.seq.length ? "part" : ""), state.order.checked ? "проверено" : "собрано шагов: " + state.order.seq.length + " из " + ORDER_STEPS.length + ", не проверено"),
+    lockRow("Рефлексия", state.reflect.trim() ? "ok" : "", state.reflect.trim() ? "заполнена" : "не заполнена"),
+    lockRow("Подсказки", hu.length ? "part" : "ok", hu.length ? "использовано: " + hu.length + " из 4" : "не использованы")
+  ].join("");
+
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Отчёт пока закрыт</span>',
+    '  <h1>Сначала — контроль, потом отчёт</h1>',
+    '  <p>Здесь видно, сколько пройдено, но не видно ответов и баллов: иначе контроль теряет смысл. Закончи части во вкладке 3, нажми «Завершить контроль» — и отчёт откроется целиком для сохранения в PDF.</p>',
+    '</div>',
+    '<ul class="lock-list">' + rows + '</ul>',
+    '<div class="rep-note">Задания блокируются кнопками «Проверить» и одной попыткой в тесте, поэтому после завершения отчёта изменить ответы уже нельзя — смотреть его безопасно.</div>',
+    '<div style="display:flex; gap:10px; flex-wrap:wrap">',
+    '  <button class="btn btn-primary" data-action="finish-control" type="button">Завершить контроль и открыть отчёт</button>',
+    '  <button class="btn btn-secondary" data-action="goto-3" type="button">Вернуться к заданиям</button>',
+    '</div>'
+  ].join("\n");
+}
+
+function lockRow(title, cls, text){
+  return '<li><span class="lk ' + cls + '">' + (cls === "ok" ? "готово" : (cls === "part" ? "в процессе" : "не начато")) + '</span><span><b>' + escapeHtml(title) + '.</b> ' + escapeHtml(text) + '</span></li>';
+}
+
+function renderTab4Full(){
+  const sc = bugsScore();
+  const hu = hintsUsed();
+  const hintMark = function(part){
+    return state.hints[part] ? ' <span class="tab-badge lock">подсказка</span>' : '';
+  };
+
+  const rowsQuiz = QUIZ.map(function(q, i){
+    const st = state.quiz[i];
+    const mark = !st.answered ? '<span class="rep-mark wait">—</span>' : (st.correct ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark bad">✗</span>');
+    const yours = st.answered ? escapeHtml(q.options[st.chosen]) : "нет ответа";
+    const right = escapeHtml(q.options[q.correct]);
+    return '<tr><td>' + (i + 1) + ' (М' + q.m + ')</td><td>' + yours + '</td><td>' + right + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+
+  function matchRows(m){
+    const st = matchState(m);
+    return m.items.map(function(it, i){
+      const val = st.sel[i];
+      const chosenText = val ? escapeHtml(m.options.find(function(o){ return o.id === val; }).text) : "нет ответа";
+      const rightText = escapeHtml(m.options.find(function(o){ return o.id === it.correct; }).text);
+      const mark = !st.checked ? '<span class="rep-mark wait">—</span>' : (val === it.correct ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark bad">✗</span>');
+      return '<tr><td>' + escapeHtml(it.left) + '</td><td>' + chosenText + '</td><td>' + rightText + '</td><td>' + mark + '</td></tr>';
+    }).join("");
+  }
+
+  const bugRows = BUGS.lines.map(function(l, i){
+    const isBug = l.bug;
+    const picked = state.bugs.picked[i];
+    let mark = '<span class="rep-mark wait">—</span>';
+    if(state.bugs.checked){
+      if(isBug && picked) mark = '<span class="rep-mark ok">✓ найдена</span>';
+      else if(isBug && !picked) mark = '<span class="rep-mark bad">пропущена</span>';
+      else if(!isBug && picked) mark = '<span class="rep-mark bad">лишняя</span>';
+      else mark = '<span class="rep-mark ok">✓ верно не отмечена</span>';
+    }
+    return '<tr><td>' + (i + 1) + '</td><td><code>' + escapeHtml(l.code) + '</code></td><td>' + (isBug ? "баг" : "чистая") + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+
+  const orderRows = ORDER_CORRECT.map(function(id, i){
+    const mine = state.order.seq[i];
+    const mark = !state.order.checked ? '<span class="rep-mark wait">—</span>' : (mine === id ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark bad">✗</span>');
+    const mineText = mine ? escapeHtml(ORDER_STEPS.find(function(s){ return s.id === mine; }).text) : "пусто";
+    return '<tr><td>' + (i + 1) + '</td><td>' + mineText + '</td><td>' + escapeHtml(ORDER_STEPS.find(function(s){ return s.id === id; }).text) + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+
+  const hintNames = { matchA:"сопоставление «Методы»", matchB:"сопоставление «Симптомы»", bugs:"поиск багов", order:"порядок запроса" };
+
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Отчёт для учителя</span>',
+    '  <h1>Отчёт по контролю</h1>',
+    '  <p>Все ответы собраны автоматически. Нажми «Сохранить PDF» и отправь файл учителю: печатается только эта вкладка.</p>',
+    '</div>',
+    '',
+    '<div class="rep-summary">',
+    '  <div class="rep-stat"><div class="v">' + quizScore() + '/' + QUIZ.length + '</div><div class="l">тест</div></div>',
+    '  <div class="rep-stat"><div class="v">' + matchScore(MATCH_A) + '/' + MATCH_A.items.length + '</div><div class="l">методы</div></div>',
+    '  <div class="rep-stat"><div class="v">' + matchScore(MATCH_B) + '/' + MATCH_B.items.length + '</div><div class="l">симптомы</div></div>',
+    '  <div class="rep-stat"><div class="v">' + sc.ok + '/3</div><div class="l">баги' + (sc.extra ? " (+" + sc.extra + " лишн.)" : "") + '</div></div>',
+    '  <div class="rep-stat"><div class="v">' + orderScore() + '/5</div><div class="l">порядок</div></div>',
+    '</div>',
+    '<div class="rep-note">Итого баллов контроля: <b>' + controlTotal() + ' из ' + controlMax() + '</b>. Термины занятия 12: ' + termsCount() + ' из ' + TERMS.length + '. Подсказки: ' + (hu.length ? "использованы в частях — " + hu.map(function(k){ return hintNames[k]; }).join(", ") : "не использованы") + '. Знак «—» означает, что блок не проверен кнопкой «Проверить».</div>',
+    '',
+    '<h3 class="sub-title">Часть 1 · Тест</h3>',
+    '<table class="rep-table"><thead><tr><th>№</th><th>Твой ответ</th><th>Верный ответ</th><th></th></tr></thead><tbody>' + rowsQuiz + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 2 · Сопоставление: методы' + hintMark("matchA") + '</h3>',
+    '<table class="rep-table"><thead><tr><th>Метод</th><th>Твоя пара</th><th>Верная пара</th><th></th></tr></thead><tbody>' + matchRows(MATCH_A) + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 2 · Сопоставление: симптомы' + hintMark("matchB") + '</h3>',
+    '<table class="rep-table"><thead><tr><th>Симптом</th><th>Твоё действие</th><th>Верное действие</th><th></th></tr></thead><tbody>' + matchRows(MATCH_B) + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 3 · Поиск багов' + hintMark("bugs") + '</h3>',
+    '<table class="rep-table"><thead><tr><th>Строка</th><th>Код</th><th>По разметке</th><th>Твой вердикт</th></tr></thead><tbody>' + bugRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 4 · Порядок чек-листа запроса' + hintMark("order") + '</h3>',
+    '<table class="rep-table"><thead><tr><th>Позиция</th><th>Твой шаг</th><th>Верный шаг</th><th></th></tr></thead><tbody>' + orderRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Рефлексия</h3>',
+    (state.reflect.trim() ? '<div class="rep-reflect">' + escapeHtml(state.reflect) + '</div>' : '<div class="rep-note">Рефлексия не заполнена.</div>'),
+    '',
+    '<div class="no-print" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px">',
+    '  <button class="btn btn-primary" data-action="print" type="button">Сохранить PDF</button>',
+    '  <button class="btn btn-ghost" data-action="reset-control" type="button">Сбросить контроль</button>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderActions(){
+  return [
+    '<div class="actions no-print" role="toolbar" aria-label="Действия">',
+    '  <div class="actions-inner">',
+    '    <button class="btn btn-secondary" data-action="print" type="button">Сохранить PDF (отчёт)</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Покраска и точечные обновления ---------- */
+function paintQuiz(card, i){
+  const st = state.quiz[i];
+  card.querySelectorAll(".quiz-opt").forEach(function(btn, j){
+    btn.disabled = true;
+    btn.classList.remove("correct", "wrong");
+    if(j === QUIZ[i].correct) btn.classList.add("correct");
+    else if(j === st.chosen) btn.classList.add("wrong");
+  });
+  const fb = card.querySelector(".quiz-feedback");
+  fb.classList.remove("hidden", "good", "bad");
+  fb.classList.add(st.correct ? "good" : "bad");
+  fb.innerHTML = "<b>" + (st.correct ? "Верно. " : "Не совсем. Правильный ответ: «" + escapeHtml(QUIZ[i].options[QUIZ[i].correct]) + "». ") + "</b>" + escapeHtml(QUIZ[i].why);
+}
+
+function refreshScoreChips(){
+  const chip = document.querySelector("[data-quiz-score]");
+  if(chip) chip.textContent = "Верно: " + quizScore() + " из " + QUIZ.length;
+  const badges = document.querySelectorAll(".tab-badge");
+  if(badges.length >= 3){
+    badges[1].textContent = controlTotal() + "/" + controlMax();
+    badges[1].classList.toggle("done", controlTotal() === controlMax());
+    if(state.finishedControl){
+      badges[2].textContent = controlTotal() + "/" + controlMax();
+      badges[2].classList.remove("lock");
+      badges[2].classList.toggle("done", controlTotal() === controlMax());
+    }
+  }
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent + "%";
+  if(num) num.textContent = p.percent + "%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+  refreshScoreChips();
+}
+
+/* ---------- Обработчики ---------- */
+function bindHandlers(){
+  app.querySelectorAll("[data-tab]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      state.tab = parseInt(btn.dataset.tab, 10);
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  app.querySelectorAll("[data-action]").forEach(function(btn){
+    btn.addEventListener("click", handleAction);
+  });
+
+  app.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      el.classList.toggle("learned", state.termsLearned[key]);
+      el.setAttribute("aria-pressed", String(state.termsLearned[key]));
+      const st = document.querySelector("[data-terms-status]");
+      if(st){
+        const n = termsCount();
+        st.textContent = n + "/" + TERMS.length;
+        st.classList.toggle("done", n === TERMS.length);
+      }
+      const badge = document.querySelectorAll(".tab-badge")[0];
+      if(badge){
+        badge.textContent = termsCount() + "/" + TERMS.length;
+        badge.classList.toggle("done", termsCount() === TERMS.length);
+      }
+      saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-quiz-opt]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.quizOpt.split(":");
+      const qi = parseInt(parts[0], 10);
+      const oi = parseInt(parts[1], 10);
+      const st = state.quiz[qi];
+      if(st.answered) return;
+      st.answered = true;
+      st.chosen = oi;
+      st.correct = oi === QUIZ[qi].correct;
+      saveState();
+      paintQuiz(btn.closest(".quiz-card"), qi);
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-match]").forEach(function(sel){
+    sel.addEventListener("change", function(e){
+      const letter = e.target.dataset.match;
+      const row = parseInt(e.target.dataset.row, 10);
+      const st = letter === "A" ? state.matchA : state.matchB;
+      st.sel[row] = e.target.value;
+      saveState();
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-check-match]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const st = btn.dataset.checkMatch === "A" ? state.matchA : state.matchB;
+      st.checked = true;
+      saveState();
+      rerenderTab3();
+    });
+  });
+
+  app.querySelectorAll("[data-hint]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const part = btn.dataset.hint;
+      if(state.hints[part]) return;
+      state.hints[part] = true;
+      saveState();
+      rerenderTab3();
+    });
+  });
+
+  app.querySelectorAll("[data-bug]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      if(state.bugs.checked) return;
+      const i = parseInt(btn.dataset.bug, 10);
+      state.bugs.picked[i] = !state.bugs.picked[i];
+      btn.classList.toggle("picked", state.bugs.picked[i]);
+      btn.setAttribute("aria-pressed", String(state.bugs.picked[i]));
+      saveState();
+    });
+  });
+
+  const checkBugs = app.querySelector("[data-check-bugs]");
+  if(checkBugs){
+    checkBugs.addEventListener("click", function(){
+      state.bugs.checked = true;
+      saveState();
+      rerenderTab3();
+    });
+  }
+
+  app.querySelectorAll("[data-order-pool]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      if(state.order.checked) return;
+      const id = btn.dataset.orderPool;
+      state.order.pool = state.order.pool.filter(function(x){ return x !== id; });
+      state.order.seq.push(id);
+      saveState();
+      rerenderTab3();
+    });
+  });
+
+  app.querySelectorAll("[data-order-seq]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      if(state.order.checked) return;
+      const i = parseInt(btn.dataset.orderSeq, 10);
+      const id = state.order.seq[i];
+      state.order.seq.splice(i, 1);
+      state.order.pool.push(id);
+      saveState();
+      rerenderTab3();
+    });
+  });
+
+  const checkOrder = app.querySelector("[data-check-order]");
+  if(checkOrder){
+    checkOrder.addEventListener("click", function(){
+      if(state.order.seq.length !== ORDER_STEPS.length) return;
+      state.order.checked = true;
+      saveState();
+      rerenderTab3();
+    });
+  }
+
+  const reflect = app.querySelector("[data-reflect]");
+  if(reflect){
+    reflect.addEventListener("input", function(e){
+      state.reflect = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      updateProgress();
+      saveState();
+    });
+  }
+}
+
+function rerenderTab3(){
+  const page = document.querySelector('[data-page="3"]');
+  if(!page) return;
+  page.innerHTML = renderTab3();
+  bindHandlers();
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = page.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+  updateProgress();
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){
+    state.started = true;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "goto-3"){
+    state.tab = 3;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "finish-control"){
+    state.finishedControl = true;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "print"){
+    if(!state.started){ return; }
+    if(state.tab !== 4){
+      state.tab = 4;
+      saveState();
+      render();
+      setTimeout(function(){ window.print(); }, 60);
+    } else {
+      window.print();
+    }
+  } else if(action === "reset-control"){
+    if(confirm("Сбросить все ответы контроля, подсказки и закрыть отчёт? Термины занятия 12 останутся.")){
+      state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+      state.matchA = { sel: MATCH_A.items.map(function(){ return ""; }), checked:false };
+      state.matchB = { sel: MATCH_B.items.map(function(){ return ""; }), checked:false };
+      state.bugs = { picked: BUGS.lines.map(function(){ return false; }), checked:false };
+      state.order = { pool: null, seq: [], checked:false };
+      state.hints = { matchA:false, matchB:false, bugs:false, order:false };
+      state.reflect = "";
+      state.finishedControl = false;
+      state.tab = 3;
+      saveState();
+      render();
+    }
+  }
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function init(){
+  loadState();
+  render();
+}
+init();
+</script>
+</body>
+</html>
