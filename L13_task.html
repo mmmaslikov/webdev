@@ -1,0 +1,1402 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 13 · Git и GitHub в браузере</title>
+<style>
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--font); background:var(--bg); color:var(--text); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+  button, input, textarea, select{font-family:inherit; font-size:inherit; color:inherit}
+
+  .topbar{position:sticky; top:0; z-index:20; background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-bottom:1px solid var(--border)}
+  .topbar-inner{max-width:1000px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .brand{display:flex; flex-direction:column; min-width:0; flex:1}
+  .brand-title{font-size:14px; font-weight:700; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .progress-wrap{display:flex; align-items:center; gap:10px; min-width:150px}
+  .progress-bar{flex:1; height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; min-width:90px}
+  .progress-fill{height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:38px; text-align:right}
+
+  .tabnav{max-width:1000px; margin:0 auto; padding:0 20px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none}
+  .tabnav::-webkit-scrollbar{display:none}
+  .tab-btn{flex-shrink:0; min-height:44px; padding:0 16px; border:1px solid var(--border); border-bottom:none; border-radius:12px 12px 0 0; background:var(--surface-2); color:var(--text-2); font-size:14px; font-weight:600; cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; gap:8px}
+  .tab-btn:hover{background:var(--surface); color:var(--text)}
+  .tab-btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .tab-btn.active{background:var(--surface); color:var(--accent); border-color:var(--border-strong); box-shadow:0 -2px 6px rgba(15,23,42,.05)}
+  .tab-badge{font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface); color:var(--text-3); border:1px solid var(--border)}
+  .tab-btn.active .tab-badge{background:var(--accent-soft); color:var(--accent); border-color:transparent}
+  .tab-badge.done{background:var(--success-soft); color:var(--success); border-color:transparent}
+  .tab-badge.lock{background:var(--warn-soft); color:#92400e; border-color:transparent}
+
+  main{max-width:1000px; margin:0 auto; padding:0 20px 120px}
+  main.no-tabs{padding-top:28px}
+  .tab-page{background:var(--surface); border:1px solid var(--border-strong); border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg); padding:28px; box-shadow:var(--shadow-sm)}
+  .tab-page[hidden]{display:none}
+
+  .hero{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:44px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .hero-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px, 4vw, 36px); font-weight:700; letter-spacing:-0.02em; margin:18px 0 10px; line-height:1.15}
+  .hero p{color:var(--text-2); font-size:16px; max-width:640px; margin:0 auto 24px}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:28px}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--surface-2); border-radius:999px; font-size:13px; color:var(--text-2)}
+  .chip b{color:var(--text); font-weight:600}
+
+  .hero-mini{margin-bottom:22px}
+  .hero-mini h1{font-size:clamp(22px, 3.4vw, 30px); font-weight:700; letter-spacing:-0.02em; margin:12px 0 6px; line-height:1.2}
+  .hero-mini p{color:var(--text-2); font-size:15px; margin:0; max-width:720px}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 22px; border-radius:12px; border:1px solid transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .15s ease; user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent; color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2); color:var(--text)}
+  .btn-lg{min-height:52px; padding:0 28px; font-size:16px; border-radius:14px}
+  .btn-sm{min-height:38px; padding:0 14px; font-size:13px; border-radius:10px}
+
+  .ext-link{display:inline-flex; align-items:center; gap:8px; min-height:44px; padding:0 16px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--accent); text-decoration:none; font-size:14px; font-weight:600; transition:all .15s ease}
+  .ext-link:hover{border-color:var(--accent); background:var(--accent-soft)}
+  .ext-link:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .ext-links{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px}
+
+  .section-head{display:flex; align-items:flex-start; gap:14px; margin:26px 0 14px}
+  .section-num{flex-shrink:0; width:34px; height:34px; border-radius:10px; background:#0f172a; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px}
+  .section-num.blue{background:var(--accent)}
+  .section-title{font-size:18px; font-weight:700; letter-spacing:-0.01em; margin:0 0 3px}
+  .section-sub{font-size:14px; color:var(--text-2); margin:0}
+  .section-title-wrap{flex:1; min-width:0}
+  .section-status{flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--text-3)}
+  .section-status.done{background:var(--success-soft); color:var(--success)}
+
+  .instruction{background:var(--surface-2); border-radius:var(--radius); padding:12px 16px; margin-bottom:18px; font-size:14px; color:var(--text-2); line-height:1.55}
+  .instruction ol, .instruction ul{margin:0; padding-left:18px}
+  .instruction li{margin-bottom:5px}
+  .instruction li::marker{color:var(--accent); font-weight:600}
+  .instruction code, .rules-card code, .gh-step .t code{font-family:var(--mono); font-size:12px; background:var(--surface); padding:1px 5px; border-radius:4px; color:var(--accent-hover)}
+
+  .terms-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:20px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px 15px; cursor:pointer; transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent); background:#f8fbff}
+  .term-head{display:flex; align-items:center; gap:10px; margin-bottom:5px}
+  .term-name{font-weight:700; font-size:14px; font-family:var(--mono); color:var(--accent)}
+  .term-check{margin-left:auto; width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex-shrink:0}
+  .term.learned .term-check{background:var(--success); border-color:var(--success)}
+  .term-check svg{width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:13.5px; color:var(--text-2); line-height:1.5}
+
+  .tags-table{width:100%; border-collapse:collapse; font-size:13.5px; margin-bottom:16px}
+  .tags-table th{text-align:left; padding:10px 12px; background:var(--surface-2); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .tags-table td{padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.5}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tag-code{font-family:var(--mono); font-size:12.5px; color:var(--accent); font-weight:600; background:var(--accent-soft); padding:2px 8px; border-radius:6px; white-space:nowrap}
+  .tag-used{display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--warn-soft); color:#92400e; margin-left:6px; letter-spacing:.03em}
+
+  .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.65; overflow-x:auto; white-space:pre; margin-bottom:16px; position:relative}
+  .code-block::before{content:attr(data-file); display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease; z-index:2}
+  .copy-btn:hover{background:rgba(255,255,255,.15); color:#fff}
+  .copy-btn.copied{background:var(--success); color:#fff; border-color:var(--success)}
+
+  .rules-card{background:linear-gradient(180deg,#f8fbff,#eff6ff); border:1px dashed var(--accent); border-radius:var(--radius); padding:16px 18px; margin-bottom:14px}
+  .rules-card h3{margin:0 0 10px; font-size:15px; color:var(--accent-hover)}
+  .rules-card ol{margin:0; padding-left:20px; font-size:13.5px; color:var(--text-2); line-height:1.6}
+  .rules-card li{margin-bottom:5px}
+  .good-bad{display:grid; gap:10px; grid-template-columns:1fr; margin-bottom:16px}
+  @media (min-width:700px){.good-bad{grid-template-columns:1fr 1fr}}
+  .gb-box{border-radius:var(--radius); padding:12px 14px; font-size:13px; line-height:1.6}
+  .gb-box.good{background:var(--success-soft); color:#14532d}
+  .gb-box.bad{background:var(--danger-soft); color:#7f1d1d}
+  .gb-box b{display:block; margin-bottom:6px; font-size:12px; text-transform:uppercase; letter-spacing:.05em}
+  .gb-box ul{margin:0; padding-left:16px}
+  .gb-box li{margin-bottom:4px}
+  .gb-box code{font-family:var(--mono); font-size:12px; background:rgba(255,255,255,.7); padding:1px 5px; border-radius:4px}
+
+  .gh-steps{counter-reset:gh; display:grid; gap:8px; margin-bottom:16px}
+  .gh-step{display:flex; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px}
+  .gh-step .n{flex-shrink:0; width:26px; height:26px; border-radius:8px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px}
+  .gh-step .t{font-size:13.5px; color:var(--text-2); line-height:1.55}
+  .gh-step .t b{color:var(--text)}
+
+  .checklist{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px}
+  .checklist-title{font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:12px; text-transform:uppercase; letter-spacing:.05em}
+  .check-item{display:flex; align-items:flex-start; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:background .15s ease; user-select:none}
+  .check-item:hover{background:var(--surface-2)}
+  .check-item.checked{background:var(--success-soft)}
+  .check-box{flex-shrink:0; width:22px; height:22px; border:2px solid var(--border-strong); border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all .15s ease; margin-top:1px}
+  .check-item.checked .check-box{background:var(--success); border-color:var(--success)}
+  .check-box svg{width:14px; height:14px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .check-item.checked .check-box svg{opacity:1}
+  .check-text{font-size:14px; color:var(--text); flex:1; line-height:1.45}
+
+  .quiz-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+  .quiz-mod{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); border-radius:5px; padding:2px 7px; margin-bottom:6px}
+  .quiz-q{font-weight:600; font-size:14px; margin-bottom:10px; line-height:1.5}
+  .quiz-options{display:grid; gap:8px}
+  .quiz-opt{min-height:44px; text-align:left; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; font-size:14px; transition:all .15s ease; line-height:1.4}
+  .quiz-opt:hover:not(:disabled){border-color:var(--border-strong); background:var(--surface-2)}
+  .quiz-opt:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .quiz-opt:disabled{cursor:default}
+  .quiz-opt.correct{background:var(--success-soft); border-color:var(--success); color:#14532d}
+  .quiz-opt.wrong{background:var(--danger-soft); border-color:var(--danger); color:#7f1d1d}
+  .quiz-feedback{margin-top:10px; font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5}
+  .quiz-feedback.good{background:var(--success-soft); color:#14532d}
+  .quiz-feedback.bad{background:var(--danger-soft); color:#7f1d1d}
+  .score-chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--surface-2); font-size:13px; font-weight:600; color:var(--text-2); margin:0 10px 14px 0}
+
+  .match-card{background:var(--surface); border:1px solid var(--border); border-radius: ); border-radius:var(--radius); padding:16px; margin-bottom:14px}
+  .match-card{border:1px solid var(--border)}
+  .match-card h4{margin:0 0 4px; font-size:15px}
+  .match-card p{margin:0 0 12px; font-size:13px; color:var(--text-2)}
+  .match-row{display:grid; grid-template-columns:1fr; gap:6px; padding:8px 0; border-top:1px solid var(--border)}
+  @media (min-width:640px){.match-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; align-items:center}}
+  .match-left{font-size:13px; font-weight:600; font-family:var(--mono); color:var(--text)}
+  .match-select{width:100%; min-height:44px; padding:8px 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:13.5px; line-height:1.4}
+  .match-select:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .match-row.ok .match-select{border-color:var(--success); background:var(--success-soft)}
+  .match-row.bad .match-select{border-color:var(--danger); background:var(--danger-soft)}
+  .match-row .match-correct{grid-column:1 / -1; font-size:12.5px; color:#14532d; background:var(--success-soft); border-radius:8px; padding:6px 10px}
+
+  .msg-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+  .msg-card h4{margin:0 0 6px; font-size:14px}
+  .msg-diff{font-size:13px; color:var(--text-2); background:var(--surface-2); border-radius:10px; padding:10px 12px; margin-bottom:10px; line-height:1.5}
+  .msg-diff code{font-family:var(--mono); font-size:12px; background:var(--surface); padding:1px 5px; border-radius:4px; color:var(--accent)}
+  .msg-verdict{margin-top:8px; font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5}
+  .msg-verdict.ok{background:var(--success-soft); color:#14532d}
+  .msg-verdict.bad{background:var(--danger-soft); color:#7f1d1d}
+  .msg-verdict ul{margin:4px 0 0; padding-left:18px}
+
+  .prompt-box{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:16px; position:relative; word-break:break-word}
+  .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block; font-size:13px; color:var(--text-2); margin-bottom:6px; font-weight:600}
+  .field-hint{font-size:12px; color:var(--text-3); font-weight:400; margin-left:4px}
+  .field-input{width:100%; min-height:40px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:14px; transition:border-color .15s ease, background .15s ease}
+  .field-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff; border-color:var(--accent)}
+  textarea.field-input{min-height:80px; resize:vertical; line-height:1.5}
+
+  .rep-summary{display:grid; gap:10px; grid-template-columns:repeat(2,1fr); margin-bottom:18px}
+  @media (min-width:760px){.rep-summary{grid-template-columns:repeat(5,1fr)}}
+  .rep-stat{background:var(--surface-2); border-radius:var(--radius); padding:12px; text-align:center}
+  .rep-stat .v{font-size:20px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums}
+  .rep-stat .l{font-size:11px; color:var(--text-3); margin-top:2px}
+  .rep-table{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:18px}
+  .rep-table th{text-align:left; padding:8px 10px; background:var(--surface-2); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .rep-table td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.45}
+  .rep-table tr:last-child td{border-bottom:none}
+  .rep-table code{font-family:var(--mono); font-size:12px}
+  .rep-mark{font-weight:700}
+  .rep-mark.ok{color:var(--success)}
+  .rep-mark.bad{color:var(--danger)}
+  .rep-mark.wait{color:var(--text-3)}
+  .rep-note{font-size:13px; color:var(--text-2); background:var(--surface-2); border-radius:10px; padding:10px 12px; margin-bottom:16px; line-height:1.55}
+  .rep-reflect{font-size:14px; background:var(--warn-soft); color:#78350f; border-radius:10px; padding:12px 14px; line-height:1.55; white-space:pre-wrap}
+  .lock-list{list-style:none; margin:0 0 18px; padding:0; display:grid; gap:8px}
+  .lock-list li{display:flex; align-items:flex-start; gap:10px; background:var(--surface-2); border-radius:10px; padding:10px 12px; font-size:14px}
+  .lock-list .lk{flex-shrink:0; font-weight:700; font-size:12px; padding:2px 8px; border-radius:999px; background:var(--surface); border:1px solid var(--border); color:var(--text-2); margin-top:1px}
+  .lock-list .lk.ok{background:var(--success-soft); border-color:transparent; color:var(--success)}
+  .lock-list .lk.part{background:var(--warn-soft); border-color:transparent; color:#92400e}
+
+  .divider{height:1px; background:var(--border); margin:24px 0}
+  .sub-title{font-size:16px; font-weight:700; letter-spacing:-0.01em; margin:0 0 12px; color:var(--text)}
+
+  .actions{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.92); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-top:1px solid var(--border); padding:10px 20px; z-index:20}
+  .actions-inner{max-width:1000px; margin:0 auto; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+
+  @media print{
+    @page{size:A4; margin:14mm}
+    body{background:#fff}
+    .topbar, .tabnav, .actions, .no-print, .copy-btn{display:none !important}
+    main{padding:0; max-width:100%}
+    .tab-page{border:none; box-shadow:none; padding:0; border-radius:0}
+    .tab-page[hidden]{display:none !important}
+    .code-block, .prompt-box{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .quiz-opt.correct, .match-row.ok .match-select, .msg-verdict.ok{background:#dcfce7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-opt.wrong, .match-row.bad .match-select, .msg-verdict.bad{background:#fee2e2 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .rep-reflect{background:#fef3c7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-card, .match-card, .msg-card, .gh-step, .term{break-inside:avoid}
+  }
+
+  @media (max-width:480px){
+    .topbar-inner{padding:8px 14px}
+    .tabnav{padding:0 14px}
+    main{padding:0 14px 110px}
+    main.no-tabs{padding-top:16px}
+    .tab-page{padding:20px 16px}
+    .hero{padding:30px 20px}
+    .hero h1{font-size:24px}
+    .hero-mini h1{font-size:22px}
+    .section-title{font-size:16px}
+    .tags-table{font-size:12.5px}
+    .tags-table th, .tags-table td{padding:8px}
+    .code-block{font-size:11.5px}
+    .actions-inner .btn{flex:1; padding:0 12px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 13 · Git и GitHub в браузере
+   Школьные ноутбуки без локального Git: весь цикл на github.com
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title: "Рабочий лист · Занятие 13",
+  subtitle: "Git и GitHub в браузере",
+  teacher: "Масликов М. М.",
+  grade: "10–11 класс"
+};
+
+/* ================= ВКЛАДКА 1 · ТЕОРИЯ ================= */
+
+const TERMS = [
+  { key:"repo", name:"Репозиторий", def:"Папка проекта вместе с историей всех изменений. У нас живёт на сервере GitHub: локальная копия и папка .git на школьном ноутбуке не нужны." },
+  { key:"commit", name:"Коммит", def:"Зафиксированный снимок проекта с сообщением, датой и автором. К любому можно вернуться и посмотреть, что в нём менялось." },
+  { key:"msg", name:"Сообщение коммита", def:"Подпись снимка: что изменилось в проекте. Правило курса — 5–72 символа, предмет изменения, без слов «работа» и «фикс»." },
+  { key:"branch", name:"Ветка", def:"Отдельная линия истории для экспериментов. Не вышло — вернулся в main, проект цел." },
+  { key:"main", name:"main", def:"Основная ветка: в ней всегда рабочая версия. Эксперименты в main не ведут." },
+  { key:"history", name:"История", def:"Список коммитов проекта. На сайте — ссылка «N commits» и вкладка Commits: читается снизу вверх, от первого коммита." },
+  { key:"diff", name:"Diff", def:"Сравнение версий внутри коммита: зелёным добавленные строки, красным удалённые. Показывает изменение, а не весь файл." },
+  { key:"github", name:"GitHub", def:"Сервис, который хранит репозитории и даёт интерфейс для работы с ними через браузер: файлы, коммиты, ветки, история." },
+  { key:"commitbtn", name:"Commit changes", def:"Кнопка и окно на сайте, которые создают коммит: заменяют пару команд git add и git commit." },
+  { key:"addfile", name:"Add file → Create new file", def:"Создание файла прямо в репозитории: имя, код, вкладка Preview, коммит." },
+  { key:"cancel", name:"Cancel changes", def:"Отмена правки, которая ещё не закоммичена: файл возвращается к последней зафиксированной версии. Аналог git restore." },
+  { key:"revert", name:"Revert", def:"Отмена уже закоммиченного изменения новым коммитом. Кнопка есть на странице коммита: история не переписывается." }
+];
+
+/* Команды и их эквиваленты на сайте */
+const CMDS = [
+  { code:"git init", mean:"Создать репозиторий: папка получает память", site:"Кнопка New / страница github.com/new: репозиторий создаётся сразу на сервере", used:true },
+  { code:"git status", mean:"Показать, что изменено и не зафиксировано", site:"На сайте всё видно всегда: список файлов и окно редактора с правками", used:false },
+  { code:"git add <файл>", mean:"Положить изменение в коробку перед коммитом", site:"Отдельного шага нет: правка в редакторе уже готова к коммиту", used:false },
+  { code:"git commit -m \"…\"", mean:"Заклеить коробку и подписать снимок", site:"Кнопка Commit changes: окно с полем сообщения — и коммит создан", used:true },
+  { code:"git log --oneline", mean:"История по одному коммиту на строку", site:"Ссылка «N commits» над файлами и вкладка Commits", used:true },
+  { code:"git switch -c <имя>", mean:"Создать ветку и перейти в неё", site:"Переключатель веток: написать имя и выбрать Create branch", used:true },
+  { code:"git restore <файл>", mean:"Вернуть файл к последнему коммиту", site:"Cancel changes в редакторе — пока правка не закоммичена", used:true },
+  { code:"git revert <коммит>", mean:"Новый коммит, отменяющий старый", site:"Кнопка Revert на странице коммита", used:false },
+  { code:"git push", mean:"Отправить локальную историю на сервер", site:"Не нужен: мы работаем прямо на сервере, каждый коммит уже в истории", used:false }
+];
+
+const MSG_RULES = [
+  "Пиши <b>что изменилось</b>, а не что ты делал: «добавил карточку», а не «работал над проектом».",
+  "Называй предмет изменения: файл или часть страницы — <code>style.css</code>, «цена», «README».",
+  "Длина от 5 до 72 символов: короче — непонятно, длиннее — не читается в истории.",
+  "Запрещённые слова: <code>работа</code>, <code>правки</code>, <code>фикс</code>, <code>рефакторинг</code>, <code>оптимизация</code>, <code>улучшение</code>, <code>архитектура</code>.",
+  "Одно изменение — один коммит: союз «и» дважды означает, что коммит пора разделить.",
+  "Без точки в конце и без эмодзи: сообщение читают в списке коммитов и на защите."
+];
+
+const MSG_GOOD = [
+  "<code>index.html: каркас страницы буфета</code> — файл и суть",
+  "<code>style.css: карточка пирога и цена</code> — предмет изменения",
+  "<code>Цена рыбника поднята до 95 рублей</code> — одно изменение",
+  "<code>feature/menu: четвёртый пирог в меню</code> — ветка и состав"
+];
+const MSG_BAD = [
+  "<code>работа</code> — ни файла, ни смысла",
+  "<code>фикс</code> — что сломалось и где, неизвестно",
+  "<code>добавил файл и поправил цену и ещё кое-что</code> — три изменения в одном коммите",
+  "<code>Обновление проекта финал v2</code> — слова есть, информации нет"
+];
+
+const LOG_EXAMPLE = [
+  '# так выглядит история проекта: на сайте это вкладка Commits,',
+  '# в терминале — git log --oneline. Читается снизу вверх.',
+  '',
+  '9f2c1a7 README: описание проекта',
+  '4b71e08 script.js: сумма заказа по кнопке',
+  'd3a0f52 style.css: палитра и карточка пирога',
+  '81ce4d9 index.html: каркас страницы буфета',
+  '2ad60b1 Первый коммит: репозиторий создан'
+].join("\n");
+
+/* ================= ВКЛАДКА 2 · GITHUB ================= */
+
+const GH_LINKS = [
+  { href:"https://github.com/signup", text:"github.com/signup — регистрация аккаунта" }
+];
+
+const GH_STEPS = [
+  { t:"<b>Регистрация.</b> Открой ссылку github.com/signup. Имя пользователя — латиницей, строчными, без пробелов: <code>anya-pirogova</code> подойдёт, <code>Аня Пирогова</code> — нет: имя войдёт в публичную ссылку." },
+  { t:"<b>Почта настоящая, пароль записан.</b> На почту придёт подтверждение и восстановление доступа. Пароль сохрани сразу: потерял — восстанавливаешь между занятиями, урок не ждёт." },
+  { t:"<b>Подтверди почту</b> ссылкой из письма и выбери тариф <b>Free</b>: его хватает на весь курс и портфолио." },
+  { t:"<b>Создай репозиторий.</b> Ссылка github.com/new или кнопка «+» → New repository. Имя: <code>severny-pirog</code>. Видимость: <b>Public</b> — это портфолио." },
+  { t:"<b>Поставь галочку «Add a README file».</b> Нам не нужен пустой репозиторий: README сразу создаёт ветку <code>main</code> и первый коммит. Дальше всё делаем на сайте." },
+  { t:"<b>Осмотри страницу репозитория.</b> Список файлов, счётчик «1 commit», переключатель веток (main), кнопка Add file, вкладки Code и Commits. Это весь рабочий стол занятия." },
+  { t:"<b>Создай index.html.</b> Add file → Create new file: напиши имя файла, вставь код из блока ниже, посмотри вкладку Preview. Кнопка Commit changes: сообщение «index.html: каркас страницы буфета с меню»." },
+  { t:"<b>Создай style.css и script.js</b> тем же способом: Add file → Create new file, код из блоков ниже, коммиты «style.css: палитра и карточка пирога» и «script.js: сумма заказа по кнопке»." },
+  { t:"<b>Внеси изменение.</b> Открой index.html, нажми карандаш (Edit), подними цену рыбника с 90 до 95. Commit changes: «index.html: цена рыбника поднята до 95 рублей»." },
+  { t:"<b>Посмотри историю и diff.</b> Кликни «N commits» → список; открой последний коммит → зелёные и красные строки: это и есть изменение, а не весь файл." },
+  { t:"<b>Попробуй ветку.</b> Переключатель веток → напиши <code>feature/menu</code> → Create branch. Добавь там четвёртый пирог и закоммить. Вернись в main: четвёртого пирога нет — он остался в ветке." }
+];
+
+const GH_RULES = [
+  "Имена файлов и репозиториев — латиницей, строчными, без пробелов и скобок: <code>index.html</code>, <code>severny-pirog</code>. «Моя страница (1).html» ломает ссылки при публикации на занятии 15.",
+  "В репозиторий не попадают пароли, ключи, персональные данные и чужие тексты или изображения без права использования.",
+  "<code>main</code> — рабочая версия: в конце занятия страница в ней открывается и не сломана. Эксперименты — только в ветках.",
+  "Сообщение коммита по шести правилам: предмет изменения, 5–72 символа, без «работа» и «фикс». ТЗ требует не меньше 10 осмысленных коммитов — привычка начинается сегодня.",
+  "Мы работаем через сайт, поэтому <code>git push</code> не нужен: каждый коммит сразу попадает в историю на сервере. Команды из вкладки 1 пригодятся дома и на следующих занятиях, когда Git появится.",
+  "Перед Commit changes смотри вкладку Preview: синтаксис подсветится, страница покажется. Проверка смысла — твоя.",
+  "Потерял доступ или сломал файл — не паника: история хранит всё. Открой старый коммит, скопируй версию или нажми Revert. Доступ восстанавливается между занятиями, урок продолжается у соседа."
+];
+
+const GH_CHECK = [
+  { id:"g1", text:"Аккаунт создан, почта подтверждена, пароль записан" },
+  { id:"g2", text:"Репозиторий severny-pirog создан: Public, с README, ветка main есть" },
+  { id:"g3", text:"Файл index.html создан через Add file, коммит с сообщением по правилам" },
+  { id:"g4", text:"Файл style.css создан, коммит с сообщением по правилам" },
+  { id:"g5", text:"Файл script.js создан, коммит с сообщением по правилам" },
+  { id:"g6", text:"Внесена правка в существующий файл и закоммичена с понятным сообщением" },
+  { id:"g7", text:"История открыта: коммитов не меньше четырёх, diff последнего просмотрен" },
+  { id:"g8", text:"Ветка feature/menu создана, правка в ней закоммичена, возврат в main выполнен" }
+];
+
+/* Три файла проекта: код для копирования в GitHub */
+const FILE_INDEX = [
+  '<!DOCTYPE html>',
+  '<html lang="ru">',
+  '<head>',
+  '  <meta charset="utf-8">',
+  '  <title>Северный пирог</title>',
+  '  <link rel="stylesheet" href="style.css">',
+  '</head>',
+  '<body>',
+  '',
+  '  <h1>Северный пирог</h1>',
+  '  <p class="muted">Школьный буфет. Домашняя выпечка каждый день.</p>',
+  '',
+  '  <ul class="menu">',
+  '    <li class="card">Калитка с картошкой — <span class="price" data-price="45">45 ₽</span></li>',
+  '    <li class="card">Рыбник — <span class="price" data-price="90">90 ₽</span></li>',
+  '    <li class="card">Брусничный пирог — <span class="price" data-price="70">70 ₽</span></li>',
+  '  </ul>',
+  '',
+  '  <button id="totalBtn" type="button">Посчитать сумму</button>',
+  '  <p id="out"></p>',
+  '',
+  '  <' + 'script src="script.js"></' + 'script>',
+  '</body>',
+  '</html>'
+].join("\n");
+
+const FILE_CSS = [
+  '*, *::before, *::after { box-sizing: border-box; }',
+  '',
+  ':root {',
+  '  --pie-bg:     #f4f6f3;',
+  '  --pie-card:   #ffffff;',
+  '  --pie-text:   #111312;',
+  '  --pie-muted:  #6b706b;',
+  '  --pie-accent: #5fa22e;',
+  '  --pie-border: #e3e7e1;',
+  '}',
+  '',
+  'body {',
+  '  margin: 0;',
+  '  padding: 24px;',
+  '  font-family: Arial, Helvetica, sans-serif;',
+  '  line-height: 1.5;',
+  '  background: var(--pie-bg);',
+  '  color: var(--pie-text);',
+  '}',
+  '',
+  '.muted { color: var(--pie-muted); }',
+  '',
+  '.menu {',
+  '  list-style: none;',
+  '  padding: 0;',
+  '  display: grid;',
+  '  gap: 12px;',
+  '  max-width: 420px;',
+  '}',
+  '',
+  '.card {',
+  '  background: var(--pie-card);',
+  '  border: 1px solid var(--pie-border);',
+  '  border-radius: 14px;',
+  '  padding: 14px 16px;',
+  '}',
+  '',
+  '.price { font-weight: 700; color: var(--pie-accent); }',
+  '',
+  'button {',
+  '  font: inherit;',
+  '  padding: 10px 22px;',
+  '  border: none;',
+  '  border-radius: 999px;',
+  '  background: var(--pie-accent);',
+  '  color: #ffffff;',
+  '  cursor: pointer;',
+  '}',
+  '',
+  '#out { font-weight: 700; min-height: 1.5em; }'
+].join("\n");
+
+const FILE_JS = [
+  'const prices = document.querySelectorAll(".price");',
+  'const btn = document.querySelector("#totalBtn");',
+  'const out = document.querySelector("#out");',
+  '',
+  'btn.addEventListener("click", function () {',
+  '  let total = 0;',
+  '  prices.forEach(function (el) {',
+  '    total = total + Number(el.dataset.price);',
+  '  });',
+  '  out.textContent = "Три пирога: " + total + " рублей";',
+  '});'
+].join("\n");
+
+/* ================= ВКЛАДКА 3 · ПРАКТИКА ================= */
+
+const QUIZ = [
+  { tag:"КОМАНДА", q:"Что делает команда git commit -m \"сообщение\"?",
+    options:["Отправляет файлы на сервер","Показывает историю изменений","Создаёт снимок изменений с сообщением","Удаляет последний коммит"],
+    correct:2, why:"Коммит — снимок проекта в момент фиксации: что изменилось, кто автор, когда. Отправка на сервер — это push, показ истории — log." },
+  { tag:"САЙТ", q:"Ты дописал код нового файла прямо на GitHub. Какое действие положит его в историю?",
+    options:["Нажать Commit changes и написать сообщение по правилам","Закрыть вкладку: браузер сам сохранит","Написать git push в адресной строке","Отправить файл учителю на почту"],
+    correct:0, why:"На сайте коммит создаёт кнопка Commit changes: окно с полем сообщения. Закрытая вкладка не сохраняет ничего, адресная строка команд не выполняет." },
+  { tag:"САЙТ", q:"Где посмотреть, что именно изменилось в каждом коммите?",
+    options:["В списке файлов репозитория","В настройках репозитория","В README","Во вкладке Commits: открыть коммит — зелёные и красные строки"],
+    correct:3, why:"Diff коммита показывает только изменение: зелёным добавленное, красным удалённое. Список файлов показывает текущее состояние, а не историю." },
+  { tag:"САЙТ", q:"Нужен новый файл style.css в уже созданном репозитории. Твои действия на сайте:",
+    options:["Только Upload files с компьютера, иначе никак","Add file → Create new file: написать имя и вставить код","Создать файл в Word и приложить к README","Попросить учителя создать файл"],
+    correct:1, why:"Create new file создаёт файл прямо в репозитории: имя, код, Preview, коммит. Upload files тоже существует, но для наших трёх файлов удобнее редактор с Preview." },
+  { tag:"КОМАНДА", q:"Зачем на сайте ветка feature/menu?",
+    options:["Чтобы файлы загружались быстрее","Чтобы скрыть изменения от учителя","Для экспериментов без риска для main","Чтобы удалить старые коммиты"],
+    correct:2, why:"Ветка — черновик рядом с чистовиком: не вышло — переключился обратно в main, рабочая версия не тронута. Скрыть или ускорить она ничего не может." },
+  { tag:"СООБЩЕНИЕ", q:"Сообщение «работа, много сделал» не примут на ревью. Почему?",
+    options:["Оно должно быть на английском","Оно короче пяти символов","Оно слишком эмоциональное","Из него непонятно, что изменилось в проекте"],
+    correct:3, why:"Сообщение читают через месяц и на защите. «работа» не называет ни файла, ни сути изменения. Правило: что изменилось, а не что делал." },
+  { tag:"САЙТ", q:"В редакторе GitHub ты изменил файл и передумал: нажал Cancel changes. Что произошло?",
+    options:["Правка отменена: файл вернулся к последней закоммиченной версии","Файл удалён из репозитория","Создан коммит с сообщением «отмена»","Репозиторий закрыт"],
+    correct:0, why:"Cancel changes откатывает правку, которая ещё не закоммичена, — это аналог git restore. История при этом не меняется: неотменённого коммита в ней не было." },
+  { tag:"КОМАНДА", q:"Плохое изменение уже закоммичено. Как отменить его, не переписывая историю?",
+    options:["Удалить файл из репозитория","Revert на странице коммита: новый коммит отменяет старый","Стереть сообщение коммита","Создать репозиторий заново"],
+    correct:1, why:"Revert создаёт коммит-антипод: изменение отменено, но история честная — видно и ошибку, и её отмену. Удаление файла или новый репозиторий историю не сохраняют." },
+  { tag:"САЙТ", q:"Почему файл нельзя назвать «Моя страница (1).html»?",
+    options:["Имена с заглавными буквами, пробелами и скобками ломают ссылки при публикации","GitHub не любит русские буквы из вредности","Файл станет слишком тяжёлым","Имя длиннее допустимых десяти символов"],
+    correct:0, why:"Публикация на занятии 15 идёт по ссылкам: пробелы и регистр дают расхождения между компьютерами и серверами. Правило курса: латиница, строчные, без пробелов." },
+  { tag:"САЙТ", q:"Что проверить перед нажатием Commit changes?",
+    options:["Что интернет выключен","Что сообщение описывает изменение, а имя файла — латиницей без пробелов","Что файл красиво выглядит на глаз","Что учитель сейчас в сети"],
+    correct:1, why:"Коммит нельзя «переписать молча»: он остаётся в истории навсегда. Проверяют смысл сообщения, имя файла и Preview — тогда история читается без открытия кода." }
+];
+
+const MATCH = {
+  title:"Команда ↔ то же действие на сайте GitHub",
+  items:[
+    { id:"init", left:"git init", correct:"o1" },
+    { id:"commit", left:"git add + git commit -m \"…\"", correct:"o2" },
+    { id:"log", left:"git log --oneline", correct:"o3" },
+    { id:"branch", left:"git switch -c feature/menu", correct:"o4" },
+    { id:"restore", left:"git restore index.html", correct:"o5" },
+    { id:"push", left:"git push", correct:"o6" }
+  ],
+  options:[
+    { id:"o1", text:"Кнопка New repository: репозиторий создаётся сразу на сервере" },
+    { id:"o2", text:"Окно Commit changes: сообщение и кнопка — коммит готов" },
+    { id:"o3", text:"Ссылка «N commits» и вкладка Commits: список истории" },
+    { id:"o4", text:"Переключатель веток: написать имя и создать ветку" },
+    { id:"o5", text:"Cancel changes в редакторе: откат незакоммиченной правки" },
+    { id:"o6", text:"Ничего не нужно: работаем прямо на сервере, история уже там" }
+  ]
+};
+
+const MSG_TASKS = [
+  { id:"m1", title:"Сообщение 1", diff:"В репозитории <code>severny-pirog</code> создан файл <code>index.html</code>: каркас страницы с меню из трёх пирогов.", keywords:["index.html","каркас","страниц","меню"] },
+  { id:"m2", title:"Сообщение 2", diff:"Добавлен файл <code>style.css</code>: палитра в переменных и оформление карточек.", keywords:["style.css","стил","карточк","палитр"] },
+  { id:"m3", title:"Сообщение 3", diff:"В <code>index.html</code> изменена цена рыбника: было 90, стало 95 рублей.", keywords:["цен","рыбник","95","index.html"] }
+];
+const BAD_WORDS = ["работа","правки","фикс","рефакторинг","оптимизация","улучшение","архитектура"];
+
+const AI_PROMPT = [
+  'Контекст: я школьник, делаю учебный сайт школьного буфета на HTML, CSS и JavaScript без фреймворков. Веду проект в Git прямо на GitHub, через браузер. Пишу сообщения коммитов по-русски.',
+  '',
+  'Задача: сформулируй сообщение коммита для изменений, перечисленных ниже.',
+  '',
+  'Изменения:',
+  '[вставь сюда свой список: что изменилось в каких файлах]',
+  '',
+  'Ограничения: одно предложение, от 5 до 72 символов; описать, ЧТО изменилось в проекте, а не что делал разработчик; запрещены слова: работа, правки, фикс, рефакторинг, оптимизация, улучшение, архитектура; без точки в конце, без эмодзи, без английских слов кроме имён функций и файлов.',
+  '',
+  'Формат ответа: три варианта сообщения, каждый на отдельной строке, без нумерации и без пояснений.',
+  '',
+  'Критерии проверки: я должен по сообщению понять, что появилось в проекте, не открывая код.'
+].join("\n");
+
+/* ================= СОСТОЯНИЕ ================= */
+
+const STORAGE_KEY = "wdc-l13-worksheet-v2";
+
+let state = {
+  started: false,
+  tab: 1,
+  termsLearned: {},
+  gh: {},
+  quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+  match: { sel: MATCH.items.map(function(){ return ""; }), checked:false },
+  msgs: { values:{ m1:"", m2:"", m3:"" }, results:null, checked:false },
+  reflect: "",
+  finished: false
+};
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state = deepMerge(state, parsed);
+    }
+  }catch(e){}
+  if(!Array.isArray(state.quiz) || state.quiz.length !== QUIZ.length){
+    state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+  }
+  if(!Array.isArray(state.match.sel) || state.match.sel.length !== MATCH.items.length){
+    state.match.sel = MATCH.items.map(function(){ return ""; });
+  }
+  if(!state.msgs) state.msgs = { values:{ m1:"", m2:"", m3:"" }, results:null, checked:false };
+  if(!state.gh) state.gh = {};
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])){
+      out[k] = deepMerge(target[k] || {}, source[k]);
+    } else {
+      out[k] = source[k];
+    }
+  }
+  return out;
+}
+
+/* ---------- Подсчёты ---------- */
+function termsCount(){ return Object.values(state.termsLearned).filter(Boolean).length; }
+function ghCount(){ return GH_CHECK.filter(function(c){ return state.gh[c.id]; }).length; }
+function quizScore(){ return state.quiz.filter(function(q){ return q.correct; }).length; }
+function quizAnswered(){ return state.quiz.filter(function(q){ return q.answered; }).length; }
+function matchScore(){
+  let ok = 0;
+  MATCH.items.forEach(function(it, i){
+    if(state.match.sel[i] === it.correct) ok++;
+  });
+  return ok;
+}
+function matchFilled(){ return state.match.sel.filter(function(v){ return v; }).length; }
+function msgsOk(){
+  if(!state.msgs.checked || !state.msgs.results) return 0;
+  return MSG_TASKS.filter(function(t){ return state.msgs.results[t.id].length === 0; }).length;
+}
+function practiceMax(){ return QUIZ.length + MATCH.items.length + MSG_TASKS.length; }
+function practiceScore(){ return quizScore() + matchScore() + msgsOk(); }
+
+function validateMsg(text, task){
+  const problems = [];
+  const t = text.trim();
+  if(!t){ problems.push("сообщение пустое"); return problems; }
+  if(t.length < 5) problems.push("короче 5 символов");
+  if(t.length > 72) problems.push("длиннее 72 символов: сейчас " + t.length);
+  const low = t.toLowerCase();
+  BAD_WORDS.forEach(function(w){
+    if(low.indexOf(w) !== -1) problems.push("запрещённое слово: «" + w + "»");
+  });
+  const ands = (low.match(/ и /g) || []).length;
+  if(ands >= 2) problems.push("союз «и» дважды: изменений больше одного — разбей на коммиты");
+  if(/\.\s*$/.test(t)) problems.push("точка на конце");
+  const hasSubject = task.keywords.some(function(k){ return low.indexOf(k.toLowerCase()) !== -1; });
+  if(!hasSubject) problems.push("не назван предмет изменения: файл или часть страницы");
+  return problems;
+}
+
+function countProgress(){
+  let filled = termsCount() + ghCount() + quizAnswered() + matchFilled();
+  filled += MSG_TASKS.filter(function(t){ return (state.msgs.values[t.id] || "").trim(); }).length;
+  filled += state.reflect.trim() ? 1 : 0;
+  const total = TERMS.length + GH_CHECK.length + QUIZ.length + MATCH.items.length + MSG_TASKS.length + 1;
+  return { filled: filled, total: total, percent: total ? Math.round(filled / total * 100) : 0 };
+}
+
+/* ---------- Рендер ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  const p = countProgress();
+  let html = renderTopbar(p);
+
+  if(!state.started){
+    html += '<main class="no-tabs">' + renderStart() + '</main>';
+    app.innerHTML = html;
+    bindHandlers();
+    return;
+  }
+
+  html += renderTabNav();
+  html += "<main>";
+  html += '<div class="tab-page" data-page="1"' + (state.tab === 1 ? "" : " hidden") + ">" + renderTab1() + "</div>";
+  html += '<div class="tab-page" data-page="2"' + (state.tab === 2 ? "" : " hidden") + ">" + renderTab2() + "</div>";
+  html += '<div class="tab-page" data-page="3"' + (state.tab === 3 ? "" : " hidden") + ">" + renderTab3() + "</div>";
+  html += '<div class="tab-page" data-page="4"' + (state.tab === 4 ? "" : " hidden") + ">" + renderTab4() + "</div>";
+  html += "</main>";
+  html += renderActions();
+  app.innerHTML = html;
+  bindHandlers();
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = document.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+}
+
+function renderTopbar(p){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <div class="brand-title">' + escapeHtml(COURSE.title) + '</div>',
+    '      <div class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · ' + escapeHtml(COURSE.grade) + ' · работаем через github.com</div>',
+    '    </div>',
+    '    <div class="progress-wrap" aria-label="Прогресс заполнения">',
+    '      <div class="progress-bar" role="progressbar" aria-valuenow="' + p.percent + '" aria-valuemin="0" aria-valuemax="100">',
+    '        <div class="progress-fill" style="width:' + p.percent + '%"></div>',
+    '      </div>',
+    '      <div class="progress-num">' + p.percent + '%</div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderStart(){
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Занятие 13 из 24 · модуль 5</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.subtitle) + '</h1>',
+    '  <p>Как перестать бояться сломать проект. Весь цикл «изменение → коммит → история → ветка» мы проходим в браузере на github.com. Команды учим для понимания и удобства работы из дома, а руками работаем на сайте: создаём репозиторий severny-pirog и три файла проекта.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    '    <span class="chip">🎓 ' + escapeHtml(COURSE.grade) + '</span>',
+    '    <span class="chip"> 4 вкладки: теория · GitHub · практика · отчёт</span>',
+    '    <span class="chip">⏱ 80 минут</span>',
+    '  </div>',
+    '  <button class="btn btn-primary btn-lg" data-action="start">',
+    '    Начать работу',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '  </button>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTabNav(){
+  const done3 = practiceScore() === practiceMax();
+  const repBadge = state.finished
+    ? '<span class="tab-badge ' + (done3 ? "done" : "") + '">' + practiceScore() + "/" + practiceMax() + '</span>'
+    : '<span class="tab-badge lock">закрыт</span>';
+  return [
+    '<nav class="tabnav" aria-label="Вкладки листа">',
+    '  <button class="tab-btn ' + (state.tab === 1 ? "active" : "") + '" data-tab="1">1 · Теория <span class="tab-badge ' + (termsCount() === TERMS.length ? "done" : "") + '">' + termsCount() + '/' + TERMS.length + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 2 ? "active" : "") + '" data-tab="2">2 · GitHub и файлы <span class="tab-badge ' + (ghCount() === GH_CHECK.length ? "done" : "") + '">' + ghCount() + '/' + GH_CHECK.length + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 3 ? "active" : "") + '" data-tab="3">3 · Практика <span class="tab-badge ' + (done3 ? "done" : "") + '">' + practiceScore() + '/' + practiceMax() + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 4 ? "active" : "") + '" data-tab="4">4 · Отчёт ' + repBadge + '</button>',
+    '</nav>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 1 ---------- */
+function renderTab1(){
+  const learned = termsCount();
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Теория занятия</span>',
+    '  <h1>Папка с памятью: история проекта</h1>',
+    '  <p>Знакомая картина: реферат.docx, реферат2.docx, реферат_испр_ФИНАЛ(1).docx. Какой сдавали? Репозиторий заменяет этот зоопарк одной папкой, где хранится каждое зафиксированное состояние. У нас он живёт на GitHub — прямо в браузере.</p>',
+    '</div>',
+    '',
+    '<div class="instruction">',
+    '  <b>Три вещи, которые даёт история, и одна приятная:</b>',
+    '  <ul>',
+    '    <li>вернуться к рабочей версии за десять секунд, когда всё сломалось;</li>',
+    '    <li>видеть, что и когда изменилось: зелёные и красные строки в diff, а не сравнение файлов глазами;</li>',
+    '    <li>опубликовать сайт по ссылке на занятии 15: публикация идёт из репозитория;</li>',
+    '    <li>5 баллов из 30 на защите — за культуру работы с Git: история, ветки, принятый Pull Request.</li>',
+    '  </ul>',
+    '  <b>Важно про школьные ноутбуки:</b> программы Git у нас нет, и сегодня она не нужна. Команды из таблицы ниже учим для понимания и будущей работы: на сайте им соответствуют кнопки и окна, и именно там мы работаем.',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">Т</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Двенадцать слов занятия</h2>',
+    '    <p class="section-sub">Отметь те, что можешь объяснить своими словами.</p>',
+    '  </div>',
+    '  <span class="section-status ' + (learned === TERMS.length ? "done" : "") + '" data-terms-status>' + learned + '/' + TERMS.length + '</span>',
+    '</div>',
+    '<div class="terms-grid" role="list">',
+    TERMS.map(renderTerm).join(""),
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">К</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Команды и их эквиваленты на сайте</h2>',
+    '    <p class="section-sub">Плашка «сегодня» — действие выполняем на github.com прямо на занятии.</p>',
+    '  </div>',
+    '</div>',
+    '<div style="overflow-x:auto">',
+    '  <table class="tags-table">',
+    '    <thead><tr><th>Команда</th><th>Смысл</th><th>То же на сайте GitHub</th></tr></thead>',
+    '    <tbody>',
+    CMDS.map(function(c){
+      return '<tr><td><span class="tag-code">' + escapeHtml(c.code) + '</span>' + (c.used ? '<span class="tag-used">СЕГОДНЯ</span>' : '') + '</td><td>' + escapeHtml(c.mean) + '</td><td>' + escapeHtml(c.site) + '</td></tr>';
+    }).join(""),
+    '    </tbody>',
+    '  </table>',
+    '</div>',
+    '<div class="code-block" data-file="история проекта">' + escapeHtml(LOG_EXAMPLE) + '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">М</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Сообщение коммита: подпись снимка</h2>',
+    '    <p class="section-sub">Шесть правил, по которым сообщения принимают на ревью и пропускает тренажёр практики.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="rules-card">',
+    '  <h3>Шесть правил сообщения</h3>',
+    '  <ol>',
+    MSG_RULES.map(function(r){ return "<li>" + r + "</li>"; }).join(""),
+    '  </ol>',
+    '</div>',
+    '<div class="good-bad">',
+    '  <div class="gb-box good"><b>Так принимают</b><ul>' + MSG_GOOD.map(function(g){ return "<li>" + g + "</li>"; }).join("") + '</ul></div>',
+    '  <div class="gb-box bad"><b>Так не принимают</b><ul>' + MSG_BAD.map(function(b){ return "<li>" + b + "</li>"; }).join("") + '</ul></div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return [
+    '<div class="term ' + (learned ? "learned" : "") + '" data-term="' + t.key + '" role="listitem" tabindex="0" aria-pressed="' + learned + '">',
+    '  <div class="term-head">',
+    '    <span class="term-name">' + escapeHtml(t.name) + '</span>',
+    '    <span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+    '  </div>',
+    '  <div class="term-def">' + escapeHtml(t.def) + '</div>',
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 2 ---------- */
+function renderTab2(){
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Регистрация и первый репозиторий</span>',
+    '  <h1>GitHub: проект переживает компьютер</h1>',
+    '  <p>Локальная папка умирает вместе с ноутбуком. Репозиторий на сервере хранит полную историю и станет источником публикации на занятии 15. Сегодня создаёшь аккаунт, репозиторий severny-pirog и три файла проекта — всё в браузере.</p>',
+    '</div>',
+    '',
+    '<div class="ext-links">',
+    GH_LINKS.map(function(l){
+      return '<a class="ext-link" href="' + l.href + '" target="_blank" rel="noopener">' + escapeHtml(l.text) + ' ↗</a>';
+    }).join(""),
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num blue">Ш</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Одиннадцать шагов: от регистрации до ветки</h2>',
+    '    <p class="section-sub">Идёшь сверху вниз. Код трёх файлов — блоками с кнопкой «Копировать» ниже шагов.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="gh-steps">',
+    GH_STEPS.map(function(s, i){
+      return '<div class="gh-step"><span class="n">' + (i + 1) + '</span><span class="t">' + s.t + '</span></div>';
+    }).join(""),
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num blue">Ф</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Три файла репозитория severny-pirog</h2>',
+    '    <p class="section-sub">Копируй целиком в Create new file. Имена файлов пиши точно так же, строчными латинскими буквами: по ним страница собирается воедино.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="code-block" data-file="index.html"><button class="copy-btn" data-copy="idx" type="button" aria-label="Скопировать index.html">Копировать</button>' + escapeHtml(FILE_INDEX) + '</div>',
+    '<div class="code-block" data-file="style.css"><button class="copy-btn" data-copy="css" type="button" aria-label="Скопировать style.css">Копировать</button>' + escapeHtml(FILE_CSS) + '</div>',
+    '<div class="code-block" data-file="script.js"><button class="copy-btn" data-copy="js" type="button" aria-label="Скопировать script.js">Копировать</button>' + escapeHtml(FILE_JS) + '</div>',
+    '<div class="instruction">',
+    '  <b>Что делает этот код:</b> страница буфета с тремя карточками; кнопка «Посчитать сумму» складывает цены из атрибутов <code>data-price</code> и пишет результат на страницу через <code>textContent</code>. По-настоящему страница заработает после публикации на занятии 15.',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num blue">П</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Правила работы на GitHub</h2>',
+    '    <p class="section-sub">Семь пунктов, которые проверяются по репозиторию на защите.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="instruction">',
+    '  <ul>',
+    GH_RULES.map(function(r){ return "<li>" + r + "</li>"; }).join(""),
+    '  </ul>',
+    '</div>',
+    '',
+    '<div class="checklist" role="group" aria-label="Чек-лист работы на GitHub">',
+    '  <div class="checklist-title">Чек-лист: я сделал репозиторий и первые коммиты</div>',
+    GH_CHECK.map(function(c){
+      const on = !!state.gh[c.id];
+      return [
+        '<div class="check-item ' + (on ? "checked" : "") + '" data-gh="' + c.id + '" role="checkbox" aria-checked="' + on + '" tabindex="0">',
+        '  <span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+        '  <span class="check-text">' + escapeHtml(c.text) + '</span>',
+        '</div>'
+      ].join("\n");
+    }).join(""),
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 3 ---------- */
+function renderTab3(){
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Практика занятия</span>',
+    '  <h1>Проверка понимания: команды, сайт, сообщения</h1>',
+    '  <p>Десять вопросов про команды и действия на сайте, сопоставление «команда ↔ кнопка» и три сообщения коммитов с автопроверкой по правилам курса. Всё кликается здесь, код писать не нужно.</p>',
+    '</div>',
+    '',
+    '<h3 class="sub-title">Часть 1. Десять вопросов</h3>',
+    '<span class="score-chip" data-quiz-score>Верно: ' + quizScore() + ' из ' + QUIZ.length + '</span>',
+    QUIZ.map(renderQuizCard).join(""),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 2. Команда ↔ действие на сайте</h3>',
+    renderMatch(),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 3. Три сообщения коммитов</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Это те самые коммиты, которые ты делаешь сегодня на GitHub. Напиши сообщения по шести правилам: автопроверка посмотрит длину, запрещённые слова, союз «и», точку и предмет изменения.</p>',
+    MSG_TASKS.map(renderMsgCard).join(""),
+    '<div class="no-print" style="margin-bottom:6px">',
+    '  <button class="btn btn-secondary" data-action="check-msgs" type="button">Проверить сообщения</button>',
+    '</div>',
+    (state.msgs.checked ? renderMsgsSummary() : ''),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Если сомневаешься в формулировке — спроси ИИ</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Модель предлагает три варианта, выбираешь и отвечаешь за смысл ты: проверь, описано ли то, что ты правда сделал на сайте.</p>',
+    '<div class="prompt-box" aria-label="Промпт для ИИ">',
+    '  <button class="copy-btn" data-action="copy-prompt" type="button" aria-label="Скопировать промпт">Копировать</button>',
+    escapeHtml(AI_PROMPT),
+    '</div>',
+    '',
+    '<div class="field">',
+    '  <label class="field-label" for="reflect">Рефлексия: какое действие на GitHub оказалось самым непонятным и что потренируешь дома?</label>',
+    '  <textarea class="field-input ' + (state.reflect.trim() ? "filled" : "") + '" id="reflect" data-reflect placeholder="Две-три строки. Попадёт в отчёт.">' + escapeHtml(state.reflect) + '</textarea>',
+    '</div>',
+    '',
+    '<div class="instruction">',
+    '  Когда все части пройдены, переходи во вкладку <b>4 · Отчёт</b> и нажимай «Завершить занятие»: отчёт откроется для сохранения в PDF.',
+    '</div>'
+  ].join("\n");
+}
+
+function renderQuizCard(q, i){
+  return [
+    '<div class="quiz-card" data-quiz="' + i + '">',
+    '  <span class="quiz-mod">' + escapeHtml(q.tag) + ' · ВОПРОС ' + (i + 1) + '</span>',
+    '  <div class="quiz-q">' + escapeHtml(q.q) + '</div>',
+    '  <div class="quiz-options" role="group" aria-label="Варианты ответа">',
+    q.options.map(function(opt, j){
+      return '<button type="button" class="quiz-opt" data-quiz-opt="' + i + ':' + j + '">' + escapeHtml(opt) + '</button>';
+    }).join(""),
+    '  </div>',
+    '  <div class="quiz-feedback hidden"></div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderMatch(){
+  const st = state.match;
+  const rows = MATCH.items.map(function(it, i){
+    const val = st.sel[i];
+    let rowCls = "";
+    let correctLine = "";
+    if(st.checked){
+      rowCls = val === it.correct ? " ok" : " bad";
+      if(val !== it.correct){
+        const right = MATCH.options.find(function(o){ return o.id === it.correct; });
+        correctLine = '<div class="match-correct">Верно: ' + escapeHtml(right.text) + '</div>';
+      }
+    }
+    return [
+      '<div class="match-row' + rowCls + '">',
+      '  <span class="match-left">' + escapeHtml(it.left) + '</span>',
+      '  <select class="match-select" data-match-row="' + i + '" ' + (st.checked ? "disabled" : "") + ' aria-label="Эквивалент для: ' + escapeHtml(it.left) + '">',
+      '    <option value="">— выбери —</option>',
+      MATCH.options.map(function(o){
+        return '<option value="' + o.id + '"' + (val === o.id ? " selected" : "") + '>' + escapeHtml(o.text) + '</option>';
+      }).join(""),
+      '  </select>',
+      correctLine,
+      '</div>'
+    ].join("\n");
+  }).join("");
+  return [
+    '<div class="match-card">',
+    '  <h4>' + escapeHtml(MATCH.title) + '</h4>',
+    '  <p>' + (st.checked ? 'Результат: ' + matchScore() + ' из ' + MATCH.items.length + '.' : 'Каждой команде подбери то, что ты делаешь на сайте вместо неё.') + '</p>',
+    rows,
+    '  <div class="no-print" style="margin-top:10px">',
+    '    <button type="button" class="btn btn-secondary btn-sm" data-check-match ' + (st.checked ? "disabled" : "") + '>Проверить</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderMsgCard(t){
+  const val = state.msgs.values[t.id] || "";
+  let verdict = "";
+  if(state.msgs.checked && state.msgs.results){
+    const probs = state.msgs.results[t.id];
+    verdict = probs.length === 0
+      ? '<div class="msg-verdict ok"><b>Принято.</b> Сообщение проходит все шесть правил.</div>'
+      : '<div class="msg-verdict bad"><b>Не принято.</b><ul>' + probs.map(function(p){ return "<li>" + escapeHtml(p) + "</li>"; }).join("") + '</ul></div>';
+  }
+  return [
+    '<div class="msg-card">',
+    '  <h4>' + escapeHtml(t.title) + '</h4>',
+    '  <div class="msg-diff">Что изменилось: ' + t.diff + '</div>',
+    '  <div class="field">',
+    '    <label class="field-label" for="msg-' + t.id + '">Твоё сообщение коммита</label>',
+    '    <input class="field-input ' + (val.trim() ? "filled" : "") + '" id="msg-' + t.id + '" data-msg="' + t.id + '" type="text" autocomplete="off" maxlength="120" value="' + escapeHtml(val) + '" placeholder="Например: index.html: каркас страницы буфета">',
+    '  </div>',
+    verdict,
+    '</div>'
+  ].join("\n");
+}
+
+function renderMsgsSummary(){
+  const ok = msgsOk();
+  return '<div class="instruction">Принято сообщений: <b>' + ok + ' из ' + MSG_TASKS.length + '</b>. ' + (ok === MSG_TASKS.length ? "Все три подписи пройдут ревью." : "Поправь отмеченные и нажми «Проверить сообщения» ещё раз.") + '</div>';
+}
+
+/* ---------- Вкладка 4 ---------- */
+function renderTab4(){
+  return state.finished ? renderTab4Full() : renderTab4Locked();
+}
+
+function lockRow(title, cls, text){
+  return '<li><span class="lk ' + cls + '">' + (cls === "ok" ? "готово" : (cls === "part" ? "в процессе" : "не начато")) + '</span><span><b>' + escapeHtml(title) + '.</b> ' + escapeHtml(text) + '</span></li>';
+}
+
+function renderTab4Locked(){
+  const rows = [
+    lockRow("Теория: термины", termsCount() === TERMS.length ? "ok" : (termsCount() ? "part" : ""), "отмечено " + termsCount() + " из " + TERMS.length),
+    lockRow("GitHub: чек-лист", ghCount() === GH_CHECK.length ? "ok" : (ghCount() ? "part" : ""), "отмечено " + ghCount() + " из " + GH_CHECK.length),
+    lockRow("Часть 1: вопросы", quizAnswered() === QUIZ.length ? "ok" : (quizAnswered() ? "part" : ""), "отвечено " + quizAnswered() + " из " + QUIZ.length),
+    lockRow("Часть 2: команды и сайт", state.match.checked ? "ok" : (matchFilled() === MATCH.items.length ? "part" : ""), state.match.checked ? "проверено" : "выбрано " + matchFilled() + " из " + MATCH.items.length + ", не проверено"),
+    lockRow("Часть 3: сообщения", state.msgs.checked ? (msgsOk() === MSG_TASKS.length ? "ok" : "part") : (Object.keys(state.msgs.values).some(function(k){ return state.msgs.values[k].trim(); }) ? "part" : ""), state.msgs.checked ? "принято " + msgsOk() + " из " + MSG_TASKS.length : "не проверены кнопкой"),
+    lockRow("Рефлексия", state.reflect.trim() ? "ok" : "", state.reflect.trim() ? "заполнена" : "не заполнена")
+  ].join("");
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Отчёт пока закрыт</span>',
+    '  <h1>Сначала практика, потом отчёт</h1>',
+    '  <p>Здесь видно, сколько пройдено, но не видно правильных ответов: иначе тренировка теряет смысл. Закончи части во вкладке 3 и нажми «Завершить занятие» — отчёт откроется целиком для PDF.</p>',
+    '</div>',
+    '<ul class="lock-list">' + rows + '</ul>',
+    '<div class="rep-note">Вопросы блокируются после ответа, сопоставление и сообщения — после проверки, поэтому после завершения отчёта изменить результаты нельзя: смотреть его безопасно.</div>',
+    '<div style="display:flex; gap:10px; flex-wrap:wrap">',
+    '  <button class="btn btn-primary" data-action="finish" type="button">Завершить занятие и открыть отчёт</button>',
+    '  <button class="btn btn-secondary" data-action="goto-3" type="button">Вернуться к практике</button>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTab4Full(){
+  const quizRows = QUIZ.map(function(q, i){
+    const st = state.quiz[i];
+    const mark = !st.answered ? '<span class="rep-mark wait">—</span>' : (st.correct ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark bad">✗</span>');
+    const yours = st.answered ? escapeHtml(q.options[st.chosen]) : "нет ответа";
+    return '<tr><td>' + (i + 1) + '</td><td>' + yours + '</td><td>' + escapeHtml(q.options[q.correct]) + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+
+  const matchRows = MATCH.items.map(function(it, i){
+    const val = state.match.sel[i];
+    const chosenText = val ? escapeHtml(MATCH.options.find(function(o){ return o.id === val; }).text) : "нет ответа";
+    const rightText = escapeHtml(MATCH.options.find(function(o){ return o.id === it.correct; }).text);
+    const mark = !state.match.checked ? '<span class="rep-mark wait">—</span>' : (val === it.correct ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark bad">✗</span>');
+    return '<tr><td><code>' + escapeHtml(it.left) + '</code></td><td>' + chosenText + '</td><td>' + rightText + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+
+  const msgRows = MSG_TASKS.map(function(t){
+    const val = (state.msgs.values[t.id] || "").trim();
+    let verdict = '<span class="rep-mark wait">—</span>';
+    if(state.msgs.checked && state.msgs.results){
+      const probs = state.msgs.results[t.id];
+      verdict = probs.length === 0 ? '<span class="rep-mark ok">принято</span>' : '<span class="rep-mark bad">' + escapeHtml(probs.join("; ")) + '</span>';
+    }
+    return '<tr><td>' + escapeHtml(t.title) + '</td><td>' + (val ? escapeHtml(val) : "нет сообщения") + '</td><td>' + verdict + '</td></tr>';
+  }).join("");
+
+  const ghRows = GH_CHECK.map(function(c){
+    return '<tr><td>' + escapeHtml(c.text) + '</td><td>' + (state.gh[c.id] ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark wait">—</span>') + '</td></tr>';
+  }).join("");
+
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Отчёт для учителя</span>',
+    '  <h1>Отчёт по занятию 13</h1>',
+    '  <p>Все результаты собраны автоматически. Нажми «Сохранить PDF» и отправь файл учителю вместе со ссылкой на репозиторий severny-pirog: печатается только эта вкладка.</p>',
+    '</div>',
+    '<div class="rep-summary">',
+    '  <div class="rep-stat"><div class="v">' + quizScore() + '/' + QUIZ.length + '</div><div class="l">вопросы</div></div>',
+    '  <div class="rep-stat"><div class="v">' + matchScore() + '/' + MATCH.items.length + '</div><div class="l">команды и сайт</div></div>',
+    '  <div class="rep-stat"><div class="v">' + msgsOk() + '/' + MSG_TASKS.length + '</div><div class="l">сообщения</div></div>',
+    '  <div class="rep-stat"><div class="v">' + ghCount() + '/' + GH_CHECK.length + '</div><div class="l">github</div></div>',
+    '  <div class="rep-stat"><div class="v">' + termsCount() + '/' + TERMS.length + '</div><div class="l">термины</div></div>',
+    '</div>',
+    '<div class="rep-note">Итого по практике: <b>' + practiceScore() + ' из ' + practiceMax() + '</b>. Ссылка на репозиторий: впиши от руки или добавь в поле рефлексии — учитель проверит историю и сообщения коммитов прямо на сайте.</div>',
+    '',
+    '<h3 class="sub-title">Часть 1 · Вопросы</h3>',
+    '<table class="rep-table"><thead><tr><th>№</th><th>Твой ответ</th><th>Верный ответ</th><th></th></tr></thead><tbody>' + quizRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 2 · Команда ↔ действие на сайте</h3>',
+    '<table class="rep-table"><thead><tr><th>Команда</th><th>Твой вариант</th><th>Верный вариант</th><th></th></tr></thead><tbody>' + matchRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 3 · Сообщения коммитов</h3>',
+    '<table class="rep-table"><thead><tr><th>Задача</th><th>Твоё сообщение</th><th>Вердикт проверки</th></tr></thead><tbody>' + msgRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">GitHub: чек-лист</h3>',
+    '<table class="rep-table"><thead><tr><th>Пункт</th><th>Отметка</th></tr></thead><tbody>' + ghRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Рефлексия</h3>',
+    (state.reflect.trim() ? '<div class="rep-reflect">' + escapeHtml(state.reflect) + '</div>' : '<div class="rep-note">Рефлексия не заполнена.</div>'),
+    '',
+    '<div class="no-print" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px">',
+    '  <button class="btn btn-primary" data-action="print" type="button">Сохранить PDF</button>',
+    '  <button class="btn btn-ghost" data-action="reset-practice" type="button">Сбросить практику</button>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderActions(){
+  return [
+    '<div class="actions no-print" role="toolbar" aria-label="Действия">',
+    '  <div class="actions-inner">',
+    '    <button class="btn btn-secondary" data-action="print" type="button">Сохранить PDF (отчёт)</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Покраска ---------- */
+function paintQuiz(card, i){
+  const st = state.quiz[i];
+  card.querySelectorAll(".quiz-opt").forEach(function(btn, j){
+    btn.disabled = true;
+    btn.classList.remove("correct", "wrong");
+    if(j === QUIZ[i].correct) btn.classList.add("correct");
+    else if(j === st.chosen) btn.classList.add("wrong");
+  });
+  const fb = card.querySelector(".quiz-feedback");
+  fb.classList.remove("hidden", "good", "bad");
+  fb.classList.add(st.correct ? "good" : "bad");
+  fb.innerHTML = "<b>" + (st.correct ? "Верно. " : "Не совсем. Правильный ответ: «" + escapeHtml(QUIZ[i].options[QUIZ[i].correct]) + "». ") + "</b>" + escapeHtml(QUIZ[i].why);
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent + "%";
+  if(num) num.textContent = p.percent + "%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+
+  const chip = document.querySelector("[data-quiz-score]");
+  if(chip) chip.textContent = "Верно: " + quizScore() + " из " + QUIZ.length;
+
+  const badges = document.querySelectorAll(".tab-badge");
+  if(badges.length >= 4){
+    badges[0].textContent = termsCount() + "/" + TERMS.length;
+    badges[0].classList.toggle("done", termsCount() === TERMS.length);
+    badges[1].textContent = ghCount() + "/" + GH_CHECK.length;
+    badges[1].classList.toggle("done", ghCount() === GH_CHECK.length);
+    badges[2].textContent = practiceScore() + "/" + practiceMax();
+    badges[2].classList.toggle("done", practiceScore() === practiceMax());
+    if(state.finished){
+      badges[3].textContent = practiceScore() + "/" + practiceMax();
+      badges[3].classList.remove("lock");
+      badges[3].classList.toggle("done", practiceScore() === practiceMax());
+    }
+  }
+}
+
+function rerenderTab3(){
+  const page = document.querySelector('[data-page="3"]');
+  if(!page) return;
+  page.innerHTML = renderTab3();
+  bindHandlers();
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = page.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+  updateProgress();
+}
+
+/* ---------- Обработчики ---------- */
+function bindHandlers(){
+  app.querySelectorAll("[data-tab]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      state.tab = parseInt(btn.dataset.tab, 10);
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  app.querySelectorAll("[data-action]").forEach(function(btn){
+    btn.addEventListener("click", handleAction);
+  });
+
+  app.querySelectorAll("[data-copy]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const kind = btn.dataset.copy;
+      const text = kind === "idx" ? FILE_INDEX : (kind === "css" ? FILE_CSS : FILE_JS);
+      copyToClipboard(text, btn);
+    });
+  });
+
+  app.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      el.classList.toggle("learned", state.termsLearned[key]);
+      el.setAttribute("aria-pressed", String(state.termsLearned[key]));
+      const st = document.querySelector("[data-terms-status]");
+      if(st){
+        const n = termsCount();
+        st.textContent = n + "/" + TERMS.length;
+        st.classList.toggle("done", n === TERMS.length);
+      }
+      updateProgress();
+      saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-gh]").forEach(function(el){
+    const handler = function(){
+      const id = el.dataset.gh;
+      state.gh[id] = !state.gh[id];
+      el.classList.toggle("checked", state.gh[id]);
+      el.setAttribute("aria-checked", String(state.gh[id]));
+      updateProgress();
+      saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-quiz-opt]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.quizOpt.split(":");
+      const qi = parseInt(parts[0], 10);
+      const oi = parseInt(parts[1], 10);
+      const st = state.quiz[qi];
+      if(st.answered) return;
+      st.answered = true;
+      st.chosen = oi;
+      st.correct = oi === QUIZ[qi].correct;
+      saveState();
+      paintQuiz(btn.closest(".quiz-card"), qi);
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-match-row]").forEach(function(sel){
+    sel.addEventListener("change", function(e){
+      state.match.sel[parseInt(e.target.dataset.matchRow, 10)] = e.target.value;
+      saveState();
+      updateProgress();
+    });
+  });
+
+  const checkMatch = app.querySelector("[data-check-match]");
+  if(checkMatch){
+    checkMatch.addEventListener("click", function(){
+      state.match.checked = true;
+      saveState();
+      rerenderTab3();
+    });
+  }
+
+  app.querySelectorAll("[data-msg]").forEach(function(input){
+    input.addEventListener("input", function(e){
+      state.msgs.values[e.target.dataset.msg] = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      saveState();
+      updateProgress();
+    });
+  });
+
+  const reflect = app.querySelector("[data-reflect]");
+  if(reflect){
+    reflect.addEventListener("input", function(e){
+      state.reflect = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      updateProgress();
+      saveState();
+    });
+  }
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){
+    state.started = true;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "goto-3"){
+    state.tab = 3;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "finish"){
+    state.finished = true;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "check-msgs"){
+    const results = {};
+    MSG_TASKS.forEach(function(t){
+      results[t.id] = validateMsg(state.msgs.values[t.id] || "", t);
+    });
+    state.msgs.results = results;
+    state.msgs.checked = true;
+    saveState();
+    rerenderTab3();
+  } else if(action === "copy-prompt"){
+    copyToClipboard(AI_PROMPT, e.currentTarget);
+  } else if(action === "print"){
+    if(!state.started) return;
+    if(state.tab !== 4){
+      state.tab = 4;
+      saveState();
+      render();
+      setTimeout(function(){ window.print(); }, 60);
+    } else {
+      window.print();
+    }
+  } else if(action === "reset-practice"){
+    if(confirm("Сбросить вопросы, сопоставление, сообщения и закрыть отчёт? Термины и GitHub-чек-лист останутся.")){
+      state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+      state.match = { sel: MATCH.items.map(function(){ return ""; }), checked:false };
+      state.msgs = { values:{ m1:"", m2:"", m3:"" }, results:null, checked:false };
+      state.reflect = "";
+      state.finished = false;
+      state.tab = 3;
+      saveState();
+      render();
+    }
+  }
+}
+
+async function copyToClipboard(text, btn){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(err){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    document.body.removeChild(ta);
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Скопировано";
+  btn.classList.add("copied");
+  setTimeout(function(){
+    btn.textContent = original;
+    btn.classList.remove("copied");
+  }, 1600);
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function init(){
+  loadState();
+  render();
+}
+init();
+</script>
+</body>
+</html>
