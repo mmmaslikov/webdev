@@ -1,0 +1,1558 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 14 · Pull Request и Code Review</title>
+<style>
+  :root{
+    --bg: #fafafa;
+    --surface: #ffffff;
+    --surface-2: #f4f4f5;
+    --border: #e4e4e7;
+    --border-strong: #d4d4d8;
+    --text: #09090b;
+    --text-2: #52525b;
+    --text-3: #71717a;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --success-soft: #dcfce7;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --warn: #f59e0b;
+    --warn-soft: #fef3c7;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 3px rgba(15,23,42,.06);
+    --shadow-md: 0 4px 6px -1px rgba(15,23,42,.06), 0 2px 4px -2px rgba(15,23,42,.06);
+    --radius: 14px;
+    --radius-lg: 18px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--font); background:var(--bg); color:var(--text); font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased}
+  button, input, textarea, select{font-family:inherit; font-size:inherit; color:inherit}
+
+  .topbar{position:sticky; top:0; z-index:20; background:rgba(255,255,255,.88); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-bottom:1px solid var(--border)}
+  .topbar-inner{max-width:1000px; margin:0 auto; padding:10px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .brand{display:flex; flex-direction:column; min-width:0; flex:1}
+  .brand-title{font-size:14px; font-weight:700; letter-spacing:-0.01em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .brand-sub{font-size:12px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .progress-wrap{display:flex; align-items:center; gap:10px; min-width:150px}
+  .progress-bar{flex:1; height:6px; background:var(--surface-2); border-radius:999px; overflow:hidden; min-width:90px}
+  .progress-fill{height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px; font-weight:600; color:var(--text-2); font-variant-numeric:tabular-nums; min-width:38px; text-align:right}
+
+  .tabnav{max-width:1000px; margin:0 auto; padding:0 20px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none}
+  .tabnav::-webkit-scrollbar{display:none}
+  .tab-btn{flex-shrink:0; min-height:44px; padding:0 16px; border:1px solid var(--border); border-bottom:none; border-radius:12px 12px 0 0; background:var(--surface-2); color:var(--text-2); font-size:14px; font-weight:600; cursor:pointer; transition:all .15s ease; display:inline-flex; align-items:center; gap:8px}
+  .tab-btn:hover{background:var(--surface); color:var(--text)}
+  .tab-btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .tab-btn.active{background:var(--surface); color:var(--accent); border-color:var(--border-strong); box-shadow:0 -2px 6px rgba(15,23,42,.05)}
+  .tab-badge{font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface); color:var(--text-3); border:1px solid var(--border)}
+  .tab-btn.active .tab-badge{background:var(--accent-soft); color:var(--accent); border-color:transparent}
+  .tab-badge.done{background:var(--success-soft); color:var(--success); border-color:transparent}
+  .tab-badge.lock{background:var(--warn-soft); color:#92400e; border-color:transparent}
+
+  main{max-width:1000px; margin:0 auto; padding:0 20px 120px}
+  main.no-tabs{padding-top:28px}
+  .tab-page{background:var(--surface); border:1px solid var(--border-strong); border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg); padding:28px; box-shadow:var(--shadow-sm)}
+  .tab-page[hidden]{display:none}
+
+  .hero{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:44px 32px; box-shadow:var(--shadow-md); text-align:center}
+  .hero-badge{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--accent-soft); color:var(--accent); border-radius:999px; font-size:12px; font-weight:600; letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px, 4vw, 36px); font-weight:700; letter-spacing:-0.02em; margin:18px 0 10px; line-height:1.15}
+  .hero p{color:var(--text-2); font-size:16px; max-width:640px; margin:0 auto 24px}
+  .hero-meta{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:28px}
+  .chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; background:var(--surface-2); border-radius:999px; font-size:13px; color:var(--text-2)}
+  .chip b{color:var(--text); font-weight:600}
+
+  .hero-mini{margin-bottom:22px}
+  .hero-mini h1{font-size:clamp(22px, 3.4vw, 30px); font-weight:700; letter-spacing:-0.02em; margin:12px 0 6px; line-height:1.2}
+  .hero-mini p{color:var(--text-2); font-size:15px; margin:0; max-width:720px}
+
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:0 22px; border-radius:12px; border:1px solid transparent; font-size:15px; font-weight:600; cursor:pointer; transition:all .15s ease; user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .btn-primary{background:var(--accent); color:#fff; box-shadow:0 1px 2px rgba(37,99,235,.3), 0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent; color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2); color:var(--text)}
+  .btn-lg{min-height:52px; padding:0 28px; font-size:16px; border-radius:14px}
+  .btn-sm{min-height:38px; padding:0 14px; font-size:13px; border-radius:10px}
+
+  .section-head{display:flex; align-items:flex-start; gap:14px; margin:26px 0 14px}
+  .section-num{flex-shrink:0; width:34px; height:34px; border-radius:10px; background:#0f172a; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px}
+  .section-num.blue{background:var(--accent)}
+  .section-title{font-size:18px; font-weight:700; letter-spacing:-0.01em; margin:0 0 3px}
+  .section-sub{font-size:14px; color:var(--text-2); margin:0}
+  .section-title-wrap{flex:1; min-width:0}
+  .section-status{flex-shrink:0; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:var(--surface-2); color:var(--text-3)}
+  .section-status.done{background:var(--success-soft); color:var(--success)}
+
+  .instruction{background:var(--surface-2); border-radius:var(--radius); padding:12px 16px; margin-bottom:18px; font-size:14px; color:var(--text-2); line-height:1.55}
+  .instruction ol, .instruction ul{margin:0; padding-left:18px}
+  .instruction li{margin-bottom:5px}
+  .instruction li::marker{color:var(--accent); font-weight:600}
+  .instruction code, .rules-card code, .gh-step .t code, .gb-box code{font-family:var(--mono); font-size:12px; background:var(--surface); padding:1px 5px; border-radius:4px; color:var(--accent-hover)}
+  .gb-box code{background:rgba(255,255,255,.7)}
+
+  .terms-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:20px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px 15px; cursor:pointer; transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent); background:#f8fbff}
+  .term-head{display:flex; align-items:center; gap:10px; margin-bottom:5px}
+  .term-name{font-weight:700; font-size:14px; font-family:var(--mono); color:var(--accent)}
+  .term-check{margin-left:auto; width:20px; height:20px; border-radius:6px; border:2px solid var(--border-strong); display:flex; align-items:center; justify-content:center; transition:all .15s ease; flex-shrink:0}
+  .term.learned .term-check{background:var(--success); border-color:var(--success)}
+  .term-check svg{width:12px; height:12px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:13.5px; color:var(--text-2); line-height:1.5}
+
+  .tags-table{width:100%; border-collapse:collapse; font-size:13.5px; margin-bottom:16px}
+  .tags-table th{text-align:left; padding:10px 12px; background:var(--surface-2); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .tags-table td{padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.5}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tag-code{font-family:var(--mono); font-size:12.5px; color:var(--accent); font-weight:600; background:var(--accent-soft); padding:2px 8px; border-radius:6px; white-space:nowrap}
+  .tag-used{display:inline-block; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:var(--warn-soft); color:#92400e; margin-left:6px; letter-spacing:.03em}
+
+  .code-block{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:12.5px; line-height:1.65; overflow-x:auto; white-space:pre; margin-bottom:16px; position:relative}
+  .code-block::before{content:attr(data-file); display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+  .copy-btn{position:absolute; top:12px; right:12px; padding:6px 12px; background:rgba(255,255,255,.08); color:#cbd5e1; border:1px solid rgba(255,255,255,.1); border-radius:8px; font-size:12px; font-weight:500; cursor:pointer; min-height:32px; transition:all .15s ease; z-index:2}
+  .copy-btn:hover{background:rgba(255,255,255,.15); color:#fff}
+  .copy-btn.copied{background:var(--success); color:#fff; border-color:var(--success)}
+
+  .rules-card{background:linear-gradient(180deg,#f8fbff,#eff6ff); border:1px dashed var(--accent); border-radius:var(--radius); padding:16px 18px; margin-bottom:14px}
+  .rules-card h3{margin:0 0 10px; font-size:15px; color:var(--accent-hover)}
+  .rules-card ol{margin:0; padding-left:20px; font-size:13.5px; color:var(--text-2); line-height:1.6}
+  .rules-card li{margin-bottom:5px}
+  .good-bad{display:grid; gap:10px; grid-template-columns:1fr; margin-bottom:16px}
+  @media (min-width:700px){.good-bad{grid-template-columns:1fr 1fr}}
+  .gb-box{border-radius:var(--radius); padding:12px 14px; font-size:13px; line-height:1.6}
+  .gb-box.good{background:var(--success-soft); color:#14532d}
+  .gb-box.bad{background:var(--danger-soft); color:#7f1d1d}
+  .gb-box b{display:block; margin-bottom:6px; font-size:12px; text-transform:uppercase; letter-spacing:.05em}
+  .gb-box ul{margin:0; padding-left:16px}
+  .gb-box li{margin-bottom:4px}
+
+  .gh-steps{display:grid; gap:8px; margin-bottom:16px}
+  .gh-step{display:flex; gap:12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px}
+  .gh-step .n{flex-shrink:0; width:26px; height:26px; border-radius:8px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px}
+  .gh-step .t{font-size:13.5px; color:var(--text-2); line-height:1.55}
+  .gh-step .t b{color:var(--text)}
+
+  .checklist{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px}
+  .checklist-title{font-size:12px; font-weight:600; color:var(--text-2); margin-bottom:12px; text-transform:uppercase; letter-spacing:.05em}
+  .check-item{display:flex; align-items:flex-start; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:background .15s ease; user-select:none}
+  .check-item:hover{background:var(--surface-2)}
+  .check-item.checked{background:var(--success-soft)}
+  .check-box{flex-shrink:0; width:22px; height:22px; border:2px solid var(--border-strong); border-radius:6px; display:flex; align-items:center; justify-content:center; transition:all .15s ease; margin-top:1px}
+  .check-item.checked .check-box{background:var(--success); border-color:var(--success)}
+  .check-box svg{width:14px; height:14px; stroke:#fff; stroke-width:3; fill:none; opacity:0; transition:opacity .15s ease}
+  .check-item.checked .check-box svg{opacity:1}
+  .check-text{font-size:14px; color:var(--text); flex:1; line-height:1.45}
+
+  .quiz-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+  .quiz-mod{display:inline-block; font-size:10px; font-weight:700; letter-spacing:.04em; color:var(--accent); background:var(--accent-soft); border-radius:5px; padding:2px 7px; margin-bottom:6px}
+  .quiz-q{font-weight:600; font-size:14px; margin-bottom:10px; line-height:1.5}
+  .quiz-options{display:grid; gap:8px}
+  .quiz-opt{min-height:44px; text-align:left; padding:10px 14px; border-radius:10px; border:1px solid var(--border); background:var(--surface); cursor:pointer; font-size:14px; transition:all .15s ease; line-height:1.4}
+  .quiz-opt:hover:not(:disabled){border-color:var(--border-strong); background:var(--surface-2)}
+  .quiz-opt:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .quiz-opt:disabled{cursor:default}
+  .quiz-opt.correct{background:var(--success-soft); border-color:var(--success); color:#14532d}
+  .quiz-opt.wrong{background:var(--danger-soft); border-color:var(--danger); color:#7f1d1d}
+  .quiz-feedback{margin-top:10px; font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5}
+  .quiz-feedback.good{background:var(--success-soft); color:#14532d}
+  .quiz-feedback.bad{background:var(--danger-soft); color:#7f1d1d}
+  .score-chip{display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:var(--surface-2); font-size:13px; font-weight:600; color:var(--text-2); margin:0 10px 14px 0}
+
+  .rev-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:14px}
+  .rev-line{display:block; width:100%; text-align:left; font-family:var(--mono); font-size:12.5px; line-height:1.6; padding:7px 12px; border:1.5px solid var(--border); border-radius:8px; background:var(--surface-2); margin-bottom:6px; cursor:pointer; transition:all .15s ease; white-space:pre-wrap; word-break:break-word; min-height:34px}
+  .rev-line .ln{display:inline-block; width:22px; color:var(--text-3); font-size:11px}
+  .rev-line:hover{border-color:var(--border-strong)}
+  .rev-line:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .rev-line.picked{border-color:var(--warn); background:var(--warn-soft); color:#78350f}
+  .rev-line.ok{border-color:var(--success); background:var(--success-soft); color:#14532d}
+  .rev-line.miss{border-color:var(--warn); background:var(--warn-soft); color:#78350f}
+  .rev-line.extra{border-color:var(--danger); background:var(--danger-soft); color:#7f1d1d}
+  .rev-line:disabled{cursor:default}
+
+  .cmt-row{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:12px 14px; margin-bottom:10px}
+  .cmt-top{display:flex; gap:12px; align-items:flex-start}
+  .cmt-text{flex:1; font-size:13.5px; line-height:1.5; color:var(--text-2)}
+  .cmt-btns{display:flex; flex-direction:column; gap:6px; flex-shrink:0}
+  .cmt-btn{min-height:38px; padding:0 12px; border-radius:10px; border:1px solid var(--border-strong); background:var(--surface); font-size:13px; font-weight:600; cursor:pointer; transition:all .15s ease}
+  .cmt-btn:hover:not(:disabled){border-color:var(--accent)}
+  .cmt-btn:focus-visible{outline:3px solid var(--accent-soft); outline-offset:2px}
+  .cmt-btn:disabled{cursor:default}
+  .cmt-btn.correct{background:var(--success-soft); border-color:var(--success); color:#14532d}
+  .cmt-btn.wrong{background:var(--danger-soft); border-color:var(--danger); color:#7f1d1d}
+
+  .msg-card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px}
+  .msg-card h4{margin:0 0 6px; font-size:14px}
+  .msg-diff{font-size:13px; color:var(--text-2); background:var(--surface-2); border-radius:10px; padding:10px 12px; margin-bottom:10px; line-height:1.5}
+  .msg-verdict{margin-top:8px; font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5}
+  .msg-verdict.ok{background:var(--success-soft); color:#14532d}
+  .msg-verdict.bad{background:var(--danger-soft); color:#7f1d1d}
+  .msg-verdict ul{margin:4px 0 0; padding-left:18px}
+  textarea.field-input{min-height:90px; resize:vertical; line-height:1.5}
+
+  .prompt-box{background:var(--code-bg); color:var(--code-text); border-radius:var(--radius); padding:18px; font-family:var(--mono); font-size:13px; line-height:1.6; white-space:pre-wrap; margin-bottom:16px; position:relative; word-break:break-word}
+  .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ"; display:block; font-size:10px; letter-spacing:.1em; color:#64748b; margin-bottom:10px; font-weight:600}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block; font-size:13px; color:var(--text-2); margin-bottom:6px; font-weight:600}
+  .field-hint{font-size:12px; color:var(--text-3); font-weight:400; margin-left:4px}
+  .field-input{width:100%; min-height:40px; padding:10px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); font-size:14px; transition:border-color .15s ease, background .15s ease}
+  .field-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff; border-color:var(--accent)}
+
+  .rep-summary{display:grid; gap:10px; grid-template-columns:repeat(2,1fr); margin-bottom:18px}
+  @media (min-width:760px){.rep-summary{grid-template-columns:repeat(5,1fr)}}
+  .rep-stat{background:var(--surface-2); border-radius:var(--radius); padding:12px; text-align:center}
+  .rep-stat .v{font-size:20px; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums}
+  .rep-stat .l{font-size:11px; color:var(--text-3); margin-top:2px}
+  .rep-table{width:100%; border-collapse:collapse; font-size:13px; margin-bottom:18px}
+  .rep-table th{text-align:left; padding:8px 10px; background:var(--surface-2); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-3); border-bottom:1px solid var(--border)}
+  .rep-table td{padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.45}
+  .rep-table tr:last-child td{border-bottom:none}
+  .rep-table code{font-family:var(--mono); font-size:12px}
+  .rep-mark{font-weight:700}
+  .rep-mark.ok{color:var(--success)}
+  .rep-mark.bad{color:var(--danger)}
+  .rep-mark.wait{color:var(--text-3)}
+  .rep-note{font-size:13px; color:var(--text-2); background:var(--surface-2); border-radius:10px; padding:10px 12px; margin-bottom:16px; line-height:1.55}
+  .rep-reflect{font-size:14px; background:var(--warn-soft); color:#78350f; border-radius:10px; padding:12px 14px; line-height:1.55; white-space:pre-wrap}
+  .lock-list{list-style:none; margin:0 0 18px; padding:0; display:grid; gap:8px}
+  .lock-list li{display:flex; align-items:flex-start; gap:10px; background:var(--surface-2); border-radius:10px; padding:10px 12px; font-size:14px}
+  .lock-list .lk{flex-shrink:0; font-weight:700; font-size:12px; padding:2px 8px; border-radius:999px; background:var(--surface); border:1px solid var(--border); color:var(--text-2); margin-top:1px}
+  .lock-list .lk.ok{background:var(--success-soft); border-color:transparent; color:var(--success)}
+  .lock-list .lk.part{background:var(--warn-soft); border-color:transparent; color:#92400e}
+
+  .divider{height:1px; background:var(--border); margin:24px 0}
+  .sub-title{font-size:16px; font-weight:700; letter-spacing:-0.01em; margin:0 0 12px; color:var(--text)}
+
+  .actions{position:fixed; bottom:0; left:0; right:0; background:rgba(255,255,255,.92); backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px); border-top:1px solid var(--border); padding:10px 20px; z-index:20}
+  .actions-inner{max-width:1000px; margin:0 auto; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap}
+
+  @media print{
+    @page{size:A4; margin:14mm}
+    body{background:#fff}
+    .topbar, .tabnav, .actions, .no-print, .copy-btn{display:none !important}
+    main{padding:0; max-width:100%}
+    .tab-page{border:none; box-shadow:none; padding:0; border-radius:0}
+    .tab-page[hidden]{display:none !important}
+    .code-block, .prompt-box{background:#f1f5f9 !important; color:#0f172a !important; border:1px solid #cbd5e1}
+    .quiz-opt.correct, .rev-line.ok, .cmt-btn.correct, .msg-verdict.ok{background:#dcfce7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-opt.wrong, .rev-line.extra, .cmt-btn.wrong, .msg-verdict.bad{background:#fee2e2 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .rev-line.miss{background:#fef3c7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .rep-reflect{background:#fef3c7 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .quiz-card, .rev-card, .cmt-row, .gh-step, .term{break-inside:avoid}
+  }
+
+  @media (max-width:480px){
+    .topbar-inner{padding:8px 14px}
+    .tabnav{padding:0 14px}
+    main{padding:0 14px 110px}
+    main.no-tabs{padding-top:16px}
+    .tab-page{padding:20px 16px}
+    .hero{padding:30px 20px}
+    .hero h1{font-size:24px}
+    .hero-mini h1{font-size:22px}
+    .section-title{font-size:16px}
+    .tags-table{font-size:12.5px}
+    .tags-table th, .tags-table td{padding:8px}
+    .code-block{font-size:11.5px}
+    .cmt-top{flex-direction:column}
+    .cmt-btns{flex-direction:row}
+    .actions-inner .btn{flex:1; padding:0 12px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 14 · Pull Request и Code Review
+   Продолжение занятия 13: всё на github.com, без локального Git
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title: "Рабочий лист · Занятие 14",
+  subtitle: "Pull Request и Code Review",
+  teacher: "Масликов М. М.",
+  grade: "10–11 класс"
+};
+
+/* ================= ВКЛАДКА 1 · ТЕОРИЯ ================= */
+
+const TERMS = [
+  { key:"pr", name:"Pull Request (PR)", def:"Заявка на перенос изменений из своей ветки в основную. Семь шагов: ветка, коммиты, отправка, описание, ревью, доработка, принятие. На сайте создаётся кнопкой Compare & pull request." },
+  { key:"review", name:"Code Review", def:"Чтение чужого кода до слияния по чек-листу из пяти пунктов. На курсе код читает одноклассник, а не педагог." },
+  { key:"merge", name:"Merge", def:"Перенос коммитов ветки в основную. Кнопка Merge pull request; техническое действие, а PR — процедура вокруг него." },
+  { key:"mergecommit", name:"Коммит слияния", def:"Коммит, который создаётся при принятии PR. Содержит номер PR: по нему потом находят обсуждение и замечания." },
+  { key:"conflict", name:"Конфликт слияния", def:"Одну и ту же строку изменили в двух ветках по-разному. Git не угадывает: выкладывает оба варианта и ждёт человека." },
+  { key:"markers", name:"Служебные строки конфликта", def:"<<<<<<< HEAD, ======= и >>>>>>> имя-ветки. Границы двух вариантов. После разрешения в файле не остаётся ни одной." },
+  { key:"diff", name:"Диф", def:"Построчное сравнение до и после: зелёные строки со знаком + добавлены, красные со знаком − удалены. Ревьюер читает диф, а не весь файл." },
+  { key:"feature", name:"Ветка-фича", def:"Ветка под одну задачу: от начала работы до принятия PR. Имена feature/… или fix/…, латиницей в нижнем регистре. После слияния удаляется." },
+  { key:"remark", name:"Замечание по существу", def:"Комментарий к конкретной строке по формуле «место + что не так + почему». Его можно исполнить, не задавая уточняющих вопросов." },
+  { key:"firstrev", name:"Первый ревьюер", def:"Роль ИИ на курсе: модель ловит механические огрехи до человека. Пункты про узкий экран и объяснимость она закрыть не может." },
+  { key:"files", name:"Вкладка Files changed", def:"Место в PR, где виден диф и где оставляют замечания к конкретным строкам." },
+  { key:"base", name:"Base и compare", def:"Направление слияния при создании PR: base — куда вливаем (main), compare — откуда (твоя ветка). Перепутал — заявка не о том." }
+];
+
+const SITE_ACTIONS = [
+  { code:"Переключатель веток", desc:"Создать ветку feature/… и ходить между ветками", used:true },
+  { code:"Карандаш (Edit) + Commit changes", desc:"Правка файла и коммит прямо на сайте", used:true },
+  { code:"Баннер Compare & pull request", desc:"Создать PR сразу после коммита в ветку", used:true },
+  { code:"Вкладка Pull requests → New", desc:"Создать PR вручную: base main ← compare твоя ветка", used:true },
+  { code:"Вкладка Files changed", desc:"Диф и замечания к строкам", used:true },
+  { code:"Кнопка Merge pull request", desc:"Слить ветку в main; создаёт коммит слияния с номером PR", used:true },
+  { code:"Кнопка Resolve conflicts", desc:"Ручное разрешение конфликта в веб-редакторе", used:true },
+  { code:"Delete branch", desc:"Удалить ветку после слияния: история уже в main", used:true },
+  { code:"git push -u origin …", desc:"На сайте не нужен: коммиты уже на сервере", used:false },
+  { code:"git merge вручную", desc:"На сайте вместо неё кнопка Merge pull request", used:false }
+];
+
+const PR_STEPS = [
+  "Ветка: задача живёт в своей ветке, не в main.",
+  "Коммиты: каждое изменение зафиксировано с понятным сообщением.",
+  "Отправка: на сайте коммиты уже на сервере, отдельной команды не нужно.",
+  "Описание: заголовок и три блока — что сделано, как проверить, что осталось.",
+  "Ревью: одноклассник читает диф и оставляет замечания к строкам.",
+  "Доработка: правки коммитятся в ту же ветку — PR обновляется сам, новый PR не создаётся.",
+  "Принятие: Merge pull request, затем ветка удаляется."
+];
+
+const PR_GOOD = [
+  "Заголовок: Сортировка меню по цене",
+  "## Что сделано",
+  "- в script.js добавлена функция sortByPrice и обработчик кнопки",
+  "- в index.html добавлена кнопка «Сначала дешёвые»",
+  "## Как проверить",
+  "1. открыть index.html",
+  "2. нажать «Сначала дешёвые»",
+  "3. 45 ₽ первой, 90 ₽ последней",
+  "4. проверить на 320 px",
+  "## Что осталось",
+  "- обратная сортировка — отдельной задачей"
+].join("\n");
+
+const PR_BAD = [
+  "Заголовок: Update script.js",
+  "Описание: (пусто)",
+  "",
+  "Ревьюер не знает: что изменилось, как проверить,",
+  "закончена ли работа. Пойдёт читать диф с нуля",
+  "и напишет «выглядит нормально»"
+].join("\n");
+
+const REVIEW_RULES = [
+  "Понятны ли имена: переменных, функций, файлов.",
+  "Нет ли мусора: закомментированного кода, отладочных console.log и alert.",
+  "Работает ли на узком экране: проверка на 320 px.",
+  "Обработаны ли нештатные ситуации: пустой массив, пустой ввод, нет элемента.",
+  "Может ли автор объяснить каждую строку вслух."
+];
+
+const CONFLICT_EXAMPLE = [
+  '<<<<<<< HEAD',
+  '  { id: "kalitka", name: "Калитка с картошкой", price: 50, kind: "солёное" },',
+  '=======',
+  '  { id: "kalitka", name: "Калитка с картошкой", price: 55, kind: "солёное" },',
+  '>>>>>>> feature/price-update'
+].join("\n");
+
+/* ================= ВКЛАДКА 2 · GITHUB И PR ================= */
+
+const SNIPPET_HTML = [
+  '  <button id="sortBtn" type="button">Сначала дешёвые</button>'
+].join("\n");
+
+const SNIPPET_JS = [
+  'const sortBtn = document.querySelector("#sortBtn");',
+  '',
+  'sortBtn.addEventListener("click", function () {',
+  '  const cards = Array.from(document.querySelectorAll(".card"));',
+  '  const copy = cards.sort(function (a, b) {',
+  '    return Number(a.querySelector(".price").dataset.price)',
+  '         - Number(b.querySelector(".price").dataset.price);',
+  '  });',
+  '  const menu = document.querySelector(".menu");',
+  '  copy.forEach(function (card) {',
+  '    menu.appendChild(card);',
+  '  });',
+  '});'
+].join("\n");
+
+const GH_STEPS = [
+  { t:"<b>Старт.</b> Открой репозиторий <code>severny-pirog</code>. Убедись, что ты в ветке <code>main</code> и файлы с занятия 13 на месте: index.html, style.css, script.js и история коммитов." },
+  { t:"<b>Новая ветка.</b> Переключатель веток → напиши <code>feature/sort-price</code> → Create branch. Новая задача — новая ветка: в main эксперименты не ведут." },
+  { t:"<b>Правка 1.</b> В ветке открой index.html → карандаш (Edit): вставь кнопку сортировки перед кнопкой «Посчитать сумму» (блок кода ниже). Commit changes: «index.html: кнопка сортировки меню по цене»." },
+  { t:"<b>Правка 2.</b> В той же ветке открой script.js → Edit: добавь в конец обработчик кнопки (второй блок кода ниже). Commit changes: «script.js: перестановка карточек по возрастанию цены»." },
+  { t:"<b>Создай PR.</b> После коммитов GitHub покажет баннер Compare & pull request — нажми его. Или вкладка Pull requests → New pull request: base <code>main</code>, compare <code>feature/sort-price</code>. Проверь направление: сливаем ветку в main, не наоборот." },
+  { t:"<b>Описание в три блока.</b> Заголовок называет изменение: «Сортировка меню по цене». Ниже — что сделано по файлам, как проверить пронумерованными шагами (обязательно пункт про 320 px), что осталось честно. Шаблон — в теории." },
+  { t:"<b>Ревью.</b> Отправь ссылку на PR напарнику или учителю. Их задача — три замечания к строкам во вкладке Files changed по формуле «место + что не так + почему». Ты читаешь чужой PR и оставляешь свои три." },
+  { t:"<b>Доработка.</b> Замечания к своему PR закрывай правками в той же ветке и новыми коммитами: PR обновится сам. Ответь на каждый комментарий — даже если не согласен, объясни почему." },
+  { t:"<b>Слияние.</b> Когда замечания закрыты: кнопка Merge pull request → Confirm merge → Delete branch. Проверь, что в main кнопка сортировки есть и страница открывается." },
+  { t:"<b>Конфликт намеренно.</b> В main измени цену калитки на 50 и закоммить. Создай ветку <code>feature/price-update</code> от старого состояния? Нет: создай её сейчас, измени ту же строку на 55 и закоммить. New pull request feature/price-update → main: GitHub предупредёт о конфликте." },
+  { t:"<b>Разреши конфликт.</b> Кнопка Resolve conflicts откроет редактор со служебными строками. Выбери вариант или соедини оба, удали все строки с <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code> и <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>, отметь файл resolved и закоммить решение. Затем Merge." },
+  { t:"<b>Проверка после.</b> Открой index.html или script.js в main: ни одной служебной строки конфликта. В истории видны коммит цены, коммит ветки и коммит разрешения." }
+];
+
+const GH_CHECK = [
+  { id:"g1", text:"Ветка feature/sort-price создана из main, задача жила в ней" },
+  { id:"g2", text:"В ветке два коммита с понятными сообщениями: кнопка и обработчик" },
+  { id:"g3", text:"PR создан: направление base main ← compare ветка, заголовок называет изменение" },
+  { id:"g4", text:"Описание из трёх блоков, в «Как проверить» есть шаг про 320 px" },
+  { id:"g5", text:"В чужом PR оставлены три замечания к строкам по формуле «место + что не так + почему»" },
+  { id:"g6", text:"Замечания к своему PR закрыты коммитами в той же ветке, ответы даны" },
+  { id:"g7", text:"PR слит кнопкой Merge pull request, ветка удалена" },
+  { id:"g8", text:"Конфликт разрешён вручную: в файлах нет строк <<<<<<<, =======, >>>>>>>" }
+];
+
+/* ================= ВКЛАДКА 3 · ПРАКТИКА ================= */
+
+const REVIEW_LINES = [
+  { code:'const b = document.querySelector(".sort-btn");', bad:true, why:"Имя b ничего не говорит: через месяц ни ты, ни ревьюер не поймут, что это. Пункт 1 — понятны ли имена." },
+  { code:'// const old = document.querySelector(".button-old");', bad:true, why:"Закомментированный мусор: старую версию и так хранит история, комментарий только мешает читать. Пункт 2." },
+  { code:'', bad:false },
+  { code:'b.addEventListener("click", function () {', bad:false },
+  { code:'  const arr = PIES.sort((x, y) => x.price - y.price);', bad:true, why:"sort меняет массив на месте: порядок PIES сломается для всей страницы, а не только для кнопки. Нужна копия. Пункт 4 — нештатные ситуации." },
+  { code:'  let s = "";', bad:false },
+  { code:'  for (let i = 0; i < arr.length; i++) {', bad:false },
+  { code:'    s = s + \'<article class="card"><h3>\' + arr[i].name + \'</h3></article>\';', bad:false },
+  { code:'  }', bad:false },
+  { code:'  document.querySelector(".list").innerHTML = s;', bad:true, why:"Разметка собирается в цикле строкой: курс требует map → join → одно присваивание. Цикл здесь ещё и пересобирает страницу по кусочкам." },
+  { code:'  console.log("отсортировал");', bad:true, why:"Отладочная строка в боевом коммите: консоль на защите покажет внутренности. Пункт 2 — мусор." },
+  { code:'});', bad:false }
+];
+
+const QUIZ = [
+  { q:"Когда возникает конфликт слияния?",
+    options:[
+      "Две ветки изменили одну и ту же строку по-разному",
+      "В одной ветке изменили два файла",
+      "Ветка не была отправлена на сервер",
+      "У PR пустое описание"
+    ],
+    correct:0,
+    why:"Конфликт рождается при одном условии: одна строка, две ветки, разные правки. Разные строки одного файла Git сливает сам." },
+  { q:"После ручного разрешения конфликта в файле не должно остаться…",
+    options:[
+      "пустых строк",
+      "комментариев автора",
+      "служебных строк <<<<<<<, ======= и >>>>>>>",
+      "точки с запятой в конце строк"
+    ],
+    correct:2,
+    why:"Служебные строки — границы двух вариантов. Пока они в файле, код не работает: это не комментарий, а мусор, который браузер или Node не поймут." },
+  { q:"PR с заголовком «Update script.js» и пустым описанием — почему это плохо?",
+    options:[
+      "Ревьюер не поймёт, что изменилось и как это проверить",
+      "Заголовок обязан быть на русском",
+      "В описании обязан быть код",
+      "Ничем: главное, что ветка сольётся"
+    ],
+    correct:0,
+    why:"Описание — документ изменения. Без него ревьюер читает диф с нуля и пишет «выглядит нормально»: проверка превращается в формальность." },
+  { q:"Комментарий «ну такое, переделай» нарушает правило замечания. Чем именно?",
+    options:[
+      "Слишком дружеский тон",
+      "В нём обязана быть готовая правка кодом",
+      "Не названы место и что именно переделать",
+      "Такие комментарии запрещены на GitHub"
+    ],
+    correct:2,
+    why:"Замечание по существу — «место + что не так + почему»: его можно исполнить, не задавая вопросов. Оценочная реплика заставляет автора угадывать." },
+  { q:"Ревьюер попросил поправить два места. Твои действия?",
+    options:[
+      "Закрыть этот PR и открыть новый",
+      "Закоммитить правки в ту же ветку: PR обновится сам",
+      "Слить быстрее, пока не заметили",
+      "Переписать ветку с нуля и удалить старую"
+    ],
+    correct:1,
+    why:"PR следит за веткой, а не за одним коммитом: новые коммиты появляются в том же обсуждении. Новый PR разрывает историю разговора." },
+  { q:"Ты правишь строку 10 файла script.js в своей ветке, напарник — строку 80 того же файла в своей. Будет ли конфликт?",
+    options:[
+      "Да: один файл — всегда конфликт",
+      "Нет: изменены разные строки",
+      "Да, если оба программисты",
+      "Зависит от порядка слияния"
+    ],
+    correct:1,
+    why:"Git сравнивает построчно: разные строки сливаются автоматически. Конфликт — только про одну и ту же строку с разными правками." },
+  { q:"Что остаётся в истории после принятия PR?",
+    options:[
+      "Все коммиты склеиваются в один с новым сообщением",
+      "Ветка живёт вечно, её нельзя удалить",
+      "Коммит слияния с номером PR, по которому находят обсуждение",
+      "Файлы ветки становятся доступны только для чтения"
+    ],
+    correct:2,
+    why:"Merge создаёт коммит слияния с ссылкой на номер PR: через него открывают описание, диф и все замечания даже через месяц." },
+  { q:"Ветка feature/sort-price слита и больше не нужна. Что с ней делать?",
+    options:[
+      "Оставить навсегда на всякий случай",
+      "Переименовать в main",
+      "Перенести в отдельный репозиторий",
+      "Удалить: история уже в main"
+    ],
+    correct:3,
+    why:"Ветка-фича живёт от начала задачи до принятия PR. После слияния её удаляют: список веток — это список незакрытых задач, мусор в нём мешает." }
+];
+
+const COMMENTS = [
+  { text:"Строка 5: PIES.sort меняет массив на месте — после нажатия кнопки порядок меню сломается во всей странице. Сделай копию массива перед сортировкой.", correct:"sub" },
+  { text:"Ты какой-то невнимательный с массивами.", correct:"eval" },
+  { text:"На 320 px кнопка «Сначала дешёвые» вылезает за край: длинный текст без переноса при отступах по бокам. Сократи текст или разреши перенос.", correct:"sub" },
+  { text:"Мне не нравится зелёный цвет у этой кнопки.", correct:"eval" }
+];
+
+const AI_PROMPT = [
+  'Контекст: я школьник, делаю учебный сайт школьного буфета на чистых HTML, CSS и JavaScript, без фреймворков и без сборщиков. Код ниже — изменения, которые я собираюсь отправить в Pull Request.',
+  '',
+  'Задача: проведи Code Review этого фрагмента по чек-листу из пяти пунктов:',
+  '1) понятны ли имена переменных и функций;',
+  '2) нет ли закомментированного кода, отладочных console.log и alert;',
+  '3) есть ли риски на узком экране (ширина 320 px) — по коду, без запуска;',
+  '4) обработаны ли нештатные ситуации: пустой массив, пустой ввод, отсутствие элемента на странице;',
+  '5) есть ли места, которые трудно объяснить словами.',
+  '',
+  'Код:',
+  '<<< сюда вставить свой фрагмент из ветки >>>',
+  '',
+  'Ограничения:',
+  '- не переписывай код целиком, только укажи на места;',
+  '- каждое замечание — по формуле: строка или фрагмент + что не так + почему это плохо;',
+  '- не предлагай подключать библиотеки, фреймворки и сборщики;',
+  '- не хвали код, хвалить не нужно;',
+  '- если по какому-то пункту замечаний нет — так и напиши.',
+  '',
+  'Формат ответа: список замечаний, сгруппированный по пяти пунктам чек-листа. Не больше восьми замечаний всего.',
+  '',
+  'Критерии проверки: каждое замечание я должен уметь исполнить, не задавая уточняющих вопросов.'
+].join("\n");
+
+const AI_CHECK = [
+  "Замечания модели указывают на строки, которые реально есть в моём коде",
+  "Модель не предложила библиотеки, фреймворки и сборщики",
+  "Пункт про 320 px я проверил сам в браузере, а не поверил на слово",
+  "Пункт «может ли автор объяснить» я закрыл вслух сам: модель людей не спрашивает"
+];
+
+/* ================= СОСТОЯНИЕ ================= */
+
+const STORAGE_KEY = "wdc-l14-worksheet-v1";
+
+let state = {
+  started: false,
+  tab: 1,
+  termsLearned: {},
+  gh: {},
+  review: { picked: REVIEW_LINES.map(function(){ return false; }), checked: false },
+  quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+  prdesc: { done:"", verify:"", left:"", results:null, checked:false },
+  comments: COMMENTS.map(function(){ return { answered:false, chosen:"", correct:false }; }),
+  aiCheck: AI_CHECK.map(function(){ return false; }),
+  reflect: "",
+  finished: false
+};
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object"){
+      state = deepMerge(state, parsed);
+    }
+  }catch(e){}
+  if(!Array.isArray(state.review.picked) || state.review.picked.length !== REVIEW_LINES.length){
+    state.review.picked = REVIEW_LINES.map(function(){ return false; });
+  }
+  if(!Array.isArray(state.quiz) || state.quiz.length !== QUIZ.length){
+    state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+  }
+  if(!Array.isArray(state.comments) || state.comments.length !== COMMENTS.length){
+    state.comments = COMMENTS.map(function(){ return { answered:false, chosen:"", correct:false }; });
+  }
+  if(!Array.isArray(state.aiCheck) || state.aiCheck.length !== AI_CHECK.length){
+    state.aiCheck = AI_CHECK.map(function(){ return false; });
+  }
+  if(!state.prdesc) state.prdesc = { done:"", verify:"", left:"", results:null, checked:false };
+  if(!state.gh) state.gh = {};
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])){
+      out[k] = deepMerge(target[k] || {}, source[k]);
+    } else {
+      out[k] = source[k];
+    }
+  }
+  return out;
+}
+
+/* ---------- Подсчёты ---------- */
+function termsCount(){ return Object.values(state.termsLearned).filter(Boolean).length; }
+function ghCount(){ return GH_CHECK.filter(function(c){ return state.gh[c.id]; }).length; }
+function reviewScore(){
+  let ok = 0;
+  REVIEW_LINES.forEach(function(l, i){
+    if(l.bad && state.review.picked[i]) ok++;
+  });
+  return ok;
+}
+function reviewExtra(){
+  let extra = 0;
+  REVIEW_LINES.forEach(function(l, i){
+    if(!l.bad && state.review.picked[i]) extra++;
+  });
+  return extra;
+}
+function quizScore(){ return state.quiz.filter(function(q){ return q.correct; }).length; }
+function quizAnswered(){ return state.quiz.filter(function(q){ return q.answered; }).length; }
+function prdescOk(){
+  if(!state.prdesc.checked || !state.prdesc.results) return 0;
+  let n = 0;
+  ["done","verify","left"].forEach(function(k){
+    if(state.prdesc.results[k].length === 0) n++;
+  });
+  return n;
+}
+function commentsScore(){ return state.comments.filter(function(c){ return c.correct; }).length; }
+function commentsAnswered(){ return state.comments.filter(function(c){ return c.answered; }).length; }
+function aiCount(){ return state.aiCheck.filter(Boolean).length; }
+function practiceMax(){ return 5 + QUIZ.length + 3 + COMMENTS.length + AI_CHECK.length; }
+function practiceScore(){ return reviewScore() + quizScore() + prdescOk() + commentsScore() + aiCount(); }
+
+function validatePrDesc(){
+  const res = { done: [], verify: [], left: [] };
+  const done = state.prdesc.done.trim();
+  const verify = state.prdesc.verify.trim();
+  const left = state.prdesc.left.trim();
+
+  if(!done){
+    res.done.push("блок пустой");
+  } else {
+    const lines = done.split("\n").filter(function(l){ return l.trim(); });
+    if(lines.length < 2) res.done.push("нужно минимум два пункта: по одному на файл");
+    const files = ["index.html", "script.js", "style.css"].filter(function(f){ return done.toLowerCase().indexOf(f) !== -1; });
+    if(files.length < 2) res.done.push("назови файлы: что именно изменено в index.html и script.js");
+  }
+
+  if(!verify){
+    res.verify.push("блок пустой: ревьюер не узнает, как проверять");
+  } else {
+    const lines = verify.split("\n").filter(function(l){ return l.trim(); });
+    if(lines.length < 3) res.verify.push("нужно минимум три пронумерованных шага");
+    if(verify.indexOf("320") === -1) res.verify.push("нет проверки на узком экране: добавь шаг про 320 px");
+  }
+
+  if(!left){
+    res.left.push("блок пустой: напиши честно, что осталось, или «ничего не осталось»");
+  } else if(left.length < 5){
+    res.left.push("слишком коротко: это выглядит как отписка");
+  }
+
+  return res;
+}
+
+function countProgress(){
+  let filled = termsCount() + ghCount() + quizAnswered() + commentsAnswered() + aiCount();
+  filled += state.review.checked ? 5 : state.review.picked.filter(Boolean).length;
+  filled += state.prdesc.checked ? 3 : (state.prdesc.done.trim() ? 1 : 0) + (state.prdesc.verify.trim() ? 1 : 0) + (state.prdesc.left.trim() ? 1 : 0);
+  filled += state.reflect.trim() ? 1 : 0;
+  const total = TERMS.length + GH_CHECK.length + QUIZ.length + COMMENTS.length + AI_CHECK.length + 5 + 3 + 1;
+  return { filled: filled, total: total, percent: total ? Math.round(filled / total * 100) : 0 };
+}
+
+/* ---------- Рендер ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  const p = countProgress();
+  let html = renderTopbar(p);
+
+  if(!state.started){
+    html += '<main class="no-tabs">' + renderStart() + '</main>';
+    app.innerHTML = html;
+    bindHandlers();
+    return;
+  }
+
+  html += renderTabNav();
+  html += "<main>";
+  html += '<div class="tab-page" data-page="1"' + (state.tab === 1 ? "" : " hidden") + ">" + renderTab1() + "</div>";
+  html += '<div class="tab-page" data-page="2"' + (state.tab === 2 ? "" : " hidden") + ">" + renderTab2() + "</div>";
+  html += '<div class="tab-page" data-page="3"' + (state.tab === 3 ? "" : " hidden") + ">" + renderTab3() + "</div>";
+  html += '<div class="tab-page" data-page="4"' + (state.tab === 4 ? "" : " hidden") + ">" + renderTab4() + "</div>";
+  html += "</main>";
+  html += renderActions();
+  app.innerHTML = html;
+  bindHandlers();
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = document.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+}
+
+function renderTopbar(p){
+  return [
+    '<div class="topbar" role="banner">',
+    '  <div class="topbar-inner">',
+    '    <div class="brand">',
+    '      <div class="brand-title">' + escapeHtml(COURSE.title) + '</div>',
+    '      <div class="brand-sub">' + escapeHtml(COURSE.teacher) + ' · ' + escapeHtml(COURSE.grade) + ' · продолжаем на github.com</div>',
+    '    </div>',
+    '    <div class="progress-wrap" aria-label="Прогресс заполнения">',
+    '      <div class="progress-bar" role="progressbar" aria-valuenow="' + p.percent + '" aria-valuemin="0" aria-valuemax="100">',
+    '        <div class="progress-fill" style="width:' + p.percent + '%"></div>',
+    '      </div>',
+    '      <div class="progress-num">' + p.percent + '%</div>',
+    '    </div>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderStart(){
+  return [
+    '<section class="hero" aria-labelledby="hero-title">',
+    '  <span class="hero-badge">● Занятие 14 из 24 · модуль 5, контрольная точка</span>',
+    '  <h1 id="hero-title">' + escapeHtml(COURSE.subtitle) + '</h1>',
+    '  <p>Вчера репозиторий severny-pirog получил файлы, коммиты и первую ветку. Сегодня твой код впервые читает человек — и ты читаешь чужой. Учимся доводить изменение до слияния: заявка, описание, замечания к строкам, доработка, merge и рукотворный конфликт. Всё кнопками сайта.</p>',
+    '  <div class="hero-meta">',
+    '    <span class="chip">👤 <b>' + escapeHtml(COURSE.teacher) + '</b></span>',
+    '    <span class="chip">🎓 ' + escapeHtml(COURSE.grade) + '</span>',
+    '    <span class="chip">🗂 4 вкладки: теория · GitHub и PR · практика · отчёт</span>',
+    '    <span class="chip">⏱ 80 минут</span>',
+    '  </div>',
+    '  <button class="btn btn-primary btn-lg" data-action="start">',
+    '    Начать работу',
+    '    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>',
+    '  </button>',
+    '</section>'
+  ].join("\n");
+}
+
+function renderTabNav(){
+  const done3 = practiceScore() === practiceMax();
+  const repBadge = state.finished
+    ? '<span class="tab-badge ' + (done3 ? "done" : "") + '">' + practiceScore() + "/" + practiceMax() + '</span>'
+    : '<span class="tab-badge lock">закрыт</span>';
+  return [
+    '<nav class="tabnav" aria-label="Вкладки листа">',
+    '  <button class="tab-btn ' + (state.tab === 1 ? "active" : "") + '" data-tab="1">1 · Теория <span class="tab-badge ' + (termsCount() === TERMS.length ? "done" : "") + '">' + termsCount() + '/' + TERMS.length + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 2 ? "active" : "") + '" data-tab="2">2 · GitHub и PR <span class="tab-badge ' + (ghCount() === GH_CHECK.length ? "done" : "") + '">' + ghCount() + '/' + GH_CHECK.length + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 3 ? "active" : "") + '" data-tab="3">3 · Практика <span class="tab-badge ' + (done3 ? "done" : "") + '">' + practiceScore() + '/' + practiceMax() + '</span></button>',
+    '  <button class="tab-btn ' + (state.tab === 4 ? "active" : "") + '" data-tab="4">4 · Отчёт ' + repBadge + '</button>',
+    '</nav>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 1 ---------- */
+function renderTab1(){
+  const learned = termsCount();
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Теория занятия</span>',
+    '  <h1>Заявка, ревью, слияние — и конфликт как рутина</h1>',
+    '  <p>Общая тетрадь без черновика: все пишут одновременно, сразу ручкой. Ошибся — не исправить, написал поверх чужого — чужое пропало. Pull Request добавляет проекту черновик и второго читателя до того, как изменение станет общим.</p>',
+    '</div>',
+    '',
+    '<div class="instruction">',
+    '  <b>Зачем процедура, а не кнопка:</b>',
+    '  <ul>',
+    '    <li>незаконченное не попадает в основную версию;</li>',
+    '    <li>код читает человек до слияния, а не пользователи после;</li>',
+    '    <li>у изменения появляется документ: зачем оно и как проверить;</li>',
+    '    <li>5 баллов из 30 на защите — «Культура работы с Git»: история, ветки, принятый Pull Request.</li>',
+    '  </ul>',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">Т</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Двенадцать слов занятия</h2>',
+    '    <p class="section-sub">Отметь те, что можешь объяснить своими словами.</p>',
+    '  </div>',
+    '  <span class="section-status ' + (learned === TERMS.length ? "done" : "") + '" data-terms-status>' + learned + '/' + TERMS.length + '</span>',
+    '</div>',
+    '<div class="terms-grid" role="list">',
+    TERMS.map(renderTerm).join(""),
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">П</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Семь шагов Pull Request</h2>',
+    '    <p class="section-sub">Порядок не меняется от занятия к защите.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="rules-card">',
+    '  <h3>Процедура целиком</h3>',
+    '  <ol>',
+    PR_STEPS.map(function(s){ return "<li>" + escapeHtml(s) + "</li>"; }).join(""),
+    '  </ol>',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">О</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Описание PR: три блока</h2>',
+    '    <p class="section-sub">Ревьюер читает описание раньше дифа. Пустое описание превращает ревью в лотерею.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="good-bad">',
+    '  <div class="gb-box good"><b>Так принимают</b><ul><li><code>' + escapeHtml(PR_GOOD).replace(/\n/g, "</code></li><li><code>") + '</code></li></ul></div>',
+    '  <div class="gb-box bad"><b>Так не принимают</b><ul><li><code>' + escapeHtml(PR_BAD).replace(/\n/g, "</code></li><li><code>") + '</code></li></ul></div>',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">Р</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Code Review: пять пунктов и формула замечания</h2>',
+    '    <p class="section-sub">Читаем код, а не человека. Замечание должно быть исполнимым без уточняющих вопросов.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="rules-card">',
+    '  <h3>Чек-лист ревью</h3>',
+    '  <ol>',
+    REVIEW_RULES.map(function(r){ return "<li>" + escapeHtml(r) + "</li>"; }).join(""),
+    '  </ol>',
+    '</div>',
+    '<div class="good-bad">',
+    '  <div class="gb-box good"><b>Замечания по существу</b><ul><li>«На 320 px кнопка выезжает за край» — место и факт, можно проверить</li><li>«Строка 5: sort меняет PIES на месте, меню сломается после кнопки» — место, суть, последствие</li></ul></div>',
+    '  <div class="gb-box bad"><b>Оценочные реплики</b><ul><li>«Ты не подумал о телефоне» — про человека, не про код</li><li>«Ну такое, переделай» — непонятно, что и где</li></ul></div>',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">К</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Конфликт: помеченные строки, а не катастрофа</h2>',
+    '    <p class="section-sub">Git не угадывает. Он честно показывает оба варианта и ждёт решения человека.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="code-block" data-file="index.html · конфликт">' + escapeHtml(CONFLICT_EXAMPLE) + '</div>',
+    '<div class="instruction">',
+    '  <b>Правила разрешения:</b>',
+    '  <ul>',
+    '    <li>выбери один вариант или соедини оба осмысленно: «удалить всё спорное» — не разрешение;</li>',
+    '    <li>удали все три служебные строки: <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>;</li>',
+    '    <li>закоммить решение отдельным коммитом: «разрешён конфликт цены калитки»;</li>',
+    '    <li>открой файл после слияния: страница работает, служебных строк нет.</li>',
+    '  </ul>',
+    '  <b>Вопрос для самопроверки:</b> ты правишь строку 10, напарник строку 80 того же файла. Конфликт? Нет: Git сравнивает построчно, разные строки сливаются сами.',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num">С</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Где это на сайте</h2>',
+    '    <p class="section-sub">Команды терминала нам не нужны: весь цикл делается кнопками github.com.</p>',
+    '  </div>',
+    '</div>',
+    '<div style="overflow-x:auto">',
+    '  <table class="tags-table">',
+    '    <thead><tr><th>Элемент сайта</th><th>Что делает</th></tr></thead>',
+    '    <tbody>',
+    SITE_ACTIONS.map(function(c){
+      return '<tr><td><span class="tag-code">' + escapeHtml(c.code) + '</span>' + (c.used ? '<span class="tag-used">СЕГОДНЯ</span>' : '') + '</td><td>' + escapeHtml(c.desc) + '</td></tr>';
+    }).join(""),
+    '    </tbody>',
+    '  </table>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return [
+    '<div class="term ' + (learned ? "learned" : "") + '" data-term="' + t.key + '" role="listitem" tabindex="0" aria-pressed="' + learned + '">',
+    '  <div class="term-head">',
+    '    <span class="term-name">' + escapeHtml(t.name) + '</span>',
+    '    <span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+    '  </div>',
+    '  <div class="term-def">' + escapeHtml(t.def) + '</div>',
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 2 ---------- */
+function renderTab2(){
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Продолжение severny-pirog</span>',
+    '  <h1>Свой Pull Request от ветки до слияния</h1>',
+    '  <p>Репозиторий с занятия 13 уже живёт на GitHub: три файла, коммиты, первая ветка. Сегодня добавляем в проект сортировку меню, доводим её до принятого PR и нарочно устраиваем конфликт, чтобы разобрать его без паники.</p>',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num blue">Ш</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Двенадцать шагов на сайте</h2>',
+    '    <p class="section-sub">Код двух вставок — блоками с кнопкой «Копировать» ниже шагов.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="gh-steps">',
+    GH_STEPS.map(function(s, i){
+      return '<div class="gh-step"><span class="n">' + (i + 1) + '</span><span class="t">' + s.t + '</span></div>';
+    }).join(""),
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num blue">К</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Две вставки для ветки feature/sort-price</h2>',
+    '    <p class="section-sub">Первую вставь в index.html перед кнопкой «Посчитать сумму», вторую — в конец script.js. Каждая вставка — отдельный коммит.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="code-block" data-file="index.html · вставка"><button class="copy-btn" data-copy="html" type="button" aria-label="Скопировать вставку для index.html">Копировать</button>' + escapeHtml(SNIPPET_HTML) + '</div>',
+    '<div class="code-block" data-file="script.js · вставка"><button class="copy-btn" data-copy="js" type="button" aria-label="Скопировать вставку для script.js">Копировать</button>' + escapeHtml(SNIPPET_JS) + '</div>',
+    '<div class="instruction">',
+    '  <b>Что делает этот код:</b> кнопка переставляет карточки меню по возрастанию цены. Массив карточек копируется через <code>Array.from</code>, сортируется функцией сравнения по <code>data-price</code>, затем карточки переносятся в конец списка в нужном порядке — приём из занятия 9 на живом проекте.',
+    '</div>',
+    '',
+    '<div class="section-head">',
+    '  <div class="section-num blue">Ч</div>',
+    '  <div class="section-title-wrap">',
+    '    <h2 class="section-title">Чек-лист: мой первый принятый PR</h2>',
+    '    <p class="section-sub">Отмечай по мере выполнения на сайте. Всё попадёт в отчёт.</p>',
+    '  </div>',
+    '</div>',
+    '<div class="checklist" role="group" aria-label="Чек-лист Pull Request">',
+    GH_CHECK.map(function(c){
+      const on = !!state.gh[c.id];
+      return [
+        '<div class="check-item ' + (on ? "checked" : "") + '" data-gh="' + c.id + '" role="checkbox" aria-checked="' + on + '" tabindex="0">',
+        '  <span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+        '  <span class="check-text">' + escapeHtml(c.text) + '</span>',
+        '</div>'
+      ].join("\n");
+    }).join(""),
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 3 ---------- */
+function renderTab3(){
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Практика занятия</span>',
+    '  <h1>Ревью, вопросы, описание PR и формула замечания</h1>',
+    '  <p>Сначала побудь ревьюером: найди пять нарушений в чужом фрагменте. Потом ответь на вопросы о процедуре, собери описание PR, которое примет ревьюер, и научись отличать замечание по существу от оценочной реплики.</p>',
+    '</div>',
+    '',
+    '<h3 class="sub-title">Часть 1. Code Review: найди пять нарушений</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Фрагмент из чужого PR. Кликай по строкам, которые считаешь нарушением чек-листа из пяти пунктов, затем нажми «Проверить». Строк-нарушений ровно пять.</p>',
+    renderReview(),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 2. Восемь вопросов о процедуре</h3>',
+    '<span class="score-chip" data-quiz-score>Верно: ' + quizScore() + ' из ' + QUIZ.length + '</span>',
+    QUIZ.map(renderQuizCard).join(""),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 3. Описание PR, которое примет ревьюер</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Собери три блока для своего сегодняшнего PR про сортировку. Автопроверка посмотрит состав: пункты по файлам, шаги проверки с 320 px, честный остаток.</p>',
+    renderPrDesc(),
+    '<div class="no-print" style="margin-bottom:6px">',
+    '  <button class="btn btn-secondary" data-action="check-prdesc" type="button">Проверить описание</button>',
+    '</div>',
+    (state.prdesc.checked ? renderPrDescSummary() : ''),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 4. Замечание или реплика?</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Четыре комментария из чужих PR. Реши по каждому: это замечание по существу или оценочная реплика. Попытка одна.</p>',
+    COMMENTS.map(renderCommentRow).join(""),
+    '',
+    '<div class="divider"></div>',
+    '',
+    '<h3 class="sub-title">Часть 5. ИИ — первый ревьюер, ты — второй</h3>',
+    '<p class="section-sub" style="margin-bottom:12px">Модель ловит механическое: имена, отладочные строки, необработанный пустой массив. Узкий экран и объяснимость она закрыть не может — это твои пункты.</p>',
+    '<div class="prompt-box" aria-label="Промпт для ИИ">',
+    '  <button class="copy-btn" data-action="copy-prompt" type="button" aria-label="Скопировать промпт">Копировать</button>',
+    escapeHtml(AI_PROMPT),
+    '</div>',
+    '<div class="checklist" role="group" aria-label="Проверка ревью модели руками">',
+    '  <div class="checklist-title">Проверил ревью модели руками</div>',
+    AI_CHECK.map(function(text, i){
+      const on = state.aiCheck[i];
+      return [
+        '<div class="check-item ' + (on ? "checked" : "") + '" data-aicheck="' + i + '" role="checkbox" aria-checked="' + on + '" tabindex="0">',
+        '  <span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span>',
+        '  <span class="check-text">' + escapeHtml(text) + '</span>',
+        '</div>'
+      ].join("\n");
+    }).join(""),
+    '</div>',
+    '',
+    '<div class="field">',
+    '  <label class="field-label" for="reflect">Рефлексия: какое замечание к твоему коду оказалось самым полезным и почему?</label>',
+    '  <textarea class="field-input ' + (state.reflect.trim() ? "filled" : "") + '" id="reflect" data-reflect placeholder="Две-три строки. Попадёт в отчёт.">' + escapeHtml(state.reflect) + '</textarea>',
+    '</div>',
+    '',
+    '<div class="instruction">',
+    '  Когда все части пройдены, переходи во вкладку <b>4 · Отчёт</b> и нажимай «Завершить занятие»: отчёт откроется для сохранения в PDF.',
+    '</div>'
+  ].join("\n");
+}
+
+function renderReview(){
+  const st = state.review;
+  const lines = REVIEW_LINES.map(function(l, i){
+    let cls = "rev-line";
+    if(!st.checked){
+      if(st.picked[i]) cls += " picked";
+    } else {
+      if(l.bad && st.picked[i]) cls += " ok";
+      if(l.bad && !st.picked[i]) cls += " miss";
+      if(!l.bad && st.picked[i]) cls += " extra";
+    }
+    const code = l.code === "" ? "&nbsp;" : escapeHtml(l.code);
+    return '<button type="button" class="' + cls + '" data-rev="' + i + '" ' + (st.checked ? "disabled" : "") + ' aria-pressed="' + st.picked[i] + '"><span class="ln">' + (i + 1) + '</span>' + code + '</button>';
+  }).join("");
+  let note = "";
+  if(st.checked){
+    note = '<div class="instruction" style="margin-top:10px"><b>Разбор:</b><ul>' +
+      REVIEW_LINES.map(function(l, i){
+        if(!l.bad) return "";
+        return "<li>Строка " + (i + 1) + ": " + escapeHtml(l.why) + "</li>";
+      }).join("") +
+      "</ul>Найдено: " + reviewScore() + " из 5" + (reviewExtra() ? ", лишних отметок: " + reviewExtra() : "") + ".</div>";
+  }
+  return [
+    '<div class="rev-card">',
+    lines,
+    '  <div class="no-print" style="margin-top:10px">',
+    '    <button type="button" class="btn btn-secondary btn-sm" data-check-review ' + (st.checked ? "disabled" : "") + '>Проверить</button>',
+    '  </div>',
+    note,
+    '</div>'
+  ].join("\n");
+}
+
+function renderQuizCard(q, i){
+  return [
+    '<div class="quiz-card" data-quiz="' + i + '">',
+    '  <span class="quiz-mod">ВОПРОС ' + (i + 1) + ' ИЗ ' + QUIZ.length + '</span>',
+    '  <div class="quiz-q">' + escapeHtml(q.q) + '</div>',
+    '  <div class="quiz-options" role="group" aria-label="Варианты ответа">',
+    q.options.map(function(opt, j){
+      return '<button type="button" class="quiz-opt" data-quiz-opt="' + i + ':' + j + '">' + escapeHtml(opt) + '</button>';
+    }).join(""),
+    '  </div>',
+    '  <div class="quiz-feedback hidden"></div>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderPrDesc(){
+  const d = state.prdesc;
+  function verdict(key){
+    if(!d.checked || !d.results) return "";
+    const probs = d.results[key];
+    if(probs.length === 0) return '<div class="msg-verdict ok"><b>Блок принят.</b></div>';
+    return '<div class="msg-verdict bad"><b>Блок не принят.</b><ul>' + probs.map(function(p){ return "<li>" + escapeHtml(p) + "</li>"; }).join("") + '</ul></div>';
+  }
+  return [
+    '<div class="msg-card">',
+    '  <h4>Блок 1 · Что сделано</h4>',
+    '  <div class="msg-diff">По пункту на файл: что именно изменилось в <code>index.html</code> и <code>script.js</code>.</div>',
+    '  <div class="field"><textarea class="field-input ' + (d.done.trim() ? "filled" : "") + '" data-prdesc="done" placeholder="- в index.html добавлена кнопка…&#10;- в script.js добавлен обработчик…">' + escapeHtml(d.done) + '</textarea></div>',
+    verdict("done"),
+    '</div>',
+    '<div class="msg-card">',
+    '  <h4>Блок 2 · Как проверить</h4>',
+    '  <div class="msg-diff">Пронумерованные шаги: что открыть, что нажать, что увидеть. Обязательный шаг про узкий экран.</div>',
+    '  <div class="field"><textarea class="field-input ' + (d.verify.trim() ? "filled" : "") + '" data-prdesc="verify" placeholder="1. открыть index.html&#10;2. нажать…&#10;3. увидеть…&#10;4. проверить на 320 px">' + escapeHtml(d.verify) + '</textarea></div>',
+    verdict("verify"),
+    '</div>',
+    '<div class="msg-card">',
+    '  <h4>Блок 3 · Что осталось</h4>',
+    '  <div class="msg-diff">Честно: чего в этой работе нет и почему. Пустой блок обманывает ревьюера.</div>',
+    '  <div class="field"><textarea class="field-input ' + (d.left.trim() ? "filled" : "") + '" data-prdesc="left" placeholder="Например: обратная сортировка — отдельной задачей">' + escapeHtml(d.left) + '</textarea></div>',
+    verdict("left"),
+    '</div>'
+  ].join("\n");
+}
+
+function renderPrDescSummary(){
+  const ok = prdescOk();
+  return '<div class="instruction">Принято блоков: <b>' + ok + ' из 3</b>. ' + (ok === 3 ? "Такое описание ревьюер примет без уточняющих вопросов." : "Поправь отмеченные блоки и нажми «Проверить описание» ещё раз.") + '</div>';
+}
+
+function renderCommentRow(c, i){
+  const st = state.comments[i];
+  const btn = function(val, label){
+    let cls = "cmt-btn";
+    if(st.answered){
+      if(st.chosen === val) cls += st.correct ? " correct" : " wrong";
+      else if(val === c.correct) cls += " correct";
+    }
+    return '<button type="button" class="' + cls + '" data-cmt="' + i + ':' + val + '" ' + (st.answered ? "disabled" : "") + '>' + label + '</button>';
+  };
+  let fb = "";
+  if(st.answered){
+    fb = '<div class="quiz-feedback ' + (st.correct ? "good" : "bad") + '">' +
+      (st.correct
+        ? "<b>Верно.</b> "
+        : "<b>Не совсем.</b> Это " + (c.correct === "sub" ? "замечание по существу: названы место, суть и последствие." : "оценочная реплика: непонятно, что и где переделать.")) +
+      "</div>";
+  }
+  return [
+    '<div class="cmt-row" data-cmt-row="' + i + '">',
+    '  <div class="cmt-top">',
+    '    <div class="cmt-text">' + escapeHtml(c.text) + '</div>',
+    '    <div class="cmt-btns">' + btn("sub", "По существу") + btn("eval", "Реплика") + '</div>',
+    '  </div>',
+    fb,
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Вкладка 4 ---------- */
+function renderTab4(){
+  return state.finished ? renderTab4Full() : renderTab4Locked();
+}
+
+function lockRow(title, cls, text){
+  return '<li><span class="lk ' + cls + '">' + (cls === "ok" ? "готово" : (cls === "part" ? "в процессе" : "не начато")) + '</span><span><b>' + escapeHtml(title) + '.</b> ' + escapeHtml(text) + '</span></li>';
+}
+
+function renderTab4Locked(){
+  const rows = [
+    lockRow("Теория: термины", termsCount() === TERMS.length ? "ok" : (termsCount() ? "part" : ""), "отмечено " + termsCount() + " из " + TERMS.length),
+    lockRow("GitHub: чек-лист PR", ghCount() === GH_CHECK.length ? "ok" : (ghCount() ? "part" : ""), "отмечено " + ghCount() + " из " + GH_CHECK.length),
+    lockRow("Часть 1: ревью фрагмента", state.review.checked ? "ok" : (state.review.picked.some(Boolean) ? "part" : ""), state.review.checked ? "проверено" : "отмечено строк: " + state.review.picked.filter(Boolean).length),
+    lockRow("Часть 2: вопросы", quizAnswered() === QUIZ.length ? "ok" : (quizAnswered() ? "part" : ""), "отвечено " + quizAnswered() + " из " + QUIZ.length),
+    lockRow("Часть 3: описание PR", state.prdesc.checked ? (prdescOk() === 3 ? "ok" : "part") : ((state.prdesc.done || state.prdesc.verify || state.prdesc.left) ? "part" : ""), state.prdesc.checked ? "принято блоков " + prdescOk() + " из 3" : "не проверено кнопкой"),
+    lockRow("Часть 4: замечания", commentsAnswered() === COMMENTS.length ? "ok" : (commentsAnswered() ? "part" : ""), "решено " + commentsAnswered() + " из " + COMMENTS.length),
+    lockRow("Часть 5: проверка ИИ", aiCount() === AI_CHECK.length ? "ok" : (aiCount() ? "part" : ""), "отмечено " + aiCount() + " из " + AI_CHECK.length),
+    lockRow("Рефлексия", state.reflect.trim() ? "ok" : "", state.reflect.trim() ? "заполнена" : "не заполнена")
+  ].join("");
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Отчёт пока закрыт</span>',
+    '  <h1>Сначала практика, потом отчёт</h1>',
+    '  <p>Здесь видно, сколько пройдено, но не видно правильных ответов: иначе тренировка ревью теряет смысл. Закончи части во вкладке 3 и нажми «Завершить занятие» — отчёт откроется целиком для PDF.</p>',
+    '</div>',
+    '<ul class="lock-list">' + rows + '</ul>',
+    '<div class="rep-note">Ревью, вопросы и замечания блокируются после ответа, описание PR — после проверки, поэтому после завершения отчёта изменить результаты нельзя: смотреть его безопасно.</div>',
+    '<div style="display:flex; gap:10px; flex-wrap:wrap">',
+    '  <button class="btn btn-primary" data-action="finish" type="button">Завершить занятие и открыть отчёт</button>',
+    '  <button class="btn btn-secondary" data-action="goto-3" type="button">Вернуться к практике</button>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderTab4Full(){
+  const revRows = REVIEW_LINES.map(function(l, i){
+    if(!l.bad) return "";
+    const picked = state.review.picked[i];
+    const mark = !state.review.checked ? '<span class="rep-mark wait">—</span>' : (picked ? '<span class="rep-mark ok">✓ найдено</span>' : '<span class="rep-mark bad">пропущено</span>');
+    return '<tr><td>' + (i + 1) + '</td><td><code>' + escapeHtml(l.code) + '</code></td><td>' + escapeHtml(l.why) + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+  const revExtra = REVIEW_LINES.map(function(l, i){
+    if(l.bad || !state.review.picked[i]) return "";
+    return '<tr><td>' + (i + 1) + '</td><td><code>' + escapeHtml(l.code) + '</code></td><td>строка чистая, отмечена лишней</td><td><span class="rep-mark bad">лишняя</span></td></tr>';
+  }).join("");
+
+  const quizRows = QUIZ.map(function(q, i){
+    const st = state.quiz[i];
+    const mark = !st.answered ? '<span class="rep-mark wait">—</span>' : (st.correct ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark bad">✗</span>');
+    const yours = st.answered ? escapeHtml(q.options[st.chosen]) : "нет ответа";
+    return '<tr><td>' + (i + 1) + '</td><td>' + yours + '</td><td>' + escapeHtml(q.options[q.correct]) + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+
+  const prRows = [
+    ["Что сделано", state.prdesc.done, "done"],
+    ["Как проверить", state.prdesc.verify, "verify"],
+    ["Что осталось", state.prdesc.left, "left"]
+  ].map(function(r){
+    let verdict = '<span class="rep-mark wait">—</span>';
+    if(state.prdesc.checked && state.prdesc.results){
+      const probs = state.prdesc.results[r[2]];
+      verdict = probs.length === 0 ? '<span class="rep-mark ok">принят</span>' : '<span class="rep-mark bad">' + escapeHtml(probs.join("; ")) + '</span>';
+    }
+    return '<tr><td>' + r[0] + '</td><td>' + (r[1].trim() ? escapeHtml(r[1]) : "пусто") + '</td><td>' + verdict + '</td></tr>';
+  }).join("");
+
+  const cmtRows = COMMENTS.map(function(c, i){
+    const st = state.comments[i];
+    const mark = !st.answered ? '<span class="rep-mark wait">—</span>' : (st.correct ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark bad">✗</span>');
+    const yours = st.answered ? (st.chosen === "sub" ? "по существу" : "реплика") : "нет ответа";
+    return '<tr><td>' + escapeHtml(c.text) + '</td><td>' + yours + '</td><td>' + (c.correct === "sub" ? "по существу" : "реплика") + '</td><td>' + mark + '</td></tr>';
+  }).join("");
+
+  const ghRows = GH_CHECK.map(function(c){
+    return '<tr><td>' + escapeHtml(c.text) + '</td><td>' + (state.gh[c.id] ? '<span class="rep-mark ok">✓</span>' : '<span class="rep-mark wait">—</span>') + '</td></tr>';
+  }).join("");
+
+  return [
+    '<div class="hero-mini">',
+    '  <span class="hero-badge">● Отчёт для учителя</span>',
+    '  <h1>Отчёт по занятию 14</h1>',
+    '  <p>Все результаты собраны автоматически. Приложи ссылку на свой принятый PR в репозитории severny-pirog: учитель откроет историю и описание прямо на сайте. Печатается только эта вкладка.</p>',
+    '</div>',
+    '<div class="rep-summary">',
+    '  <div class="rep-stat"><div class="v">' + reviewScore() + '/5</div><div class="l">ревью' + (reviewExtra() ? " (+" + reviewExtra() + " лишн.)" : "") + '</div></div>',
+    '  <div class="rep-stat"><div class="v">' + quizScore() + '/' + QUIZ.length + '</div><div class="l">вопросы</div></div>',
+    '  <div class="rep-stat"><div class="v">' + prdescOk() + '/3</div><div class="l">описание PR</div></div>',
+    '  <div class="rep-stat"><div class="v">' + commentsScore() + '/' + COMMENTS.length + '</div><div class="l">замечания</div></div>',
+    '  <div class="rep-stat"><div class="v">' + ghCount() + '/' + GH_CHECK.length + '</div><div class="l">github</div></div>',
+    '</div>',
+    '<div class="rep-note">Итого по практике: <b>' + practiceScore() + ' из ' + practiceMax() + '</b> (включая проверку ревью модели: ' + aiCount() + ' из ' + AI_CHECK.length + '). Термины: ' + termsCount() + ' из ' + TERMS.length + '. Контрольная точка модуля 5 закрыта, когда принят настоящий PR в репозитории.</div>',
+    '',
+    '<h3 class="sub-title">Часть 1 · Ревью фрагмента</h3>',
+    '<table class="rep-table"><thead><tr><th>Строка</th><th>Код</th><th>Почему нарушение</th><th>Твой вердикт</th></tr></thead><tbody>' + revRows + revExtra + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 2 · Вопросы о процедуре</h3>',
+    '<table class="rep-table"><thead><tr><th>№</th><th>Твой ответ</th><th>Верный ответ</th><th></th></tr></thead><tbody>' + quizRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 3 · Описание PR</h3>',
+    '<table class="rep-table"><thead><tr><th>Блок</th><th>Твой текст</th><th>Вердикт проверки</th></tr></thead><tbody>' + prRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Часть 4 · Замечание или реплика</h3>',
+    '<table class="rep-table"><thead><tr><th>Комментарий</th><th>Твой вердикт</th><th>Верный вердикт</th><th></th></tr></thead><tbody>' + cmtRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">GitHub: чек-лист PR</h3>',
+    '<table class="rep-table"><thead><tr><th>Пункт</th><th>Отметка</th></tr></thead><tbody>' + ghRows + '</tbody></table>',
+    '',
+    '<h3 class="sub-title">Рефлексия</h3>',
+    (state.reflect.trim() ? '<div class="rep-reflect">' + escapeHtml(state.reflect) + '</div>' : '<div class="rep-note">Рефлексия не заполнена.</div>'),
+    '',
+    '<div class="no-print" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:20px">',
+    '  <button class="btn btn-primary" data-action="print" type="button">Сохранить PDF</button>',
+    '  <button class="btn btn-ghost" data-action="reset-practice" type="button">Сбросить практику</button>',
+    '</div>'
+  ].join("\n");
+}
+
+function renderActions(){
+  return [
+    '<div class="actions no-print" role="toolbar" aria-label="Действия">',
+    '  <div class="actions-inner">',
+    '    <button class="btn btn-secondary" data-action="print" type="button">Сохранить PDF (отчёт)</button>',
+    '  </div>',
+    '</div>'
+  ].join("\n");
+}
+
+/* ---------- Покраска ---------- */
+function paintQuiz(card, i){
+  const st = state.quiz[i];
+  card.querySelectorAll(".quiz-opt").forEach(function(btn, j){
+    btn.disabled = true;
+    btn.classList.remove("correct", "wrong");
+    if(j === QUIZ[i].correct) btn.classList.add("correct");
+    else if(j === st.chosen) btn.classList.add("wrong");
+  });
+  const fb = card.querySelector(".quiz-feedback");
+  fb.classList.remove("hidden", "good", "bad");
+  fb.classList.add(st.correct ? "good" : "bad");
+  fb.innerHTML = "<b>" + (st.correct ? "Верно. " : "Не совсем. Правильный ответ: «" + escapeHtml(QUIZ[i].options[QUIZ[i].correct]) + "». ") + "</b>" + escapeHtml(QUIZ[i].why);
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent + "%";
+  if(num) num.textContent = p.percent + "%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+
+  const chip = document.querySelector("[data-quiz-score]");
+  if(chip) chip.textContent = "Верно: " + quizScore() + " из " + QUIZ.length;
+
+  const badges = document.querySelectorAll(".tab-badge");
+  if(badges.length >= 4){
+    badges[0].textContent = termsCount() + "/" + TERMS.length;
+    badges[0].classList.toggle("done", termsCount() === TERMS.length);
+    badges[1].textContent = ghCount() + "/" + GH_CHECK.length;
+    badges[1].classList.toggle("done", ghCount() === GH_CHECK.length);
+    badges[2].textContent = practiceScore() + "/" + practiceMax();
+    badges[2].classList.toggle("done", practiceScore() === practiceMax());
+    if(state.finished){
+      badges[3].textContent = practiceScore() + "/" + practiceMax();
+      badges[3].classList.remove("lock");
+      badges[3].classList.toggle("done", practiceScore() === practiceMax());
+    }
+  }
+}
+
+function rerenderTab3(){
+  const page = document.querySelector('[data-page="3"]');
+  if(!page) return;
+  page.innerHTML = renderTab3();
+  bindHandlers();
+  state.quiz.forEach(function(st, i){
+    if(st.answered){
+      const card = page.querySelector('[data-quiz="' + i + '"]');
+      if(card) paintQuiz(card, i);
+    }
+  });
+  updateProgress();
+}
+
+/* ---------- Обработчики ---------- */
+function bindHandlers(){
+  app.querySelectorAll("[data-tab]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      state.tab = parseInt(btn.dataset.tab, 10);
+      saveState();
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  app.querySelectorAll("[data-action]").forEach(function(btn){
+    btn.addEventListener("click", handleAction);
+  });
+
+  app.querySelectorAll("[data-copy]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      copyToClipboard(btn.dataset.copy === "html" ? SNIPPET_HTML : SNIPPET_JS, btn);
+    });
+  });
+
+  app.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      el.classList.toggle("learned", state.termsLearned[key]);
+      el.setAttribute("aria-pressed", String(state.termsLearned[key]));
+      const st = document.querySelector("[data-terms-status]");
+      if(st){
+        const n = termsCount();
+        st.textContent = n + "/" + TERMS.length;
+        st.classList.toggle("done", n === TERMS.length);
+      }
+      updateProgress();
+      saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-gh]").forEach(function(el){
+    const handler = function(){
+      const id = el.dataset.gh;
+      state.gh[id] = !state.gh[id];
+      el.classList.toggle("checked", state.gh[id]);
+      el.setAttribute("aria-checked", String(state.gh[id]));
+      updateProgress();
+      saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  app.querySelectorAll("[data-rev]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      if(state.review.checked) return;
+      const i = parseInt(btn.dataset.rev, 10);
+      state.review.picked[i] = !state.review.picked[i];
+      btn.classList.toggle("picked", state.review.picked[i]);
+      btn.setAttribute("aria-pressed", String(state.review.picked[i]));
+      saveState();
+    });
+  });
+
+  const checkReview = app.querySelector("[data-check-review]");
+  if(checkReview){
+    checkReview.addEventListener("click", function(){
+      state.review.checked = true;
+      saveState();
+      rerenderTab3();
+    });
+  }
+
+  app.querySelectorAll("[data-quiz-opt]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.quizOpt.split(":");
+      const qi = parseInt(parts[0], 10);
+      const oi = parseInt(parts[1], 10);
+      const st = state.quiz[qi];
+      if(st.answered) return;
+      st.answered = true;
+      st.chosen = oi;
+      st.correct = oi === QUIZ[qi].correct;
+      saveState();
+      paintQuiz(btn.closest(".quiz-card"), qi);
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-prdesc]").forEach(function(ta){
+    ta.addEventListener("input", function(e){
+      state.prdesc[e.target.dataset.prdesc] = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      saveState();
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-cmt]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.cmt.split(":");
+      const i = parseInt(parts[0], 10);
+      const val = parts[1];
+      const st = state.comments[i];
+      if(st.answered) return;
+      st.answered = true;
+      st.chosen = val;
+      st.correct = val === COMMENTS[i].correct;
+      saveState();
+      const row = document.querySelector('[data-cmt-row="' + i + '"]');
+      if(row){
+        row.outerHTML = renderCommentRow(COMMENTS[i], i);
+      }
+      updateProgress();
+    });
+  });
+
+  app.querySelectorAll("[data-aicheck]").forEach(function(el){
+    const handler = function(){
+      const i = parseInt(el.dataset.aicheck, 10);
+      state.aiCheck[i] = !state.aiCheck[i];
+      el.classList.toggle("checked", state.aiCheck[i]);
+      el.setAttribute("aria-checked", String(state.aiCheck[i]));
+      updateProgress();
+      saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){
+      if(e.key === " " || e.key === "Enter"){ e.preventDefault(); handler(); }
+    });
+  });
+
+  const reflect = app.querySelector("[data-reflect]");
+  if(reflect){
+    reflect.addEventListener("input", function(e){
+      state.reflect = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      updateProgress();
+      saveState();
+    });
+  }
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){
+    state.started = true;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "goto-3"){
+    state.tab = 3;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "finish"){
+    state.finished = true;
+    saveState();
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else if(action === "check-prdesc"){
+    state.prdesc.results = validatePrDesc();
+    state.prdesc.checked = true;
+    saveState();
+    rerenderTab3();
+  } else if(action === "copy-prompt"){
+    copyToClipboard(AI_PROMPT, e.currentTarget);
+  } else if(action === "print"){
+    if(!state.started) return;
+    if(state.tab !== 4){
+      state.tab = 4;
+      saveState();
+      render();
+      setTimeout(function(){ window.print(); }, 60);
+    } else {
+      window.print();
+    }
+  } else if(action === "reset-practice"){
+    if(confirm("Сбросить ревью, вопросы, описание PR, замечания и закрыть отчёт? Термины и GitHub-чек-лист останутся.")){
+      state.review = { picked: REVIEW_LINES.map(function(){ return false; }), checked:false };
+      state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+      state.prdesc = { done:"", verify:"", left:"", results:null, checked:false };
+      state.comments = COMMENTS.map(function(){ return { answered:false, chosen:"", correct:false }; });
+      state.aiCheck = AI_CHECK.map(function(){ return false; });
+      state.reflect = "";
+      state.finished = false;
+      state.tab = 3;
+      saveState();
+      render();
+    }
+  }
+}
+
+async function copyToClipboard(text, btn){
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(err){
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    document.body.removeChild(ta);
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Скопировано";
+  btn.classList.add("copied");
+  setTimeout(function(){
+    btn.textContent = original;
+    btn.classList.remove("copied");
+  }, 1600);
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
+function init(){
+  loadState();
+  render();
+}
+init();
+</script>
+</body>
+</html>
