@@ -1,0 +1,1235 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Рабочий лист · Занятие 15 · Деплой и README</title>
+<style>
+  :root{
+    --bg:#fafafa; --surface:#ffffff; --surface-2:#f4f4f5; --border:#e4e4e7; --border-strong:#d4d4d8;
+    --text:#09090b; --text-2:#52525b; --text-3:#71717a;
+    --accent:#2563eb; --accent-soft:#dbeafe; --accent-hover:#1d4ed8;
+    --success:#16a34a; --success-soft:#dcfce7; --danger:#dc2626; --danger-soft:#fee2e2;
+    --warn:#f59e0b; --warn-soft:#fef3c7; --code-bg:#0f172a; --code-text:#e2e8f0;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.04),0 1px 3px rgba(15,23,42,.06);
+    --shadow-md:0 4px 6px -1px rgba(15,23,42,.06),0 2px 4px -2px rgba(15,23,42,.06);
+    --radius:14px; --radius-lg:18px;
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:var(--surface-2)}
+  ::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:999px;border:2px solid var(--surface-2)}
+  ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.9);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid var(--border)}
+  .topbar-inner{max-width:1000px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;min-width:0;flex:1}
+  .brand-title{font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand-sub{font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .progress-wrap{display:flex;align-items:center;gap:10px;min-width:150px}
+  .progress-bar{flex:1;height:6px;background:var(--surface-2);border-radius:999px;overflow:hidden;min-width:90px}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#7c3aed);border-radius:999px;transition:width .4s cubic-bezier(.22,.61,.36,1)}
+  .progress-num{font-size:13px;font-weight:600;color:var(--text-2);font-variant-numeric:tabular-nums;min-width:38px;text-align:right}
+
+  .tabnav{max-width:1000px;margin:0 auto;padding:0 20px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+  .tabnav::-webkit-scrollbar{display:none}
+  .tab-btn{flex-shrink:0;min-height:44px;padding:0 16px;border:1px solid var(--border);border-bottom:none;border-radius:12px 12px 0 0;background:var(--surface-2);color:var(--text-2);font-size:14px;font-weight:600;cursor:pointer;transition:all .15s ease;display:inline-flex;align-items:center;gap:8px}
+  .tab-btn:hover{background:var(--surface);color:var(--text)}
+  .tab-btn:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+  .tab-btn.active{background:var(--surface);color:var(--accent);border-color:var(--border-strong);box-shadow:0 -2px 6px rgba(15,23,42,.05)}
+  .tab-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--surface);color:var(--text-3);border:1px solid var(--border)}
+  .tab-btn.active .tab-badge{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+  .tab-badge.done{background:var(--success-soft);color:var(--success);border-color:transparent}
+  .tab-badge.lock{background:var(--warn-soft);color:#92400e;border-color:transparent}
+
+  main{max-width:1000px;margin:0 auto;padding:0 20px 120px}
+  main.no-tabs{padding-top:28px}
+  .tab-page{background:var(--surface);border:1px solid var(--border-strong);border-radius:0 var(--radius-lg) var(--radius-lg) var(--radius-lg);padding:28px;box-shadow:var(--shadow-sm)}
+  .tab-page[hidden]{display:none}
+
+  .hero{background:linear-gradient(160deg,#ffffff 0%,#f8fbff 55%,#eff6ff 100%);border:1px solid var(--border);border-radius:var(--radius-lg);padding:44px 32px;box-shadow:var(--shadow-md);text-align:center}
+  .hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--accent-soft);color:var(--accent);border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.02em}
+  .hero h1{font-size:clamp(26px,4vw,36px);font-weight:700;letter-spacing:-.02em;margin:18px 0 10px;line-height:1.15}
+  .hero p{color:var(--text-2);font-size:16px;max-width:660px;margin:0 auto 24px}
+  .hero-meta{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:28px}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:999px;font-size:13px;color:var(--text-2)}
+  .chip b{color:var(--text);font-weight:600}
+  .hero-mini{margin-bottom:22px}
+  .hero-mini h1{font-size:clamp(22px,3.4vw,30px);font-weight:700;letter-spacing:-.02em;margin:12px 0 6px;line-height:1.2}
+  .hero-mini p{color:var(--text-2);font-size:15px;margin:0;max-width:740px}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 22px;border-radius:12px;border:1px solid transparent;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s ease;user-select:none}
+  .btn:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(37,99,235,.3),0 4px 12px rgba(37,99,235,.15)}
+  .btn-primary:hover{background:var(--accent-hover)}
+  .btn-secondary{background:var(--surface);color:var(--text);border-color:var(--border-strong)}
+  .btn-secondary:hover{background:var(--surface-2)}
+  .btn-ghost{background:transparent;color:var(--text-2)}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+  .btn-lg{min-height:52px;padding:0 28px;font-size:16px;border-radius:14px}
+  .btn-sm{min-height:38px;padding:0 14px;font-size:13px;border-radius:10px}
+
+  .ext-links{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+  .ext-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--accent);text-decoration:none;font-size:14px;font-weight:600;transition:all .15s ease}
+  .ext-link:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .ext-link:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+
+  .section-head{display:flex;align-items:flex-start;gap:14px;margin:26px 0 14px}
+  .section-num{flex-shrink:0;width:34px;height:34px;border-radius:10px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+  .section-num.blue{background:var(--accent)}
+  .section-title{font-size:18px;font-weight:700;letter-spacing:-.01em;margin:0 0 3px}
+  .section-sub{font-size:14px;color:var(--text-2);margin:0}
+  .section-title-wrap{flex:1;min-width:0}
+  .section-status{flex-shrink:0;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--surface-2);color:var(--text-3)}
+  .section-status.done{background:var(--success-soft);color:var(--success)}
+
+  .instruction{background:var(--surface-2);border-radius:var(--radius);padding:12px 16px;margin-bottom:18px;font-size:14px;color:var(--text-2);line-height:1.55}
+  .instruction ol,.instruction ul{margin:0;padding-left:18px}
+  .instruction li{margin-bottom:5px}
+  .instruction li::marker{color:var(--accent);font-weight:600}
+  .instruction code,.rules-card code,.gh-step .t code,.gb-box code{font-family:var(--mono);font-size:12px;background:var(--surface);padding:1px 5px;border-radius:4px;color:var(--accent-hover)}
+  .gb-box code{background:rgba(255,255,255,.7)}
+
+  .terms-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:20px}
+  @media (min-width:640px){.terms-grid{grid-template-columns:1fr 1fr}}
+  .term{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px;cursor:pointer;transition:all .15s ease}
+  .term:hover{border-color:var(--border-strong)}
+  .term.learned{border-color:var(--accent);background:#f8fbff}
+  .term-head{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+  .term-name{font-weight:700;font-size:14px;font-family:var(--mono);color:var(--accent)}
+  .term-check{margin-left:auto;width:20px;height:20px;border-radius:6px;border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;transition:all .15s ease;flex-shrink:0}
+  .term.learned .term-check{background:var(--success);border-color:var(--success)}
+  .term-check svg{width:12px;height:12px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:opacity .15s ease}
+  .term.learned .term-check svg{opacity:1}
+  .term-def{font-size:13.5px;color:var(--text-2);line-height:1.5}
+
+  .tags-table{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:16px}
+  .tags-table th{text-align:left;padding:10px 12px;background:var(--surface-2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);border-bottom:1px solid var(--border)}
+  .tags-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5}
+  .tags-table tr:last-child td{border-bottom:none}
+  .tag-code{font-family:var(--mono);font-size:12.5px;color:var(--accent);font-weight:600;background:var(--accent-soft);padding:2px 8px;border-radius:6px;white-space:nowrap}
+  .tag-used{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;background:var(--warn-soft);color:#92400e;margin-left:6px;letter-spacing:.03em}
+
+  .code-block{background:var(--code-bg);color:var(--code-text);border-radius:var(--radius);padding:18px;font-family:var(--mono);font-size:12.5px;line-height:1.65;overflow:auto;white-space:pre;margin-bottom:16px;position:relative;max-height:420px}
+  .code-block::before{content:attr(data-file);display:block;font-size:10px;letter-spacing:.1em;color:#64748b;margin-bottom:10px;font-weight:600}
+  .code-block.short{max-height:none}
+  .copy-btn{position:absolute;top:12px;right:12px;padding:6px 12px;background:rgba(255,255,255,.08);color:#cbd5e1;border:1px solid rgba(255,255,255,.1);border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;min-height:32px;transition:all .15s ease;z-index:2}
+  .copy-btn:hover{background:rgba(255,255,255,.15);color:#fff}
+  .copy-btn.copied{background:var(--success);color:#fff;border-color:var(--success)}
+
+  .rules-card{background:linear-gradient(180deg,#f8fbff,#eff6ff);border:1px dashed var(--accent);border-radius:var(--radius);padding:16px 18px;margin-bottom:14px}
+  .rules-card h3{margin:0 0 10px;font-size:15px;color:var(--accent-hover)}
+  .rules-card ol,.rules-card ul{margin:0;padding-left:20px;font-size:13.5px;color:var(--text-2);line-height:1.6}
+  .rules-card li{margin-bottom:5px}
+  .good-bad{display:grid;gap:10px;grid-template-columns:1fr;margin-bottom:16px}
+  @media (min-width:700px){.good-bad{grid-template-columns:1fr 1fr}}
+  .gb-box{border-radius:var(--radius);padding:12px 14px;font-size:13px;line-height:1.6}
+  .gb-box.good{background:var(--success-soft);color:#14532d}
+  .gb-box.bad{background:var(--danger-soft);color:#7f1d1d}
+  .gb-box b{display:block;margin-bottom:6px;font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+  .gb-box ul{margin:0;padding-left:16px}
+  .gb-box li{margin-bottom:4px}
+
+  .gh-steps{display:grid;gap:8px;margin-bottom:16px}
+  .gh-step{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+  .gh-step .n{flex-shrink:0;width:26px;height:26px;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .gh-step .t{font-size:13.5px;color:var(--text-2);line-height:1.55}
+  .gh-step .t b{color:var(--text)}
+
+  .checklist{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+  .checklist-title{font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+  .check-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:background .15s ease;user-select:none}
+  .check-item:hover{background:var(--surface-2)}
+  .check-item.checked{background:var(--success-soft)}
+  .check-box{flex-shrink:0;width:22px;height:22px;border:2px solid var(--border-strong);border-radius:6px;display:flex;align-items:center;justify-content:center;transition:all .15s ease;margin-top:1px}
+  .check-item.checked .check-box{background:var(--success);border-color:var(--success)}
+  .check-box svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:opacity .15s ease}
+  .check-item.checked .check-box svg{opacity:1}
+  .check-text{font-size:14px;color:var(--text);flex:1;line-height:1.45}
+
+  .quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+  .quiz-mod{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--accent);background:var(--accent-soft);border-radius:5px;padding:2px 7px;margin-bottom:6px}
+  .quiz-q{font-weight:600;font-size:14px;margin-bottom:10px;line-height:1.5}
+  .quiz-options{display:grid;gap:8px}
+  .quiz-opt{min-height:44px;text-align:left;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:14px;transition:all .15s ease;line-height:1.4}
+  .quiz-opt:hover:not(:disabled){border-color:var(--border-strong);background:var(--surface-2)}
+  .quiz-opt:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+  .quiz-opt:disabled{cursor:default}
+  .quiz-opt.correct{background:var(--success-soft);border-color:var(--success);color:#14532d}
+  .quiz-opt.wrong{background:var(--danger-soft);border-color:var(--danger);color:#7f1d1d}
+  .quiz-feedback{margin-top:10px;font-size:13px;border-radius:10px;padding:10px 12px;line-height:1.5}
+  .quiz-feedback.good{background:var(--success-soft);color:#14532d}
+  .quiz-feedback.bad{background:var(--danger-soft);color:#7f1d1d}
+  .score-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:var(--surface-2);font-size:13px;font-weight:600;color:var(--text-2);margin:0 10px 14px 0}
+
+  .path-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+  .path-top{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap}
+  .path-code{flex:1;min-width:220px;font-family:var(--mono);font-size:12.5px;line-height:1.5;color:var(--text);background:var(--surface-2);border-radius:8px;padding:8px 10px;word-break:break-all}
+  .path-btns{display:flex;gap:6px;flex-shrink:0}
+  .path-btn{min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--border-strong);background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s ease}
+  .path-btn:hover:not(:disabled){border-color:var(--accent)}
+  .path-btn:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+  .path-btn:disabled{cursor:default}
+  .path-btn.correct{background:var(--success-soft);border-color:var(--success);color:#14532d}
+  .path-btn.wrong{background:var(--danger-soft);border-color:var(--danger);color:#7f1d1d}
+
+  .msg-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px}
+  .msg-card h4{margin:0 0 6px;font-size:14px}
+  .msg-diff{font-size:13px;color:var(--text-2);background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:10px;line-height:1.5}
+  .msg-diff code{font-family:var(--mono);font-size:12px;background:var(--surface);padding:1px 5px;border-radius:4px;color:var(--accent)}
+  .msg-verdict{margin-top:8px;font-size:13px;border-radius:10px;padding:10px 12px;line-height:1.5}
+  .msg-verdict.ok{background:var(--success-soft);color:#14532d}
+  .msg-verdict.bad{background:var(--danger-soft);color:#7f1d1d}
+  .msg-verdict ul{margin:4px 0 0;padding-left:18px}
+
+  .prompt-box{background:var(--code-bg);color:var(--code-text);border-radius:var(--radius);padding:18px;font-family:var(--mono);font-size:13px;line-height:1.6;white-space:pre-wrap;margin-bottom:16px;position:relative;word-break:break-word}
+  .prompt-box::before{content:"ПРОМПТ ДЛЯ ИИ";display:block;font-size:10px;letter-spacing:.1em;color:#64748b;margin-bottom:10px;font-weight:600}
+
+  .field{margin-bottom:14px}
+  .field:last-child{margin-bottom:0}
+  .field-label{display:block;font-size:13px;color:var(--text-2);margin-bottom:6px;font-weight:600}
+  .field-input{width:100%;min-height:40px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);font-size:14px;transition:border-color .15s ease,background .15s ease}
+  .field-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .field-input.filled{background:#f8fbff;border-color:var(--accent)}
+  textarea.field-input{min-height:84px;resize:vertical;line-height:1.5}
+
+  .rep-summary{display:grid;gap:10px;grid-template-columns:repeat(2,1fr);margin-bottom:18px}
+  @media (min-width:760px){.rep-summary{grid-template-columns:repeat(5,1fr)}}
+  .rep-stat{background:var(--surface-2);border-radius:var(--radius);padding:12px;text-align:center}
+  .rep-stat .v{font-size:20px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  .rep-stat .l{font-size:11px;color:var(--text-3);margin-top:2px}
+  .rep-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:18px}
+  .rep-table th{text-align:left;padding:8px 10px;background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);border-bottom:1px solid var(--border)}
+  .rep-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.45}
+  .rep-table tr:last-child td{border-bottom:none}
+  .rep-table code{font-family:var(--mono);font-size:12px;word-break:break-all}
+  .rep-mark{font-weight:700}
+  .rep-mark.ok{color:var(--success)}
+  .rep-mark.bad{color:var(--danger)}
+  .rep-mark.wait{color:var(--text-3)}
+  .rep-note{font-size:13px;color:var(--text-2);background:var(--surface-2);border-radius:10px;padding:10px 12px;margin-bottom:16px;line-height:1.55}
+  .rep-link{font-family:var(--mono);font-size:13px;color:var(--accent);word-break:break-all}
+  .rep-reflect{font-size:14px;background:var(--warn-soft);color:#78350f;border-radius:10px;padding:12px 14px;line-height:1.55;white-space:pre-wrap}
+  .lock-list{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:8px}
+  .lock-list li{display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:14px}
+  .lock-list .lk{flex-shrink:0;font-weight:700;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--border);color:var(--text-2);margin-top:1px}
+  .lock-list .lk.ok{background:var(--success-soft);border-color:transparent;color:var(--success)}
+  .lock-list .lk.part{background:var(--warn-soft);border-color:transparent;color:#92400e}
+
+  .divider{height:1px;background:var(--border);margin:24px 0}
+  .sub-title{font-size:16px;font-weight:700;letter-spacing:-.01em;margin:0 0 12px;color:var(--text)}
+
+  .actions{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.92);backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);border-top:1px solid var(--border);padding:10px 20px;z-index:20}
+  .actions-inner{max-width:1000px;margin:0 auto;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+  @media print{
+    @page{size:A4;margin:14mm}
+    body{background:#fff}
+    .topbar,.tabnav,.actions,.no-print,.copy-btn{display:none !important}
+    main{padding:0;max-width:100%}
+    .tab-page{border:none;box-shadow:none;padding:0;border-radius:0}
+    .tab-page[hidden]{display:none !important}
+    .code-block,.prompt-box{background:#f1f5f9 !important;color:#0f172a !important;border:1px solid #cbd5e1;max-height:none}
+    .quiz-opt.correct,.path-btn.correct,.msg-verdict.ok{background:#dcfce7 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .quiz-opt.wrong,.path-btn.wrong,.msg-verdict.bad{background:#fee2e2 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .rep-reflect{background:#fef3c7 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .quiz-card,.path-row,.msg-card,.gh-step,.term{break-inside:avoid}
+  }
+  @media (max-width:480px){
+    .topbar-inner{padding:8px 14px}
+    .tabnav{padding:0 14px}
+    main{padding:0 14px 110px}
+    main.no-tabs{padding-top:16px}
+    .tab-page{padding:20px 16px}
+    .hero{padding:30px 20px}
+    .hero h1{font-size:24px}
+    .hero-mini h1{font-size:22px}
+    .section-title{font-size:16px}
+    .tags-table{font-size:12.5px}
+    .tags-table th,.tags-table td{padding:8px}
+    .code-block{font-size:11.5px}
+    .path-top{flex-direction:column}
+    .actions-inner .btn{flex:1;padding:0 12px}
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =========================================================
+   РАБОЧИЙ ЛИСТ · Занятие 15 · Деплой и README
+   Продолжение занятий 13–14: всё на github.com, без локального Git
+   Учитель: Масликов М. М. · 10–11 класс
+   ========================================================= */
+
+const COURSE = {
+  title:"Рабочий лист · Занятие 15",
+  subtitle:"Деплой и README",
+  teacher:"Масликов М. М.",
+  grade:"10–11 класс"
+};
+
+/* ================= ТЕОРИЯ ================= */
+
+const TERMS = [
+  { key:"deploy", name:"Деплой", def:"Перенос файлов проекта туда, откуда их отдают всем желающим по адресу. После деплоя у сайта появляется публичная ссылка." },
+  { key:"static", name:"Статический сайт", def:"Сайт из готовых файлов, которые сервер отдаёт как есть. Вся логика работает в браузере посетителя. Публикуется бесплатно и за минуты." },
+  { key:"cicd", name:"CI/CD", def:"Автоматическая цепочка «изменение → проверка → публикация». Настроил один раз — дальше каждый коммит в main сам обновляет публичную версию." },
+  { key:"pages", name:"GitHub Pages", def:"Хостинг статических сайтов, встроенный в GitHub. Включается в Settings → Pages: источник — ветка main, папка / (root)." },
+  { key:"rel", name:"Относительный путь", def:"Адрес файла от текущей страницы: style.css, pie.svg. Работает и локально, и по любому адресу. Единственный вид путей внутри проекта." },
+  { key:"root", name:"Путь от корня сайта", def:"/style.css ищет файл в корне сайта, минуя папку проекта. После публикации проект лежит в папке — такой путь даёт 404." },
+  { key:"disk", name:"Путь с диска", def:"C:\\Users\\… или file:///C:/… существует только на твоём компьютере. На сервере такого адреса нет — файл не найдётся." },
+  { key:"404", name:"Статус 404", def:"Ответ сервера «файл по такому адресу не найден». Виден в DevTools → Network. Главный признак ошибки в пути или регистре имени." },
+  { key:"case", name:"Регистр имени", def:"Windows не различает Pie.SVG и pie.svg, сервер различает. Правило: латиница, нижний регистр, дефис вместо пробела." },
+  { key:"cache", name:"Кэш браузера", def:"Сохранённая копия загруженных файлов. После публикации может показывать старую версию. Лечится обновлением с очисткой кэша: Ctrl+F5." },
+  { key:"readme", name:"README.md", def:"Файл с описанием проекта, который GitHub показывает на главной странице репозитория. Пять блоков: название, ссылка, стек, что умеет, что сделано с ИИ." },
+  { key:"md", name:"Markdown", def:"Простой формат текста с разметкой: # для заголовков, - для списков, ** для полужирного. На нём пишется README.md." }
+];
+
+const SITE_ACTIONS = [
+  { code:"Settings → Pages", desc:"Включить публикацию: Deploy from a branch → main → / (root) → Save", used:true },
+  { code:"Адрес в Pages", desc:"Публичная ссылка вида https://имя.github.io/severny-pirog/ — её отправляют другу", used:true },
+  { code:"Вкладка Actions", desc:"Статус автоматической публикации: зелёная галочка — сайт обновился", used:true },
+  { code:"DevTools → Network", desc:"Все запросы страницы и их статусы; красная строка 404 — файл не найден", used:true },
+  { code:"Ctrl+F5", desc:"Обновить страницу без кэша: увидеть свежую версию после публикации", used:true },
+  { code:"Add file → Create new file", desc:"Создать pie.svg и README.md прямо в репозитории", used:true },
+  { code:"git push", desc:"На сайте не нужен: коммит уже на сервере, Pages подхватывает его сам", used:false }
+];
+
+const PATH_GOOD = [
+  '<link rel="stylesheet" href="style.css">',
+  '<img src="pie.svg" alt="Брусничный пирог">',
+  '<script src="script.js"></' + 'script>'
+];
+const PATH_BAD = [
+  '<link rel="stylesheet" href="/style.css">',
+  '<link rel="stylesheet" href="C:\\Users\\Ученик\\style.css">',
+  '<img src="file:///C:/pie.svg" alt="">',
+  '<img src="Pie.SVG" alt="">  <!-- файл называется pie.svg -->',
+  '<link href="style.css">  <!-- забыт rel="stylesheet" -->'
+];
+
+/* ================= ГОТОВЫЕ ФАЙЛЫ ================= */
+
+const FILE_INDEX = [
+  '<!DOCTYPE html>',
+  '<html lang="ru">',
+  '<head>',
+  '  <meta charset="utf-8">',
+  '  <meta name="viewport" content="width=device-width, initial-scale=1">',
+  '  <title>Северный пирог — школьный буфет</title>',
+  '  <link rel="stylesheet" href="style.css">',
+  '</head>',
+  '<body>',
+  '  <header class="top">',
+  '    <div class="brand">',
+  '      <img src="pie.svg" alt="Брусничный пирог с решётчатой корочкой" class="logo">',
+  '      <div>',
+  '        <h1>Северный пирог</h1>',
+  '        <p class="muted">Школьный буфет. Домашняя выпечка каждый день.</p>',
+  '      </div>',
+  '    </div>',
+  '    <button id="themeBtn" type="button" class="btn btn--ghost">Тёмная тема</button>',
+  '  </header>',
+  '',
+  '  <main>',
+  '    <section class="controls">',
+  '      <div class="filters" id="filters">',
+  '        <button type="button" data-kind="все" class="btn btn--ghost is-active">Все</button>',
+  '        <button type="button" data-kind="солёное" class="btn btn--ghost">Солёное</button>',
+  '        <button type="button" data-kind="сладкое" class="btn btn--ghost">Сладкое</button>',
+  '      </div>',
+  '      <div class="actions-row">',
+  '        <button id="sortBtn" type="button" class="btn btn--ghost">Сначала дешёвые</button>',
+  '        <button id="totalBtn" type="button" class="btn btn--primary">Посчитать сумму</button>',
+  '      </div>',
+  '    </section>',
+  '',
+  '    <ul class="menu" id="menu"></ul>',
+  '    <p id="out" class="out"></p>',
+  '',
+  '    <section class="hours">',
+  '      <h2>Часы работы</h2>',
+  '      <div class="table-wrap">',
+  '        <table>',
+  '          <caption>Когда буфет открыт</caption>',
+  '          <thead>',
+  '            <tr><th scope="col">День</th><th scope="col">Открыт</th></tr>',
+  '          </thead>',
+  '          <tbody>',
+  '            <tr><th scope="row">Понедельник — пятница</th><td>8:30 — 15:00</td></tr>',
+  '            <tr><th scope="row">Суббота</th><td>9:00 — 13:00</td></tr>',
+  '            <tr><th scope="row">Воскресенье</th><td>выходной</td></tr>',
+  '          </tbody>',
+  '        </table>',
+  '      </div>',
+  '    </section>',
+  '  </main>',
+  '',
+  '  <footer class="bottom">',
+  '    <p>Буфет «Северный пирог». Первый этаж, у актового зала. Заведующая — Марина Петровна.</p>',
+  '  </footer>',
+  '',
+  '  <div class="modal hidden" id="modal">',
+  '    <div class="modal__box">',
+  '      <h3 id="modalTitle"></h3>',
+  '      <p id="modalText"></p>',
+  '      <button type="button" id="modalClose" class="btn btn--primary">Закрыть</button>',
+  '    </div>',
+  '  </div>',
+  '',
+  '  <script src="script.js"></' + 'script>',
+  '</body>',
+  '</html>'
+].join("\n");
+
+const FILE_CSS = [
+  '*, *::before, *::after { box-sizing: border-box; }',
+  '',
+  ':root {',
+  '  --pie-bg: #f4f6f3;',
+  '  --pie-card: #ffffff;',
+  '  --pie-text: #111312;',
+  '  --pie-muted: #6b706b;',
+  '  --pie-accent: #5fa22e;',
+  '  --pie-border: #e3e7e1;',
+  '}',
+  '',
+  'html[data-theme="dark"] {',
+  '  --pie-bg: #0f0f0f;',
+  '  --pie-card: #17191a;',
+  '  --pie-text: #f2f4f1;',
+  '  --pie-muted: #9ba29b;',
+  '  --pie-accent: #7cc142;',
+  '  --pie-border: #262a26;',
+  '}',
+  '',
+  'body {',
+  '  margin: 0;',
+  '  min-height: 100vh;',
+  '  display: flex;',
+  '  flex-direction: column;',
+  '  font-family: Arial, Helvetica, sans-serif;',
+  '  line-height: 1.5;',
+  '  background: var(--pie-bg);',
+  '  color: var(--pie-text);',
+  '}',
+  '',
+  'main { flex: 1; padding: 16px; max-width: 960px; margin: 0 auto; width: 100%; }',
+  '',
+  '.top {',
+  '  display: flex;',
+  '  justify-content: space-between;',
+  '  align-items: center;',
+  '  gap: 12px;',
+  '  flex-wrap: wrap;',
+  '  padding: 16px;',
+  '  background: var(--pie-card);',
+  '  border-bottom: 1px solid var(--pie-border);',
+  '}',
+  '.brand { display: flex; align-items: center; gap: 12px; }',
+  '.logo { width: 72px; height: auto; border-radius: 12px; }',
+  '.top h1 { margin: 0; font-size: 24px; color: var(--pie-accent); }',
+  '.muted { color: var(--pie-muted); margin: 0; }',
+  '',
+  '.controls { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }',
+  '.filters, .actions-row { display: flex; gap: 8px; flex-wrap: wrap; }',
+  '',
+  '.btn {',
+  '  font: inherit;',
+  '  font-weight: 600;',
+  '  padding: 10px 18px;',
+  '  border-radius: 999px;',
+  '  border: 2px solid var(--pie-border);',
+  '  background: var(--pie-card);',
+  '  color: var(--pie-text);',
+  '  cursor: pointer;',
+  '  transition: background 160ms ease, color 160ms ease, transform 160ms ease;',
+  '}',
+  '.btn:hover { background: var(--pie-accent); color: #fff; border-color: var(--pie-accent); }',
+  '.btn:focus-visible { outline: 3px solid var(--pie-accent); outline-offset: 3px; }',
+  '.btn:active { transform: translateY(1px); }',
+  '.btn--primary { background: var(--pie-accent); color: #fff; border-color: var(--pie-accent); }',
+  '.btn.is-active { background: var(--pie-accent); color: #fff; border-color: var(--pie-accent); }',
+  '',
+  '.menu {',
+  '  display: grid;',
+  '  grid-template-columns: 1fr;',
+  '  gap: 16px;',
+  '  list-style: none;',
+  '  padding: 0;',
+  '  margin: 0;',
+  '}',
+  '.card {',
+  '  background: var(--pie-card);',
+  '  border: 1px solid var(--pie-border);',
+  '  border-radius: 14px;',
+  '  padding: 16px;',
+  '  cursor: pointer;',
+  '  transition: transform 160ms ease;',
+  '}',
+  '.card:hover { transform: translateY(-2px); }',
+  '.card h3 { margin: 0 0 8px; font-size: 18px; }',
+  '.price { font-weight: 700; color: var(--pie-accent); margin: 0 0 4px; }',
+  '.out { font-weight: 700; min-height: 1.5em; }',
+  '',
+  '.hours { margin-top: 24px; }',
+  '.table-wrap { overflow-x: auto; }',
+  'table { width: 100%; border-collapse: collapse; background: var(--pie-card); border-radius: 14px; overflow: hidden; }',
+  'caption { text-align: left; font-weight: 600; padding: 8px 0; }',
+  'th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--pie-border); }',
+  '',
+  '.bottom { padding: 16px; background: var(--pie-card); border-top: 1px solid var(--pie-border); color: var(--pie-muted); }',
+  '',
+  '.modal { position: fixed; inset: 0; background: rgba(17,19,18,.5); display: grid; place-items: center; padding: 16px; }',
+  '.modal.hidden { display: none; }',
+  '.modal__box { background: var(--pie-card); border-radius: 14px; padding: 24px; max-width: 420px; width: 100%; }',
+  '',
+  '@media (min-width: 600px) { .menu { grid-template-columns: repeat(2, 1fr); } }',
+  '@media (min-width: 900px) { .menu { grid-template-columns: repeat(3, 1fr); } }',
+  '',
+  '@media (prefers-reduced-motion: reduce) {',
+  '  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }',
+  '}'
+].join("\n");
+
+const FILE_JS = [
+  'const PIES = [',
+  '  { id: "kalitka", name: "Калитка с картошкой", price: 45, kind: "солёное", parts: "Тесто ржаное, картофельное пюре, сметана, масло" },',
+  '  { id: "shanga", name: "Шаньга со сметаной", price: 50, kind: "солёное", parts: "Тесто дрожжевое, сметана, творог, масло" },',
+  '  { id: "rybnik", name: "Рыбник", price: 90, kind: "солёное", parts: "Тесто дрожжевое, филе трески, лук, специи" },',
+  '  { id: "brusnika", name: "Брусничный пирог", price: 70, kind: "сладкое", parts: "Тесто песочное, брусника, сахар, крахмал" },',
+  '  { id: "moroshka", name: "Морошковый пирог", price: 85, kind: "сладкое", parts: "Тесто песочное, морошка, сахар, крахмал" },',
+  '  { id: "cherniga", name: "Черничная ватрушка", price: 60, kind: "сладкое", parts: "Тесто сдобное, творог, черника, сахар" }',
+  '];',
+  '',
+  'const menu = document.querySelector("#menu");',
+  'const filters = document.querySelector("#filters");',
+  'const sortBtn = document.querySelector("#sortBtn");',
+  'const totalBtn = document.querySelector("#totalBtn");',
+  'const out = document.querySelector("#out");',
+  'const themeBtn = document.querySelector("#themeBtn");',
+  'const modal = document.querySelector("#modal");',
+  'const modalTitle = document.querySelector("#modalTitle");',
+  'const modalText = document.querySelector("#modalText");',
+  'const modalClose = document.querySelector("#modalClose");',
+  '',
+  'let currentKind = "все";',
+  'let sorted = false;',
+  '',
+  'function visiblePies() {',
+  '  return PIES.filter(function (pie) {',
+  '    return currentKind === "все" || pie.kind === currentKind;',
+  '  });',
+  '}',
+  '',
+  'function renderMenu() {',
+  '  let list = visiblePies();',
+  '  if (sorted) {',
+  '    list = [...list].sort(function (a, b) { return a.price - b.price; });',
+  '  }',
+  '  if (list.length === 0) {',
+  '    menu.innerHTML = "<li>Ничего не найдено</li>";',
+  '    return;',
+  '  }',
+  '  menu.innerHTML = list.map(function (pie) {',
+  '    return `<li class="card" data-id="${pie.id}"><h3>${pie.name}</h3><p class="price">${pie.price} ₽</p><p class="muted">${pie.kind}</p></li>`;',
+  '  }).join("");',
+  '}',
+  '',
+  'function openModal(pie) {',
+  '  modalTitle.textContent = pie.name;',
+  '  modalText.textContent = pie.parts;',
+  '  modal.classList.remove("hidden");',
+  '}',
+  'function closeModal() { modal.classList.add("hidden"); }',
+  '',
+  'filters.addEventListener("click", function (event) {',
+  '  const btn = event.target.closest("button");',
+  '  if (btn === null) return;',
+  '  currentKind = btn.dataset.kind;',
+  '  filters.querySelectorAll("button").forEach(function (b) {',
+  '    b.classList.toggle("is-active", b === btn);',
+  '  });',
+  '  renderMenu();',
+  '});',
+  '',
+  'sortBtn.addEventListener("click", function () {',
+  '  sorted = !sorted;',
+  '  sortBtn.textContent = sorted ? "Как в меню" : "Сначала дешёвые";',
+  '  renderMenu();',
+  '});',
+  '',
+  'totalBtn.addEventListener("click", function () {',
+  '  let total = 0;',
+  '  visiblePies().forEach(function (pie) { total = total + pie.price; });',
+  '  out.textContent = "Сумма всех позиций в списке: " + total + " ₽";',
+  '});',
+  '',
+  'menu.addEventListener("click", function (event) {',
+  '  const card = event.target.closest(".card");',
+  '  if (card === null) return;',
+  '  const pie = PIES.find(function (p) { return p.id === card.dataset.id; });',
+  '  if (pie) openModal(pie);',
+  '});',
+  '',
+  'modalClose.addEventListener("click", closeModal);',
+  'modal.addEventListener("click", function (event) {',
+  '  if (event.target === modal) closeModal();',
+  '});',
+  'document.addEventListener("keydown", function (event) {',
+  '  if (event.key === "Escape") closeModal();',
+  '});',
+  '',
+  'function applyTheme(theme) {',
+  '  if (theme === "dark") {',
+  '    document.documentElement.setAttribute("data-theme", "dark");',
+  '    themeBtn.textContent = "Светлая тема";',
+  '  } else {',
+  '    document.documentElement.removeAttribute("data-theme");',
+  '    themeBtn.textContent = "Тёмная тема";',
+  '  }',
+  '}',
+  'let savedTheme = "";',
+  'try { savedTheme = localStorage.getItem("pie-theme") || ""; } catch (e) {}',
+  'applyTheme(savedTheme);',
+  'themeBtn.addEventListener("click", function () {',
+  '  const isDark = document.documentElement.getAttribute("data-theme") === "dark";',
+  '  const next = isDark ? "light" : "dark";',
+  '  applyTheme(next);',
+  '  try { localStorage.setItem("pie-theme", next); } catch (e) {}',
+  '});',
+  '',
+  'renderMenu();'
+].join("\n");
+
+const FILE_SVG = [
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Брусничный пирог">',
+  '  <rect width="240" height="160" rx="16" fill="#f4f6f3"/>',
+  '  <ellipse cx="120" cy="122" rx="88" ry="16" fill="#d9c9a3"/>',
+  '  <path d="M32 122a88 42 0 0 1 176 0z" fill="#e8d7ae"/>',
+  '  <defs>',
+  '    <clipPath id="pie-top"><ellipse cx="120" cy="96" rx="88" ry="26"/></clipPath>',
+  '  </defs>',
+  '  <ellipse cx="120" cy="96" rx="88" ry="26" fill="#b23a48"/>',
+  '  <g clip-path="url(#pie-top)" stroke="#e8d7ae" stroke-width="10" stroke-linecap="round">',
+  '    <path d="M40 80l160 32"/>',
+  '    <path d="M40 112l160-32"/>',
+  '    <path d="M92 70l56 52"/>',
+  '    <path d="M148 70l-56 52"/>',
+  '  </g>',
+  '  <ellipse cx="120" cy="96" rx="88" ry="26" fill="none" stroke="#caa96f" stroke-width="6"/>',
+  '</svg>'
+].join("\n");
+
+/* ================= GITHUB: ШАГИ ================= */
+
+const GH_LINKS = [
+  { href:"https://github.com/", text:"github.com — твои репозитории" },
+  { href:"https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site", text:"Справка GitHub Pages — если настройка отличается" }
+];
+
+const GH_STEPS = [
+  { t:"<b>Открой репозиторий.</b> Зайди в <code>severny-pirog</code>, убедись что ты в ветке <code>main</code>. Файлы с занятий 13–14 на месте." },
+  { t:"<b>Обнови index.html.</b> Открой файл → карандаш (Edit) → выдели всё (Ctrl+A) → вставь готовый код из блока ниже → Commit changes: «index.html: страница буфета перед публикацией»." },
+  { t:"<b>Обнови style.css.</b> Тем же способом: Edit → Ctrl+A → вставить готовый CSS → commit «style.css: палитра, сетка и тёмная тема»." },
+  { t:"<b>Обнови script.js.</b> Edit → Ctrl+A → вставить готовый JS → commit «script.js: меню из данных, фильтр, сортировка, модалка»." },
+  { t:"<b>Создай картинку pie.svg.</b> Add file → Create new file → имя <code>pie.svg</code> (строчными!) → вставь код картинки → commit «pie.svg: картинка пирога для шапки»." },
+  { t:"<b>Проверь пути.</b> В index.html должны быть только <code>style.css</code>, <code>script.js</code>, <code>pie.svg</code> — без <code>C:</code>, без <code>file://</code>, без слэша в начале. У link обязателен <code>rel=\"stylesheet\"</code>." },
+  { t:"<b>Включи публикацию.</b> Settings → Pages → Build and deployment → Source: <b>Deploy from a branch</b> → Branch: <b>main</b> → папка <b>/ (root)</b> → Save." },
+  { t:"<b>Подожди 1–2 минуты.</b> Обнови страницу Settings → Pages: сверху появится адрес <code>https://ИМЯ.github.io/severny-pirog/</code>. Это публичная ссылка." },
+  { t:"<b>Открой ссылку.</b> Если страница без стилей или без картинки — F12 → Network → найди красную строку со статусом 404 → прочитай адрес, по которому браузер искал файл." },
+  { t:"<b>Исправь и обнови.</b> Поправь путь или регистр имени, закоммить, подожди обновления Pages, обнови страницу с <b>Ctrl+F5</b> (без кэша). В Network должно быть ноль строк 404." },
+  { t:"<b>Открой с телефона.</b> Или сузь окно до 360 px: текст читается, кнопки нажимаются, горизонтальной прокрутки нет, картинка на месте." },
+  { t:"<b>Создай README.md.</b> Add file → Create new file → имя <code>README.md</code> → вставь текст из пяти блоков (собери во вкладке «Практика» или через промпт) → commit «README: описание проекта и ссылка»." },
+  { t:"<b>Проверь README.</b> На главной странице репозитория виден текст README, ссылка в нём открывает живой сайт. Отправь ссылку другу — у него должно открыться всё." }
+];
+
+const GH_CHECK = [
+  { id:"g1", text:"index.html, style.css и script.js обновлены готовым кодом, каждый отдельным коммитом" },
+  { id:"g2", text:"pie.svg создан строчным именем, картинка открывается в шапке сайта" },
+  { id:"g3", text:"В index.html нет C:, file:// и href=\"/ — все пути относительные, у link есть rel" },
+  { id:"g4", text:"GitHub Pages включён: Settings → Pages → main → / (root)" },
+  { id:"g5", text:"Публичная ссылка получена и открывается в браузере" },
+  { id:"g6", text:"Ссылка открыта с телефона или в узком окне: страница не сломана" },
+  { id:"g7", text:"DevTools → Network: ноль строк со статусом 404" },
+  { id:"g8", text:"README.md создан из пяти блоков, ссылка в нём ведёт на живой сайт" }
+];
+
+/* ================= ПРАКТИКА ================= */
+
+const PATHS = [
+  { code:'<link rel="stylesheet" href="style.css">', ok:true, why:"Относительный путь: файл лежит рядом со страницей. Работает и локально, и после публикации в любой папке." },
+  { code:'<link rel="stylesheet" href="/style.css">', ok:false, why:"Слэш в начале — путь от корня сайта. Проект опубликован в папке /severny-pirog/, поэтому браузер ищет style.css в корне и получает 404." },
+  { code:'<img src="C:\\Users\\Ученик\\pie.svg" alt="">', ok:false, why:"Путь с диска существует только на твоём компьютере. На сервере такого адреса нет — картинка не загрузится." },
+  { code:'<img src="pie.svg" alt="Брусничный пирог">', ok:true, why:"Относительный путь и строчное имя файла. Именно так картинка найдётся и локально, и на сервере." },
+  { code:'<img src="Pie.SVG" alt="">  (файл называется pie.svg)', ok:false, why:"Windows не различает регистр, сервер различает: Pie.SVG и pie.svg — разные файлы. На сервере будет 404." },
+  { code:'<script src="script.js"></' + 'script>', ok:true, why:"Относительный путь к скрипту в конце body. Разметка уже существует, скрипт найдёт все элементы." },
+  { code:'<link href="style.css">  (без rel)', ok:false, why:"Без rel=\"stylesheet\" браузер молча пропустит строку: файл на месте, путь верный, ошибок нет — а стилей нет." },
+  { code:'<img src="file:///C:/pie.svg" alt="">', ok:false, why:"file:// — адрес локального файла. После публикации у посетителя нет доступа к твоему диску, нужен относительный путь." }
+];
+
+const QUIZ = [
+  { q:"Что значит «сайт опубликован»?",
+    options:["Код красиво написан и лежит в репозитории","Файлы открыты двойным кликом на твоём компьютере","Файлы лежат на сервере, у места есть адрес, соединение защищено https","Сайт добавлен в закладки браузера"],
+    correct:2, why:"Публикация — это три условия: файлы на сервере, публичный адрес и https. Ни одно из них не про качество кода." },
+  { q:"Чего НЕ может статический сайт?",
+    options:["Хранить общие для всех посетителей данные на сервере","Показывать меню и картинки","Реагировать на нажатия в браузере","Переключать тёмную тему"],
+    correct:0, why:"Статический сервер отдаёт готовые файлы и ничего не вычисляет. Общие данные требуют серверной части — это за пределами курса." },
+  { q:"Что такое CI/CD на нашем курсе?",
+    options:["Команда для запуска сервера вручную","Программа для написания кода","Способ сжать файлы перед отправкой","Настроил один раз — каждый коммит в main сам обновляет публичную версию"],
+    correct:3, why:"GitHub Pages настроен один раз в Settings. Дальше коммит в main автоматически пересобирает и публикует сайт — отдельной команды деплоя нет." },
+  { q:"Стилей нет, в консоли пусто, файл style.css на месте и путь верный. Причина?",
+    options:["Файл слишком большой","У строки link нет атрибута rel=\"stylesheet\"","Браузер не поддерживает CSS","Нужно перезагрузить компьютер"],
+    correct:1, why:"Без rel=\"stylesheet\" браузер не понимает, что это таблица стилей, и молча пропускает строку. Ошибок при этом не будет." },
+  { q:"Какой путь работает и локально, и после публикации?",
+    options:["style.css","/style.css","C:\\Users\\Ученик\\style.css","file:///C:/style.css"],
+    correct:0, why:"Относительный путь от текущей страницы — единственный вид, разрешённый внутри проекта. Остальные ломаются после публикации." },
+  { q:"Локально картинка Pie.SVG открывалась, на сервере — 404. Почему?",
+    options:["Картинка слишком тяжёлая для сервера","Сервер не поддерживает SVG","Windows не различает регистр имени, а сервер различает","Нужен другой браузер"],
+    correct:2, why:"Для Windows Pie.SVG и pie.svg — один файл, для сервера — разные. Правило курса: латиница, нижний регистр, без пробелов." },
+  { q:"После публикации браузер показывает старую версию стилей. Что сделать?",
+    options:["Удалить репозиторий и создать заново","Обновить страницу с очисткой кэша: Ctrl+F5","Переименовать style.css","Подождать сутки"],
+    correct:1, why:"Кэш браузера хранит копию старых файлов. Ctrl+F5 загружает свежую версию. Если не помогло — проверь, что коммит дошёл до Pages." },
+  { q:"Сколько блоков в README и что идёт сразу после названия?",
+    options:["Три блока; после названия — стек","Шесть блоков; после названия — установка","Пять блоков; после названия — лицензия","Пять блоков; ссылка на опубликованную версию сразу после названия"],
+    correct:3, why:"README из пяти блоков: название и одна фраза, ссылка, стек, что умеет, что сделано с ИИ. Ссылка идёт сразу после названия, до всего остального." }
+];
+
+const README_FIELDS = [
+  { key:"title", title:"Блок 1 · Название и одна фраза", hint:"Например: «Северный пирог — сайт школьного буфета с меню на неделю».", ph:"# Северный пирог — сайт школьного буфета\nМеню, цены и часы работы в одном месте." },
+  { key:"link", title:"Блок 2 · Ссылка на сайт", hint:"Публичный адрес из Settings → Pages. Начинается с https://.", ph:"https://имя.github.io/severny-pirog/" },
+  { key:"stack", title:"Блок 3 · Стек", hint:"Честно: только то, что реально использовано.", ph:"HTML, CSS, JavaScript. Без фреймворков и сборщиков." },
+  { key:"features", title:"Блок 4 · Что умеет", hint:"По строке на возможность, без слов «функционал», «реализовано», «современный».", ph:"- меню из шести позиций рисуется из массива данных\n- фильтр «сладкое / солёное» и сортировка по цене\n- модальное окно с составом пирога\n- тёмная тема, запоминается между визитами\n- подсчёт суммы позиций в списке" },
+  { key:"ai", title:"Блок 5 · Что сделано с помощью ИИ", hint:"Конкретно и честно: что предложил ИИ и что ты проверил руками.", ph:"- картинка pie.svg подготовлена по образцу, пути и имена проверены вручную\n- текст README сформулирован с помощью ИИ и сверен с реальными возможностями сайта\n- сообщения коммитов проверялись по правилам курса" }
+];
+
+const AI_PROMPT = [
+  'Контекст: я школьник, сделал учебный одностраничный сайт школьного буфета «Северный пирог» на HTML, CSS и JavaScript без фреймворков и без сборщиков. Проект опубликован по ссылке https://<сюда свой адрес>/ и лежит в репозитории.',
+  '',
+  'Что сайт умеет (это факты, ничего не добавляй от себя):',
+  '- меню из шести позиций рисуется из массива данных',
+  '- фильтр «сладкое / солёное» и сортировка по цене',
+  '- модальное окно с составом пирога',
+  '- подсчёт суммы позиций в текущем списке',
+  '- тёмная тема, запоминается между визитами',
+  '- картинка pie.svg подключена относительным путём',
+  '',
+  'Что сделано с помощью ИИ (тоже факты):',
+  '- картинка pie.svg подготовлена по образцу из рабочего листа, имена и пути проверены вручную',
+  '- текст README сформулирован с помощью ИИ и сверен с реальными возможностями сайта',
+  '',
+  'Задача: напиши README.md для этого проекта.',
+  '',
+  'Ограничения:',
+  '- пять блоков в таком порядке: название и одна фраза о проекте; ссылка на опубликованную версию; стек; что умеет; что сделано с помощью ИИ;',
+  '- ссылка идёт сразу после названия, до всего остального;',
+  '- ничего не выдумывать: если факта нет в списке выше — его нет в README;',
+  '- не писать про установку, сборку, npm, зависимости и лицензию — их в проекте нет;',
+  '- «что умеет» — по одной строке на пункт, без слов «функционал», «реализовано», «современный».',
+  '',
+  'Формат ответа: готовый текст README.md в разметке Markdown, без пояснений до и после.',
+  '',
+  'Критерии проверки: посторонний человек, прочитав README за минуту, понимает, что это за проект и где на него посмотреть.'
+].join("\n");
+
+const AI_CHECK = [
+  "Ссылка в README на месте и открывает живой сайт",
+  "Ни одной выдуманной возможности: всё перечисленное сайт действительно делает",
+  "Нет разделов про установку, сборку, npm и зависимости",
+  "Блок про ИИ конкретен: понятно, что предложил ИИ и что проверено руками",
+  "Стек честный: HTML, CSS, JavaScript без фреймворков",
+  "Могу пересказать README своими словами за минуту"
+];
+
+/* ================= СОСТОЯНИЕ ================= */
+
+const STORAGE_KEY = "wdc-l15-worksheet-v1";
+
+let state = {
+  started:false, tab:1,
+  termsLearned:{},
+  gh:{},
+  paths: PATHS.map(function(){ return { answered:false, chosen:"", correct:false }; }),
+  quiz: QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; }),
+  readme:{ title:"", link:"", stack:"", features:"", ai:"", results:null, checked:false },
+  aiCheck: AI_CHECK.map(function(){ return false; }),
+  reflect:"",
+  finished:false
+};
+
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && typeof parsed === "object") state = deepMerge(state, parsed);
+  }catch(e){}
+  if(!Array.isArray(state.paths) || state.paths.length !== PATHS.length) state.paths = PATHS.map(function(){ return { answered:false, chosen:"", correct:false }; });
+  if(!Array.isArray(state.quiz) || state.quiz.length !== QUIZ.length) state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+  if(!Array.isArray(state.aiCheck) || state.aiCheck.length !== AI_CHECK.length) state.aiCheck = AI_CHECK.map(function(){ return false; });
+  if(!state.readme) state.readme = { title:"", link:"", stack:"", features:"", ai:"", results:null, checked:false };
+  if(!state.gh) state.gh = {};
+}
+function deepMerge(target, source){
+  const out = Object.assign({}, target);
+  for(const k in source){
+    if(source[k] && typeof source[k] === "object" && !Array.isArray(source[k])) out[k] = deepMerge(target[k] || {}, source[k]);
+    else out[k] = source[k];
+  }
+  return out;
+}
+
+/* ---------- Подсчёты ---------- */
+function termsCount(){ return Object.values(state.termsLearned).filter(Boolean).length; }
+function ghCount(){ return GH_CHECK.filter(function(c){ return state.gh[c.id]; }).length; }
+function pathsScore(){ return state.paths.filter(function(p){ return p.correct; }).length; }
+function pathsAnswered(){ return state.paths.filter(function(p){ return p.answered; }).length; }
+function quizScore(){ return state.quiz.filter(function(q){ return q.correct; }).length; }
+function quizAnswered(){ return state.quiz.filter(function(q){ return q.answered; }).length; }
+function readmeOk(){
+  if(!state.readme.checked || !state.readme.results) return 0;
+  return README_FIELDS.filter(function(f){ return state.readme.results[f.key].length === 0; }).length;
+}
+function aiCount(){ return state.aiCheck.filter(Boolean).length; }
+function practiceMax(){ return PATHS.length + QUIZ.length + README_FIELDS.length; }
+function practiceScore(){ return pathsScore() + quizScore() + readmeOk(); }
+
+function validateReadme(){
+  const res = { title:[], link:[], stack:[], features:[], ai:[] };
+  const r = state.readme;
+  const title = r.title.trim();
+  if(!title) res.title.push("блок пустой");
+  else if(title.length < 10) res.title.push("слишком коротко: нужно название и одна фраза о проекте");
+
+  const link = r.link.trim();
+  if(!link) res.link.push("ссылка не вставлена");
+  else {
+    if(!/^https:\/\//i.test(link)) res.link.push("ссылка должна начинаться с https://");
+    if(/file:|^[a-z]:\\/i.test(link)) res.link.push("это локальный путь, а не публичная ссылка");
+    if(link.indexOf("localhost") !== -1 || link.indexOf("127.0.0.1") !== -1) res.link.push("localhost доступен только тебе, нужна публичная ссылка");
+    if(link.indexOf(".") === -1) res.link.push("адрес не похож на публичный сайт");
+  }
+
+  const stack = r.stack.toLowerCase();
+  ["html","css","javascript"].forEach(function(w){
+    if(stack.indexOf(w) === -1) res.stack.push("не назван " + w.toUpperCase());
+  });
+
+  const feat = r.features.trim();
+  if(!feat) res.features.push("блок пустой");
+  else {
+    const lines = feat.split("\n").filter(function(l){ return l.trim(); });
+    if(lines.length < 3) res.features.push("нужно минимум три строки: по одной на возможность");
+    ["функционал","реализовано","современный"].forEach(function(w){
+      if(feat.toLowerCase().indexOf(w) !== -1) res.features.push("запрещённое слово: «" + w + "»");
+    });
+  }
+
+  const ai = r.ai.trim();
+  if(!ai) res.ai.push("блок пустой: напиши честно, что сделано с помощью ИИ");
+  else if(ai.length < 20) res.ai.push("слишком коротко: назови конкретно, что сделал ИИ и что проверено руками");
+  return res;
+}
+
+function countProgress(){
+  let filled = termsCount() + ghCount() + pathsAnswered() + quizAnswered() + aiCount();
+  filled += state.readme.checked ? README_FIELDS.length : README_FIELDS.filter(function(f){ return (state.readme[f.key] || "").trim(); }).length;
+  filled += state.reflect.trim() ? 1 : 0;
+  const total = TERMS.length + GH_CHECK.length + PATHS.length + QUIZ.length + AI_CHECK.length + README_FIELDS.length + 1;
+  return { filled:filled, total:total, percent: total ? Math.round(filled/total*100) : 0 };
+}
+
+/* ---------- Рендер ---------- */
+const app = document.getElementById("app");
+
+function render(){
+  const p = countProgress();
+  let html = renderTopbar(p);
+  if(!state.started){
+    html += '<main class="no-tabs">' + renderStart() + '</main>';
+    app.innerHTML = html; bindHandlers(app); return;
+  }
+  html += renderTabNav();
+  html += "<main>";
+  html += '<div class="tab-page" data-page="1"' + (state.tab===1?"":" hidden") + ">" + renderTab1() + "</div>";
+  html += '<div class="tab-page" data-page="2"' + (state.tab===2?"":" hidden") + ">" + renderTab2() + "</div>";
+  html += '<div class="tab-page" data-page="3"' + (state.tab===3?"":" hidden") + ">" + renderTab3() + "</div>";
+  html += '<div class="tab-page" data-page="4"' + (state.tab===4?"":" hidden") + ">" + renderTab4() + "</div>";
+  html += "</main>" + renderActions();
+  app.innerHTML = html;
+  bindHandlers(app);
+  state.quiz.forEach(function(st,i){ if(st.answered){ const c=document.querySelector('[data-quiz="'+i+'"]'); if(c) paintQuiz(c,i); } });
+}
+
+function renderTopbar(p){
+  return '<div class="topbar" role="banner"><div class="topbar-inner"><div class="brand"><div class="brand-title">'+escapeHtml(COURSE.title)+'</div><div class="brand-sub">'+escapeHtml(COURSE.teacher)+' · '+escapeHtml(COURSE.grade)+' · публикуем на github.com</div></div><div class="progress-wrap" aria-label="Прогресс заполнения"><div class="progress-bar" role="progressbar" aria-valuenow="'+p.percent+'" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" style="width:'+p.percent+'%"></div></div><div class="progress-num">'+p.percent+'%</div></div></div></div>';
+}
+
+function renderStart(){
+  return '<section class="hero" aria-labelledby="hero-title"><span class="hero-badge">● Занятие 15 из 24 · модуль 6, контрольная точка</span><h1 id="hero-title">'+escapeHtml(COURSE.subtitle)+'</h1><p>Сегодня у сайта появляется адрес. Репозиторий severny-pirog уже живёт на GitHub — осталось вставить три готовых файла, прикрепить картинку, включить публикацию и открыть ссылку с телефона. В конце — README, который расскажет о проекте за минуту.</p><div class="hero-meta"><span class="chip">👤 <b>'+escapeHtml(COURSE.teacher)+'</b></span><span class="chip">🎓 '+escapeHtml(COURSE.grade)+'</span><span class="chip">🗂 4 вкладки: теория · публикация · практика · отчёт</span><span class="chip">⏱ 80 минут</span></div><button class="btn btn-primary btn-lg" data-action="start">Начать работу<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button></section>';
+}
+
+function renderTabNav(){
+  const done3 = practiceScore() === practiceMax();
+  const repBadge = state.finished ? '<span class="tab-badge '+(done3?"done":"")+'">'+practiceScore()+'/'+practiceMax()+'</span>' : '<span class="tab-badge lock">закрыт</span>';
+  return '<nav class="tabnav" aria-label="Вкладки листа">'
+    + '<button class="tab-btn '+(state.tab===1?"active":"")+'" data-tab="1">1 · Теория <span class="tab-badge '+(termsCount()===TERMS.length?"done":"")+'">'+termsCount()+'/'+TERMS.length+'</span></button>'
+    + '<button class="tab-btn '+(state.tab===2?"active":"")+'" data-tab="2">2 · Публикация <span class="tab-badge '+(ghCount()===GH_CHECK.length?"done":"")+'">'+ghCount()+'/'+GH_CHECK.length+'</span></button>'
+    + '<button class="tab-btn '+(state.tab===3?"active":"")+'" data-tab="3">3 · Практика <span class="tab-badge '+(done3?"done":"")+'">'+practiceScore()+'/'+practiceMax()+'</span></button>'
+    + '<button class="tab-btn '+(state.tab===4?"active":"")+'" data-tab="4">4 · Отчёт '+repBadge+'</button></nav>';
+}
+
+/* ---------- Вкладка 1 ---------- */
+function renderTab1(){
+  const learned = termsCount();
+  return '<div class="hero-mini"><span class="hero-badge">● Теория занятия</span><h1>Сегодня у сайта появится адрес</h1><p>Отправь другу ссылку file:///C:/Users/Ученик/Desktop/severny-pirog/index.html — у него не откроется ничего. Этот адрес существует только на твоём компьютере. Публикация переносит файлы туда, откуда их отдают всем желающим.</p></div>'
+  + '<div class="instruction"><b>Что значит «опубликован» — три условия:</b><ul><li>файлы лежат на сервере, а не на твоём диске;</li><li>у места есть публичный адрес;</li><li>соединение защищено (https).</li></ul>Ни одно из них не про качество кода. Код может быть идеальным — и всё равно невидимым, пока не опубликован.</div>'
+  + '<div class="section-head"><div class="section-num">Т</div><div class="section-title-wrap"><h2 class="section-title">Двенадцать слов занятия</h2><p class="section-sub">Отметь те, что можешь объяснить своими словами.</p></div><span class="section-status '+(learned===TERMS.length?"done":"")+'" data-terms-status>'+learned+'/'+TERMS.length+'</span></div>'
+  + '<div class="terms-grid" role="list">' + TERMS.map(renderTerm).join("") + '</div>'
+  + '<div class="section-head"><div class="section-num">П</div><div class="section-title-wrap"><h2 class="section-title">Три вида путей — один правильный</h2><p class="section-sub">Все три «плохих» варианта локально могут сработать и все упадут после публикации.</p></div></div>'
+  + '<div class="good-bad"><div class="gb-box good"><b>Так работает везде</b><ul>' + PATH_GOOD.map(function(p){ return "<li><code>"+escapeHtml(p)+"</code></li>"; }).join("") + '</ul></div><div class="gb-box bad"><b>Так сломается после публикации</b><ul>' + PATH_BAD.map(function(p){ return "<li><code>"+escapeHtml(p)+"</code></li>"; }).join("") + '</ul></div></div>'
+  + '<div class="rules-card"><h3>Правила имён и путей</h3><ul><li>Внутри проекта — только относительные пути: <code>style.css</code>, <code>pie.svg</code>, <code>script.js</code>.</li><li>Имена файлов — латиницей, строчными, без пробелов: <code>pie.svg</code>, не <code>Pie.SVG</code> и не <code>моя картинка.svg</code>.</li><li>У <code>&lt;link&gt;</code> обязателен <code>rel="stylesheet"</code>, иначе браузер молча пропустит строку.</li><li>Скрипт — в конце <code>&lt;body&gt;</code>, чтобы разметка уже существовала.</li></ul></div>'
+  + '<div class="section-head"><div class="section-num">Д</div><div class="section-title-wrap"><h2 class="section-title">Диагностика: стили не приехали</h2><p class="section-sub">Локально было идеально, код не менялся — изменился адрес, и всё сломалось.</p></div></div>'
+  + '<div class="instruction"><b>Порядок действий, если страница открылась без стилей или картинки:</b><ol><li>Открой DevTools (F12) → вкладка <b>Network</b>.</li><li>Обнови страницу. Найди красную строку со статусом <b>404</b>.</li><li>Прочитай адрес, по которому браузер искал файл: там будет лишний слэш, диск или неверный регистр.</li><li>Исправь путь или имя файла в репозитории, закоммить.</li><li>Подожди обновления Pages, обнови страницу с <b>Ctrl+F5</b> — кэш мог сохранить старую версию.</li></ol></div>'
+  + '<div class="section-head"><div class="section-num">Р</div><div class="section-title-wrap"><h2 class="section-title">README: паспорт проекта</h2><p class="section-sub">GitHub показывает README на главной странице репозитория. Пять блоков, ссылка сразу после названия.</p></div></div>'
+  + '<div class="rules-card"><h3>Пять блоков README</h3><ol><li>Название и одна фраза о проекте.</li><li>Ссылка на опубликованную версию — сразу после названия.</li><li>Стек: честно, только то, что использовано.</li><li>Что умеет: по строке на возможность.</li><li>Что сделано с помощью ИИ: конкретно и честно.</li></ol></div>'
+  + '<div class="section-head"><div class="section-num">С</div><div class="section-title-wrap"><h2 class="section-title">Где это на сайте</h2><p class="section-sub">Команды терминала не нужны: публикация включается кнопками GitHub.</p></div></div>'
+  + '<div style="overflow-x:auto"><table class="tags-table"><thead><tr><th>Элемент</th><th>Что делает</th></tr></thead><tbody>' + SITE_ACTIONS.map(function(c){ return '<tr><td><span class="tag-code">'+escapeHtml(c.code)+'</span>'+(c.used?'<span class="tag-used">СЕГОДНЯ</span>':'')+'</td><td>'+escapeHtml(c.desc)+'</td></tr>'; }).join("") + '</tbody></table></div>';
+}
+
+function renderTerm(t){
+  const learned = !!state.termsLearned[t.key];
+  return '<div class="term '+(learned?"learned":"")+'" data-term="'+t.key+'" role="listitem" tabindex="0" aria-pressed="'+learned+'"><div class="term-head"><span class="term-name">'+escapeHtml(t.name)+'</span><span class="term-check"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span></div><div class="term-def">'+escapeHtml(t.def)+'</div></div>';
+}
+
+/* ---------- Вкладка 2 ---------- */
+function renderTab2(){
+  return '<div class="hero-mini"><span class="hero-badge">● Публикация severny-pirog</span><h1>Три файла, картинка и публичная ссылка</h1><p>Ниже — три готовых файла проекта и картинка. Скопируй каждый в свой репозиторий через Edit или Create new file, затем включи GitHub Pages. Код уже написан с относительными путями и строчными именами — именно так он переживёт публикацию.</p></div>'
+  + '<div class="ext-links">' + GH_LINKS.map(function(l){ return '<a class="ext-link" href="'+l.href+'" target="_blank" rel="noopener">'+escapeHtml(l.text)+' ↗</a>'; }).join("") + '</div>'
+  + '<div class="section-head"><div class="section-num blue">Ш</div><div class="section-title-wrap"><h2 class="section-title">Тринадцать шагов на сайте</h2><p class="section-sub">Код файлов — блоками с кнопкой «Копировать» ниже шагов.</p></div></div>'
+  + '<div class="gh-steps">' + GH_STEPS.map(function(s,i){ return '<div class="gh-step"><span class="n">'+(i+1)+'</span><span class="t">'+s.t+'</span></div>'; }).join("") + '</div>'
+  + '<div class="section-head"><div class="section-num blue">Ф</div><div class="section-title-wrap"><h2 class="section-title">Готовые файлы для репозитория</h2><p class="section-sub">Копируй целиком. Имена файлов пиши точно так же, строчными латинскими буквами.</p></div></div>'
+  + '<div class="code-block" data-file="index.html"><button class="copy-btn" data-copy="index" type="button">Копировать</button>' + escapeHtml(FILE_INDEX) + '</div>'
+  + '<div class="code-block" data-file="style.css"><button class="copy-btn" data-copy="css" type="button">Копировать</button>' + escapeHtml(FILE_CSS) + '</div>'
+  + '<div class="code-block" data-file="script.js"><button class="copy-btn" data-copy="js" type="button">Копировать</button>' + escapeHtml(FILE_JS) + '</div>'
+  + '<div class="code-block short" data-file="pie.svg · картинка"><button class="copy-btn" data-copy="svg" type="button">Копировать</button>' + escapeHtml(FILE_SVG) + '</div>'
+  + '<div class="instruction"><b>Что делает этот сайт:</b> меню из шести пирогов рисуется из массива данных; фильтр «сладкое / солёное» и сортировка по цене; нажатие на карточку открывает окно с составом; кнопка считает сумму позиций в списке; тёмная тема запоминается между визитами. Картинка <code>pie.svg</code> подключена относительным путём — если её не создать, в Network появится 404, и это будет видно сразу.</div>'
+  + '<div class="section-head"><div class="section-num blue">Ч</div><div class="section-title-wrap"><h2 class="section-title">Чек-лист: сайт опубликован</h2><p class="section-sub">Отмечай по мере выполнения. Всё попадёт в отчёт.</p></div></div>'
+  + '<div class="checklist" role="group" aria-label="Чек-лист публикации">' + GH_CHECK.map(function(c){ const on=!!state.gh[c.id]; return '<div class="check-item '+(on?"checked":"")+'" data-gh="'+c.id+'" role="checkbox" aria-checked="'+on+'" tabindex="0"><span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span><span class="check-text">'+escapeHtml(c.text)+'</span></div>'; }).join("") + '</div>';
+}
+
+/* ---------- Вкладка 3 ---------- */
+function renderTab3(){
+  return '<div class="hero-mini"><span class="hero-badge">● Практика занятия</span><h1>Пути, диагностика и README</h1><p>Сначала разберись, какие пути переживут публикацию. Потом ответь на вопросы о деплое и диагностике. В конце собери README из пяти блоков — его можно отправить в ИИ по промпту ниже и проверить руками.</p></div>'
+  + '<h3 class="sub-title">Часть 1. Пути: сработает или сломается?</h3><p class="section-sub" style="margin-bottom:12px">Восемь строк из проекта. Реши по каждой: сработает она и локально, и после публикации — или сломается. Попытка одна.</p>'
+  + '<span class="score-chip" data-paths-score>Верно: '+pathsScore()+' из '+PATHS.length+'</span>'
+  + PATHS.map(renderPathRow).join("")
+  + '<div class="divider"></div>'
+  + '<h3 class="sub-title">Часть 2. Восемь вопросов о деплое</h3><span class="score-chip" data-quiz-score>Верно: '+quizScore()+' из '+QUIZ.length+'</span>'
+  + QUIZ.map(renderQuizCard).join("")
+  + '<div class="divider"></div>'
+  + '<h3 class="sub-title">Часть 3. README из пяти блоков</h3><p class="section-sub" style="margin-bottom:12px">Заполни пять блоков для своего проекта. Автопроверка посмотрит: ссылка публичная, стек честный, возможностей не меньше трёх, блок про ИИ конкретен.</p>'
+  + renderReadme()
+  + '<div class="no-print" style="margin-bottom:6px"><button class="btn btn-secondary" data-action="check-readme" type="button">Проверить README</button></div>'
+  + (state.readme.checked ? renderReadmeSummary() : '')
+  + '<div class="divider"></div>'
+  + '<h3 class="sub-title">Промпт для ИИ: модель пишет README — ты отвечаешь за правду</h3><p class="section-sub" style="margin-bottom:12px">Список фактов в промпте уже соответствует трём файлам выше. Если ты что-то не добавлял — убери строку перед отправкой. Вставь свой адрес вместо заглушки.</p>'
+  + '<div class="prompt-box" aria-label="Промпт для ИИ"><button class="copy-btn" data-action="copy-prompt" type="button">Копировать</button>' + escapeHtml(AI_PROMPT) + '</div>'
+  + '<div class="checklist" role="group" aria-label="Проверка README руками"><div class="checklist-title">Проверил README руками</div>' + AI_CHECK.map(function(text,i){ const on=state.aiCheck[i]; return '<div class="check-item '+(on?"checked":"")+'" data-aicheck="'+i+'" role="checkbox" aria-checked="'+on+'" tabindex="0"><span class="check-box"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="4 12 10 18 20 6"/></svg></span><span class="check-text">'+escapeHtml(text)+'</span></div>'; }).join("") + '</div>'
+  + '<div class="field"><label class="field-label" for="reflect">Рефлексия: что сломалось после публикации и как ты это починил?</label><textarea class="field-input '+(state.reflect.trim()?"filled":"")+'" id="reflect" data-reflect placeholder="Две-три строки. Если ничего не сломалось — напиши, что проверил в Network и на телефоне.">' + escapeHtml(state.reflect) + '</textarea></div>'
+  + '<div class="instruction">Когда все части пройдены, переходи во вкладку <b>4 · Отчёт</b> и нажимай «Завершить занятие»: отчёт откроется для сохранения в PDF.</div>';
+}
+
+function renderPathRow(p,i){
+  const st = state.paths[i];
+  function btn(val,label){
+    let cls = "path-btn";
+    if(st.answered){
+      if(st.chosen === val) cls += st.correct ? " correct" : " wrong";
+      else if((p.ok && val==="ok") || (!p.ok && val==="bad")) cls += " correct";
+    }
+    return '<button type="button" class="'+cls+'" data-path="'+i+':'+val+'" '+(st.answered?"disabled":"")+'>'+label+'</button>';
+  }
+  let fb = "";
+  if(st.answered){
+    fb = '<div class="quiz-feedback '+(st.correct?"good":"bad")+'"><b>'+(st.correct?"Верно. ":"Не совсем. ")+'</b>'+escapeHtml(p.why)+'</div>';
+  }
+  return '<div class="path-row" data-path-row="'+i+'"><div class="path-top"><div class="path-code">'+escapeHtml(p.code)+'</div><div class="path-btns">'+btn("ok","Сработает")+btn("bad","Сломается")+'</div></div>'+fb+'</div>';
+}
+
+function renderQuizCard(q,i){
+  return '<div class="quiz-card" data-quiz="'+i+'"><span class="quiz-mod">ВОПРОС '+(i+1)+' ИЗ '+QUIZ.length+'</span><div class="quiz-q">'+escapeHtml(q.q)+'</div><div class="quiz-options" role="group" aria-label="Варианты ответа">' + q.options.map(function(opt,j){ return '<button type="button" class="quiz-opt" data-quiz-opt="'+i+':'+j+'">'+escapeHtml(opt)+'</button>'; }).join("") + '</div><div class="quiz-feedback hidden"></div></div>';
+}
+
+function renderReadme(){
+  const r = state.readme;
+  function verdict(key){
+    if(!r.checked || !r.results) return "";
+    const probs = r.results[key];
+    if(probs.length === 0) return '<div class="msg-verdict ok"><b>Блок принят.</b></div>';
+    return '<div class="msg-verdict bad"><b>Блок не принят.</b><ul>'+probs.map(function(p){ return "<li>"+escapeHtml(p)+"</li>"; }).join("")+'</ul></div>';
+  }
+  return README_FIELDS.map(function(f){
+    const val = r[f.key] || "";
+    const isLink = f.key === "link";
+    const input = isLink
+      ? '<input class="field-input '+(val.trim()?"filled":"")+'" data-readme="'+f.key+'" type="text" autocomplete="off" value="'+escapeHtml(val)+'" placeholder="'+escapeHtml(f.ph)+'">'
+      : '<textarea class="field-input '+(val.trim()?"filled":"")+'" data-readme="'+f.key+'" placeholder="'+escapeHtml(f.ph)+'">'+escapeHtml(val)+'</textarea>';
+    return '<div class="msg-card"><h4>'+escapeHtml(f.title)+'</h4><div class="msg-diff">'+escapeHtml(f.hint)+'</div><div class="field">'+input+'</div>'+verdict(f.key)+'</div>';
+  }).join("");
+}
+
+function renderReadmeSummary(){
+  const ok = readmeOk();
+  return '<div class="instruction">Принято блоков: <b>'+ok+' из '+README_FIELDS.length+'</b>. '+(ok===README_FIELDS.length?"Такой README посторонний человек поймёт за минуту.":"Поправь отмеченные блоки и нажми «Проверить README» ещё раз.")+'</div>';
+}
+
+/* ---------- Вкладка 4 ---------- */
+function renderTab4(){ return state.finished ? renderTab4Full() : renderTab4Locked(); }
+
+function lockRow(title,cls,text){
+  return '<li><span class="lk '+cls+'">'+(cls==="ok"?"готово":(cls==="part"?"в процессе":"не начато"))+'</span><span><b>'+escapeHtml(title)+'.</b> '+escapeHtml(text)+'</span></li>';
+}
+
+function renderTab4Locked(){
+  const rows = [
+    lockRow("Теория: термины", termsCount()===TERMS.length?"ok":(termsCount()?"part":""), "отмечено "+termsCount()+" из "+TERMS.length),
+    lockRow("Публикация: чек-лист", ghCount()===GH_CHECK.length?"ok":(ghCount()?"part":""), "отмечено "+ghCount()+" из "+GH_CHECK.length),
+    lockRow("Часть 1: пути", pathsAnswered()===PATHS.length?"ok":(pathsAnswered()?"part":""), "отвечено "+pathsAnswered()+" из "+PATHS.length),
+    lockRow("Часть 2: вопросы", quizAnswered()===QUIZ.length?"ok":(quizAnswered()?"part":""), "отвечено "+quizAnswered()+" из "+QUIZ.length),
+    lockRow("Часть 3: README", state.readme.checked?(readmeOk()===README_FIELDS.length?"ok":"part"):(README_FIELDS.some(function(f){ return (state.readme[f.key]||"").trim(); })?"part":""), state.readme.checked?"принято блоков "+readmeOk()+" из "+README_FIELDS.length:"не проверено кнопкой"),
+    lockRow("Проверка README руками", aiCount()===AI_CHECK.length?"ok":(aiCount()?"part":""), "отмечено "+aiCount()+" из "+AI_CHECK.length),
+    lockRow("Рефлексия", state.reflect.trim()?"ok":"", state.reflect.trim()?"заполнена":"не заполнена")
+  ].join("");
+  return '<div class="hero-mini"><span class="hero-badge">● Отчёт пока закрыт</span><h1>Сначала практика, потом отчёт</h1><p>Здесь видно, сколько пройдено, но не видно правильных ответов. Закончи части во вкладке 3 и нажми «Завершить занятие» — отчёт откроется целиком для PDF.</p></div><ul class="lock-list">'+rows+'</ul><div class="rep-note">Пути и вопросы блокируются после ответа, README — после проверки, поэтому после завершения отчёта изменить результаты нельзя: смотреть его безопасно.</div><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-primary" data-action="finish" type="button">Завершить занятие и открыть отчёт</button><button class="btn btn-secondary" data-action="goto-3" type="button">Вернуться к практике</button></div>';
+}
+
+function renderTab4Full(){
+  const pathRows = PATHS.map(function(p,i){
+    const st = state.paths[i];
+    const mark = !st.answered ? '<span class="rep-mark wait">—</span>' : (st.correct?'<span class="rep-mark ok">✓</span>':'<span class="rep-mark bad">✗</span>');
+    const yours = st.answered ? (st.chosen==="ok"?"сработает":"сломается") : "нет ответа";
+    return '<tr><td><code>'+escapeHtml(p.code)+'</code></td><td>'+yours+'</td><td>'+(p.ok?"сработает":"сломается")+'</td><td>'+mark+'</td></tr>';
+  }).join("");
+  const quizRows = QUIZ.map(function(q,i){
+    const st = state.quiz[i];
+    const mark = !st.answered ? '<span class="rep-mark wait">—</span>' : (st.correct?'<span class="rep-mark ok">✓</span>':'<span class="rep-mark bad">✗</span>');
+    const yours = st.answered ? escapeHtml(q.options[st.chosen]) : "нет ответа";
+    return '<tr><td>'+(i+1)+'</td><td>'+yours+'</td><td>'+escapeHtml(q.options[q.correct])+'</td><td>'+mark+'</td></tr>';
+  }).join("");
+  const readmeRows = README_FIELDS.map(function(f){
+    const val = (state.readme[f.key]||"").trim();
+    let verdict = '<span class="rep-mark wait">—</span>';
+    if(state.readme.checked && state.readme.results){
+      const probs = state.readme.results[f.key];
+      verdict = probs.length===0 ? '<span class="rep-mark ok">принят</span>' : '<span class="rep-mark bad">'+escapeHtml(probs.join("; "))+'</span>';
+    }
+    return '<tr><td>'+escapeHtml(f.title)+'</td><td>'+(val?escapeHtml(val):"пусто")+'</td><td>'+verdict+'</td></tr>';
+  }).join("");
+  const ghRows = GH_CHECK.map(function(c){ return '<tr><td>'+escapeHtml(c.text)+'</td><td>'+(state.gh[c.id]?'<span class="rep-mark ok">✓</span>':'<span class="rep-mark wait">—</span>')+'</td></tr>'; }).join("");
+  const link = (state.readme.link||"").trim();
+  return '<div class="hero-mini"><span class="hero-badge">● Отчёт для учителя</span><h1>Отчёт по занятию 15</h1><p>Все результаты собраны автоматически. Отправь учителю публичную ссылку на сайт вместе с этим PDF: печатается только эта вкладка.</p></div>'
+  + '<div class="rep-summary"><div class="rep-stat"><div class="v">'+pathsScore()+'/'+PATHS.length+'</div><div class="l">пути</div></div><div class="rep-stat"><div class="v">'+quizScore()+'/'+QUIZ.length+'</div><div class="l">вопросы</div></div><div class="rep-stat"><div class="v">'+readmeOk()+'/'+README_FIELDS.length+'</div><div class="l">README</div></div><div class="rep-stat"><div class="v">'+ghCount()+'/'+GH_CHECK.length+'</div><div class="l">публикация</div></div><div class="rep-stat"><div class="v">'+termsCount()+'/'+TERMS.length+'</div><div class="l">термины</div></div></div>'
+  + '<div class="rep-note">Итого по практике: <b>'+practiceScore()+' из '+practiceMax()+'</b> (проверка README руками: '+aiCount()+' из '+AI_CHECK.length+'). Контрольная точка модуля 6 закрыта, когда сайт открывается по публичной ссылке с телефона и в Network ноль 404.</div>'
+  + (link ? '<div class="rep-note"><b>Публичная ссылка:</b> <span class="rep-link">'+escapeHtml(link)+'</span></div>' : '<div class="rep-note">Публичная ссылка не вставлена в блок 2 README.</div>')
+  + '<h3 class="sub-title">Часть 1 · Пути</h3><table class="rep-table"><thead><tr><th>Строка</th><th>Твой ответ</th><th>Верный ответ</th><th></th></tr></thead><tbody>'+pathRows+'</tbody></table>'
+  + '<h3 class="sub-title">Часть 2 · Вопросы о деплое</h3><table class="rep-table"><thead><tr><th>№</th><th>Твой ответ</th><th>Верный ответ</th><th></th></tr></thead><tbody>'+quizRows+'</tbody></table>'
+  + '<h3 class="sub-title">Часть 3 · README</h3><table class="rep-table"><thead><tr><th>Блок</th><th>Твой текст</th><th>Вердикт</th></tr></thead><tbody>'+readmeRows+'</tbody></table>'
+  + '<h3 class="sub-title">Публикация: чек-лист</h3><table class="rep-table"><thead><tr><th>Пункт</th><th>Отметка</th></tr></thead><tbody>'+ghRows+'</tbody></table>'
+  + '<h3 class="sub-title">Рефлексия</h3>' + (state.reflect.trim() ? '<div class="rep-reflect">'+escapeHtml(state.reflect)+'</div>' : '<div class="rep-note">Рефлексия не заполнена.</div>')
+  + '<div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px"><button class="btn btn-primary" data-action="print" type="button">Сохранить PDF</button><button class="btn btn-ghost" data-action="reset-practice" type="button">Сбросить практику</button></div>';
+}
+
+function renderActions(){
+  return '<div class="actions no-print" role="toolbar" aria-label="Действия"><div class="actions-inner"><button class="btn btn-secondary" data-action="print" type="button">Сохранить PDF (отчёт)</button></div></div>';
+}
+
+/* ---------- Покраска ---------- */
+function paintQuiz(card,i){
+  const st = state.quiz[i];
+  card.querySelectorAll(".quiz-opt").forEach(function(btn,j){
+    btn.disabled = true;
+    btn.classList.remove("correct","wrong");
+    if(j === QUIZ[i].correct) btn.classList.add("correct");
+    else if(j === st.chosen) btn.classList.add("wrong");
+  });
+  const fb = card.querySelector(".quiz-feedback");
+  fb.classList.remove("hidden","good","bad");
+  fb.classList.add(st.correct?"good":"bad");
+  fb.innerHTML = "<b>"+(st.correct?"Верно. ":"Не совсем. Правильный ответ: «"+escapeHtml(QUIZ[i].options[QUIZ[i].correct])+"». ")+"</b>"+escapeHtml(QUIZ[i].why);
+}
+
+function updateProgress(){
+  const p = countProgress();
+  const fill = document.querySelector(".progress-fill");
+  const num = document.querySelector(".progress-num");
+  const bar = document.querySelector(".progress-bar");
+  if(fill) fill.style.width = p.percent+"%";
+  if(num) num.textContent = p.percent+"%";
+  if(bar) bar.setAttribute("aria-valuenow", p.percent);
+  const pc = document.querySelector("[data-paths-score]"); if(pc) pc.textContent = "Верно: "+pathsScore()+" из "+PATHS.length;
+  const qc = document.querySelector("[data-quiz-score]"); if(qc) qc.textContent = "Верно: "+quizScore()+" из "+QUIZ.length;
+  const badges = document.querySelectorAll(".tab-badge");
+  if(badges.length >= 4){
+    badges[0].textContent = termsCount()+"/"+TERMS.length; badges[0].classList.toggle("done", termsCount()===TERMS.length);
+    badges[1].textContent = ghCount()+"/"+GH_CHECK.length; badges[1].classList.toggle("done", ghCount()===GH_CHECK.length);
+    badges[2].textContent = practiceScore()+"/"+practiceMax(); badges[2].classList.toggle("done", practiceScore()===practiceMax());
+    if(state.finished){ badges[3].textContent = practiceScore()+"/"+practiceMax(); badges[3].classList.remove("lock"); badges[3].classList.toggle("done", practiceScore()===practiceMax()); }
+  }
+}
+
+function rerenderTab3(){
+  const page = document.querySelector('[data-page="3"]');
+  if(!page) return;
+  page.innerHTML = renderTab3();
+  bindHandlers(page);
+  state.quiz.forEach(function(st,i){ if(st.answered){ const c=page.querySelector('[data-quiz="'+i+'"]'); if(c) paintQuiz(c,i); } });
+  updateProgress();
+}
+
+/* ---------- Обработчики (scope, чтобы не дублировать слушатели) ---------- */
+function bindHandlers(root){
+  root = root || app;
+  root.querySelectorAll("[data-tab]").forEach(function(btn){
+    btn.addEventListener("click", function(){ state.tab = parseInt(btn.dataset.tab,10); saveState(); render(); window.scrollTo({top:0,behavior:"smooth"}); });
+  });
+  root.querySelectorAll("[data-action]").forEach(function(btn){ btn.addEventListener("click", handleAction); });
+  root.querySelectorAll("[data-copy]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const map = { index:FILE_INDEX, css:FILE_CSS, js:FILE_JS, svg:FILE_SVG };
+      copyToClipboard(map[btn.dataset.copy], btn);
+    });
+  });
+  root.querySelectorAll("[data-term]").forEach(function(el){
+    const handler = function(){
+      const key = el.dataset.term;
+      state.termsLearned[key] = !state.termsLearned[key];
+      el.classList.toggle("learned", state.termsLearned[key]);
+      el.setAttribute("aria-pressed", String(state.termsLearned[key]));
+      const st = document.querySelector("[data-terms-status]");
+      if(st){ const n=termsCount(); st.textContent=n+"/"+TERMS.length; st.classList.toggle("done", n===TERMS.length); }
+      updateProgress(); saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); handler(); } });
+  });
+  root.querySelectorAll("[data-gh]").forEach(function(el){
+    const handler = function(){
+      const id = el.dataset.gh;
+      state.gh[id] = !state.gh[id];
+      el.classList.toggle("checked", state.gh[id]);
+      el.setAttribute("aria-checked", String(state.gh[id]));
+      updateProgress(); saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); handler(); } });
+  });
+  root.querySelectorAll("[data-path]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.path.split(":");
+      const i = parseInt(parts[0],10), val = parts[1];
+      const st = state.paths[i];
+      if(st.answered) return;
+      st.answered = true; st.chosen = val;
+      st.correct = (val==="ok") === PATHS[i].ok;
+      saveState();
+      const row = btn.closest(".path-row");
+      if(row) row.outerHTML = renderPathRow(PATHS[i], i);
+      updateProgress();
+    });
+  });
+  root.querySelectorAll("[data-quiz-opt]").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      const parts = btn.dataset.quizOpt.split(":");
+      const qi = parseInt(parts[0],10), oi = parseInt(parts[1],10);
+      const st = state.quiz[qi];
+      if(st.answered) return;
+      st.answered = true; st.chosen = oi; st.correct = oi === QUIZ[qi].correct;
+      saveState();
+      paintQuiz(btn.closest(".quiz-card"), qi);
+      updateProgress();
+    });
+  });
+  root.querySelectorAll("[data-readme]").forEach(function(input){
+    input.addEventListener("input", function(e){
+      state.readme[e.target.dataset.readme] = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      saveState(); updateProgress();
+    });
+  });
+  root.querySelectorAll("[data-aicheck]").forEach(function(el){
+    const handler = function(){
+      const i = parseInt(el.dataset.aicheck,10);
+      state.aiCheck[i] = !state.aiCheck[i];
+      el.classList.toggle("checked", state.aiCheck[i]);
+      el.setAttribute("aria-checked", String(state.aiCheck[i]));
+      updateProgress(); saveState();
+    };
+    el.addEventListener("click", handler);
+    el.addEventListener("keydown", function(e){ if(e.key===" "||e.key==="Enter"){ e.preventDefault(); handler(); } });
+  });
+  const reflect = root.querySelector("[data-reflect]");
+  if(reflect){
+    reflect.addEventListener("input", function(e){
+      state.reflect = e.target.value;
+      e.target.classList.toggle("filled", !!e.target.value.trim());
+      updateProgress(); saveState();
+    });
+  }
+}
+
+function handleAction(e){
+  const action = e.currentTarget.dataset.action;
+  if(action === "start"){ state.started = true; saveState(); render(); window.scrollTo({top:0,behavior:"smooth"}); }
+  else if(action === "goto-3"){ state.tab = 3; saveState(); render(); window.scrollTo({top:0,behavior:"smooth"}); }
+  else if(action === "finish"){ state.finished = true; saveState(); render(); window.scrollTo({top:0,behavior:"smooth"}); }
+  else if(action === "check-readme"){ state.readme.results = validateReadme(); state.readme.checked = true; saveState(); rerenderTab3(); }
+  else if(action === "copy-prompt"){ copyToClipboard(AI_PROMPT, e.currentTarget); }
+  else if(action === "print"){
+    if(!state.started) return;
+    if(state.tab !== 4){ state.tab = 4; saveState(); render(); setTimeout(function(){ window.print(); }, 60); }
+    else window.print();
+  }
+  else if(action === "reset-practice"){
+    if(confirm("Сбросить пути, вопросы, README и закрыть отчёт? Термины и чек-лист публикации останутся.")){
+      state.paths = PATHS.map(function(){ return { answered:false, chosen:"", correct:false }; });
+      state.quiz = QUIZ.map(function(){ return { answered:false, chosen:-1, correct:false }; });
+      state.readme = { title:"", link:"", stack:"", features:"", ai:"", results:null, checked:false };
+      state.aiCheck = AI_CHECK.map(function(){ return false; });
+      state.reflect = ""; state.finished = false; state.tab = 3;
+      saveState(); render();
+    }
+  }
+}
+
+async function copyToClipboard(text, btn){
+  try{ await navigator.clipboard.writeText(text); }
+  catch(err){
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); }catch(_){}
+    document.body.removeChild(ta);
+  }
+  const original = btn.textContent;
+  btn.textContent = "✓ Скопировано"; btn.classList.add("copied");
+  setTimeout(function(){ btn.textContent = original; btn.classList.remove("copied"); }, 1600);
+}
+
+function escapeHtml(str){
+  if(str == null) return "";
+  return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+function init(){ loadState(); render(); }
+init();
+</script>
+</body>
+</html>
