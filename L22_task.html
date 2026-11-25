@@ -1,0 +1,1934 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Занятие 22 · Спринт 3: MVP · память, тема, приёмка</title>
+<style>
+:root{
+--bg:#f5f4f9;--surface:#fff;--surface2:#f1eff7;--surface3:#e5e2f0;
+--border:#e0dcec;--border2:#c8c2dc;--ink:#0d0a1a;--ink2:#4b4566;--ink3:#7a7396;
+--proj:#6d28d9;--proj2:#a855f7;--rgb:109,40,217;
+--ok:#15803d;--okbg:#dcfce7;--okrgb:21,128,61;
+--warn:#b45309;--warnbg:#fef3c7;--warnrgb:180,83,9;
+--danger:#be123c;--dangerbg:#ffe4e6;--info:#1d4ed8;--infobg:#dbeafe;
+--cbg:#0c0818;--cink:#e2dcf7;--cdim:#7d739c;
+--sh1:0 1px 2px rgba(13,10,26,.05),0 2px 6px rgba(13,10,26,.05);
+--sh2:0 12px 34px -14px rgba(13,10,26,.28),0 2px 8px rgba(13,10,26,.06);
+--sh3:0 26px 60px -26px rgba(var(--rgb),.55);
+--r:14px;--rl:20px;--rx:26px;--top:56px;
+--font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html[data-theme=dark]{
+--bg:#08060f;--surface:#120e1e;--surface2:#191428;--surface3:#221b35;
+--border:#2a2242;--border2:#3a2f57;--ink:#efe9fb;--ink2:#b3a9cd;--ink3:#7f749c;
+--ok:#4ade80;--okbg:#0d2c1b;--okrgb:74,222,128;--warn:#fbbf24;--warnbg:#31250b;--warnrgb:251,191,36;
+--danger:#fb7185;--dangerbg:#37121f;--info:#60a5fa;--infobg:#0e2140;
+--cbg:#06040d;--cink:#e3ddf8;--cdim:#6f6590;
+--sh1:0 1px 2px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35);
+--sh2:0 16px 42px -18px rgba(0,0,0,.8),0 2px 10px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--proj)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--surface2)}
+::-webkit-scrollbar-thumb{background:rgba(var(--rgb),.45);border-radius:99px;border:3px solid var(--surface2)}
+::-webkit-scrollbar-thumb:hover{background:rgba(var(--rgb),.85)}
+*{scrollbar-color:rgba(var(--rgb),.55) var(--surface2);scrollbar-width:thin}
+.aura{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aura i{position:absolute;display:block;border-radius:50%;filter:blur(92px);opacity:.3;transition:background .7s}
+.aura i:nth-child(1){width:54vw;height:54vw;left:-16vw;top:-20vw;background:radial-gradient(circle at 30% 30%,rgba(var(--rgb),.95),transparent 68%);animation:d1 27s ease-in-out infinite}
+.aura i:nth-child(2){width:46vw;height:46vw;right:-14vw;top:4vh;background:radial-gradient(circle at 60% 40%,rgba(236,72,153,.4),transparent 70%);animation:d2 33s ease-in-out infinite}
+.aura i:nth-child(3){width:42vw;height:42vw;left:28vw;bottom:-22vw;background:radial-gradient(circle at 50% 50%,rgba(var(--rgb),.5),transparent 72%);animation:d1 39s ease-in-out infinite reverse}
+html[data-theme=dark] .aura i{opacity:.28}
+@keyframes d1{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(5vw,4vh,0) scale(1.12)}}
+@keyframes d2{0%,100%{transform:translate3d(0,0,0) scale(1.05)}50%{transform:translate3d(-6vw,6vh,0) scale(.9)}}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.3;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:40;height:var(--top);background:var(--surface);border-bottom:1px solid var(--border);opacity:.97;backdrop-filter:blur(14px)}
+.tb{max-width:1200px;margin:0 auto;height:100%;padding:0 16px;display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12.5px;background:linear-gradient(135deg,var(--proj),var(--proj2));box-shadow:0 4px 14px -4px rgba(var(--rgb),.75)}
+.brand{min-width:0;flex:1;display:flex;flex-direction:column;line-height:1.25}
+.brand b{font-size:13.5px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span{font-size:11.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stchip{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:99px;font-size:12.5px;font-weight:700;white-space:nowrap;background:var(--surface2);border:1px solid var(--border);color:var(--ink2)}
+.stchip.ok{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.ibtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center;transition:.16s;flex-shrink:0}
+.ibtn:hover{border-color:var(--proj);color:var(--proj);transform:translateY(-1px)}
+.ibtn:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.ibtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabwrap{position:fixed;top:var(--top);left:0;right:0;z-index:35;background:var(--bg);border-bottom:1px solid var(--border);opacity:.97;backdrop-filter:blur(12px)}
+.tabs{max-width:1200px;margin:0 auto;padding:8px 14px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{height:0}
+.tab{flex-shrink:0;min-height:40px;padding:0 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-size:13px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.16s;white-space:nowrap}
+.tab:hover{border-color:var(--border2);color:var(--ink);transform:translateY(-1px)}
+.tab:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.tab.on{background:linear-gradient(135deg,var(--proj),var(--proj2));border-color:transparent;color:#fff;box-shadow:0 8px 20px -10px rgba(var(--rgb),.9)}
+.tab i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
+.tab .bdg{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:99px;background:var(--surface2);color:var(--ink3)}
+.tab.on .bdg{background:rgba(255,255,255,.22);color:#fff}
+.readbar{height:2px}
+.readbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--proj),var(--proj2));transition:width .12s linear}
+main{position:relative;z-index:2;max-width:1200px;margin:0 auto;padding:calc(var(--top) + 74px) 16px 128px}
+main.nostart{padding-top:calc(var(--top) + 26px)}
+.hero{position:relative;border:1px solid var(--border);border-radius:var(--rx);padding:44px 32px;text-align:center;overflow:hidden;box-shadow:var(--sh2);background:radial-gradient(120% 120% at 8% 0%,rgba(var(--rgb),.16),transparent 55%),radial-gradient(100% 100% at 100% 100%,rgba(236,72,153,.14),transparent 60%),var(--surface)}
+.hero:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(var(--rgb),.05) 0 2px,transparent 2px 9px);opacity:.55;pointer-events:none}
+.badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:99px;font-size:12px;font-weight:700;background:rgba(var(--rgb),.12);color:var(--proj);border:1px solid rgba(var(--rgb),.25)}
+.hero h1{position:relative;font-size:clamp(29px,5.2vw,48px);line-height:1.06;letter-spacing:-.035em;margin:18px 0 12px;font-weight:800}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,var(--proj),#a855f7 45%,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{position:relative;color:var(--ink2);max-width:700px;margin:0 auto 22px;font-size:16.5px}
+.meta{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:26px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--ink2)}
+.chip b{color:var(--ink)}
+.hgrid{position:relative;display:grid;gap:10px;grid-template-columns:repeat(2,1fr);margin-top:28px;text-align:left}
+@media(min-width:760px){.hgrid{grid-template-columns:repeat(3,1fr)}}
+.hg{border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;background:var(--surface);position:relative;overflow:hidden;transition:.18s}
+.hg:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c1)}
+.hg:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
+.hg em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--c1)}
+.hg b{display:block;font-size:13.5px;margin-top:2px}
+.hg span{display:block;font-size:11.5px;color:var(--ink3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 22px;border-radius:13px;border:1px solid transparent;font-size:15px;font-weight:700;cursor:pointer;transition:.16s;text-decoration:none}
+.btn:focus-visible{outline:3px solid rgba(var(--rgb),.4);outline-offset:2px}
+.btn-p{background:linear-gradient(135deg,var(--proj),var(--proj2));color:#fff;box-shadow:0 12px 26px -12px rgba(var(--rgb),.95)}
+.btn-p:hover{transform:translateY(-2px)}
+.btn-s{background:var(--surface);border-color:var(--border2);color:var(--ink)}
+.btn-s:hover{background:var(--surface2);transform:translateY(-1px)}
+.btn-g{background:transparent;color:var(--ink2)}
+.btn-g:hover{background:var(--surface2);color:var(--ink)}
+.btn-lg{min-height:54px;padding:0 30px;font-size:16px;border-radius:15px}
+.btn-sm{min-height:36px;padding:0 13px;font-size:12.5px;border-radius:10px}
+.phead{position:relative;border-radius:var(--rx);padding:28px 26px;color:#fff;overflow:hidden;margin-bottom:20px;background:linear-gradient(135deg,var(--proj),var(--proj2));box-shadow:var(--sh3)}
+.phead:after{content:"";position:absolute;inset:0;background:radial-gradient(80% 120% at 100% 0%,rgba(255,255,255,.26),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 12px);pointer-events:none}
+.phead .wm{position:absolute;right:-6px;top:-40px;font-size:150px;font-weight:900;letter-spacing:-.06em;opacity:.14;line-height:1;pointer-events:none}
+.ph-in{position:relative;z-index:1}
+.prow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.pcode{font-family:var(--mono);font-size:11.5px;font-weight:700;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:8px;letter-spacing:.05em}
+.phead h2{margin:0 0 5px;font-size:clamp(24px,4vw,36px);letter-spacing:-.03em;font-weight:800;line-height:1.1}
+.phead p{margin:0;font-size:14.5px;opacity:.94;max-width:760px}
+.sec{margin:26px 0}
+.sec-h{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px}
+.sec-n{flex-shrink:0;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2))}
+.sec-t{font-size:19px;font-weight:750;letter-spacing:-.02em;margin:0}
+.sec-s{font-size:13.5px;color:var(--ink2);margin:2px 0 0}
+.sec-hb{flex:1;min-width:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh1);transition:.18s}
+.card:hover{border-color:rgba(var(--rgb),.4);box-shadow:var(--sh2);transform:translateY(-2px)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr}
+@media(min-width:760px){.g2{grid-template-columns:1fr 1fr}}
+.note{border-radius:var(--r);padding:14px 16px;font-size:14px;line-height:1.6;border:1px solid var(--border);background:var(--surface2);color:var(--ink2)}
+.note b{color:var(--ink)}
+.note.warn{background:var(--warnbg);border-color:rgba(var(--warnrgb),.35);color:var(--warn)}
+.note.warn b{color:var(--warn)}
+.note.ok{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.note.ok b{color:var(--ok)}
+.note.bad{background:var(--dangerbg);border-color:rgba(190,18,60,.35);color:var(--danger)}
+.note.acc{background:rgba(var(--rgb),.08);border-color:rgba(var(--rgb),.3);color:var(--ink)}
+.note ul,.note ol{margin:8px 0 0;padding-left:20px}
+.note li{margin-bottom:5px}
+code{font-family:var(--mono);font-size:12.5px;background:var(--surface3);padding:1px 6px;border-radius:5px;color:var(--ink)}
+.kv{display:grid;gap:8px}
+.kv-row{display:grid;grid-template-columns:1fr;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
+@media(min-width:640px){.kv-row{grid-template-columns:190px 1fr;gap:14px;align-items:start}}
+.kv-k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--proj)}
+.kv-v{font-size:13.8px;color:var(--ink2);line-height:1.55}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.flabel{display:block;font-size:12.5px;color:var(--ink2);margin-bottom:5px;font-weight:650}
+.inp{width:100%;min-height:44px;padding:10px 13px;border:1px solid var(--border);border-radius:11px;background:var(--surface);font-size:14px;transition:.15s}
+.inp:focus{outline:none;border-color:var(--proj);box-shadow:0 0 0 3px rgba(var(--rgb),.18)}
+.inp.filled{background:rgba(var(--rgb),.05);border-color:rgba(var(--rgb),.4)}
+select.inp{cursor:pointer}
+.hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
+.hint.bad{color:var(--danger)}
+.topics{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:760px){.topics{grid-template-columns:repeat(3,1fr)}}
+.topic{text-align:left;border:1px solid var(--border);border-radius:12px;padding:11px 12px;background:var(--surface);cursor:pointer;transition:.16s;position:relative;overflow:hidden;min-height:66px}
+.topic:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c1)}
+.topic:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.topic:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.topic.on{border-color:var(--c1);box-shadow:0 0 0 2px rgba(var(--rgb),.18)}
+.topic em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--c1)}
+.topic b{display:block;font-size:13px;margin-top:2px}
+.topic span{display:block;font-size:11px;color:var(--ink3)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.lnk{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;background:var(--surface);border:1px solid var(--border);border-radius:11px;color:var(--proj);text-decoration:none;font-size:13px;font-weight:650;transition:.15s}
+.lnk:hover{border-color:var(--proj);background:rgba(var(--rgb),.08);transform:translateY(-1px)}
+.lnk.off{color:var(--ink3);pointer-events:none;opacity:.55}
+.lnk svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.timer{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh1)}
+.tdial{font-family:var(--mono);font-size:38px;font-weight:800;line-height:1;color:var(--proj);font-variant-numeric:tabular-nums;min-width:132px}
+.tdial.run{animation:tp 2s ease-in-out infinite}
+@keyframes tp{0%,100%{opacity:1}50%{opacity:.7}}
+.tphase{flex:1;min-width:200px;font-size:13.5px;color:var(--ink2)}
+.tphase b{display:block;color:var(--ink);font-size:14px}
+.tbtns{display:flex;gap:8px;flex-wrap:wrap}
+.phases{display:grid;gap:6px;margin-top:12px}
+.phase{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--ink2)}
+.phase.on{background:rgba(var(--rgb),.1);border-color:rgba(var(--rgb),.35);color:var(--ink);font-weight:650}
+.phase.done{opacity:.55}
+.phase em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink3);min-width:92px}
+.steps{display:grid;gap:10px}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1)}
+.step.done{border-color:rgba(var(--okrgb),.45)}
+.step-h{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;cursor:pointer}
+.step-h:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:-3px}
+.step-n{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2))}
+.step.done .step-n{background:var(--ok)}
+.step-tb{flex:1;min-width:0}
+.step-t{font-size:15px;font-weight:700;margin:0}
+.step-m{font-size:11.5px;color:var(--ink3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.where{font-size:10px;font-weight:800;letter-spacing:.05em;padding:2px 7px;border-radius:6px;text-transform:uppercase}
+.where.q{background:rgba(168,85,247,.18);color:#a855f7}
+.where.g{background:rgba(var(--okrgb),.16);color:var(--ok)}
+.where.b{background:var(--infobg);color:var(--info)}
+.where.l{background:rgba(var(--rgb),.16);color:var(--proj)}
+.step-body{padding:0 16px 16px 58px;font-size:13.8px;color:var(--ink2);line-height:1.6}
+.step-body ol,.step-body ul{margin:6px 0 0;padding-left:20px}
+.step-body li{margin-bottom:5px}
+.step-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.closes{display:inline-flex;font-size:11.5px;font-weight:700;color:var(--warn);background:var(--warnbg);padding:3px 9px;border-radius:99px;margin-top:10px}
+.chk{flex-shrink:0;width:24px;height:24px;border-radius:7px;border:2px solid var(--border2);display:grid;place-items:center;transition:.15s;margin-top:3px}
+.step.done .chk{background:var(--ok);border-color:var(--ok)}
+.chk svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:.15s}
+.step.done .chk svg{opacity:1}
+.pblock{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh1);margin-bottom:14px}
+.pb-h{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap}
+.pb-n{flex-shrink:0;font-family:var(--mono);font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2));padding:4px 9px;border-radius:7px}
+.pb-tb{flex:1;min-width:160px}
+.pb-t{font-size:15px;font-weight:750;margin:0}
+.pb-s{font-size:12px;color:var(--ink3);margin-top:2px}
+.pb-body{padding:14px 16px}
+.code{position:relative;background:var(--cbg);border-radius:12px;border:1px solid rgba(var(--rgb),.3);overflow:hidden}
+.code-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.08)}
+.code-h span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cdim)}
+.code pre{margin:0;padding:14px;overflow:auto;font-family:var(--mono);font-size:12.2px;line-height:1.65;color:var(--cink);max-height:400px;white-space:pre-wrap;word-break:break-word}
+.copy{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#cbd5e1;border-radius:8px;padding:5px 11px;font-size:11.5px;font-weight:650;cursor:pointer;transition:.15s;white-space:nowrap}
+.copy:hover{background:rgba(255,255,255,.18);color:#fff}
+.copy.done{background:var(--ok);border-color:transparent;color:#fff}
+.checks{margin-top:12px;background:var(--okbg);border:1px solid rgba(var(--okrgb),.3);border-radius:12px;padding:11px 14px}
+.checks b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);margin-bottom:6px}
+.checks ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink2);line-height:1.5}
+.checks li{margin-bottom:4px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.fchip{min-height:36px;padding:0 13px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s}
+.fchip:hover{border-color:var(--border2);color:var(--ink)}
+.fchip.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.lab{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:1000px){.lab{grid-template-columns:330px 1fr;align-items:start}}
+.ctrl{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px;box-shadow:var(--sh1)}
+@media(min-width:1000px){.ctrl{position:sticky;top:calc(var(--top) + 66px);max-height:calc(100vh - var(--top) - 100px);overflow:auto}}
+.ctrl h4{margin:0 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.ctrl hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:42px;padding:6px 0;background:none;border:none;cursor:pointer;text-align:left}
+.sw:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px;border-radius:8px}
+.sw span{font-size:13.2px;color:var(--ink2);flex:1;line-height:1.35}
+.sw i{flex-shrink:0;width:42px;height:24px;border-radius:99px;background:var(--surface3);border:1px solid var(--border2);position:relative;transition:.18s}
+.sw i:after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:var(--sh1);transition:.18s}
+.sw[aria-checked=true] i{background:linear-gradient(135deg,var(--proj),var(--proj2));border-color:transparent}
+.sw[aria-checked=true] i:after{left:20px;background:#fff}
+.sw[aria-checked=true] span{color:var(--ink);font-weight:650}
+.rng{width:100%;height:26px;-webkit-appearance:none;appearance:none;background:none;cursor:pointer}
+.rng::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--proj),var(--proj2))}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--surface);border:2px solid var(--proj);margin-top:-7px;box-shadow:var(--sh1)}
+.rng::-moz-range-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--proj),var(--proj2))}
+.rng::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--surface);border:2px solid var(--proj)}
+.rng:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:4px;border-radius:99px}
+.panes{display:grid;gap:12px}
+.pane{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh1)}
+.pane-h{padding:11px 15px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pane-h b{font-size:13px}
+.pane-b{padding:14px 15px}
+.store{font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--cbg);color:var(--cink);border-radius:10px;padding:12px;max-height:170px;overflow:auto;white-space:pre-wrap;word-break:break-all;border:1px solid rgba(var(--rgb),.3)}
+.store.bad{border-color:rgba(190,18,60,.5)}
+.log{display:grid;gap:6px;margin-top:10px}
+.log div{display:flex;gap:9px;align-items:flex-start;font-size:12.8px;line-height:1.45;padding:7px 10px;border-radius:9px;background:var(--surface2);color:var(--ink2)}
+.log div.ok{background:var(--okbg);color:var(--ok)}
+.log div.bad{background:var(--dangerbg);color:var(--danger)}
+.log div.warn{background:var(--warnbg);color:var(--warn)}
+.log em{font-style:normal;font-weight:800;font-family:var(--mono);font-size:11px;flex-shrink:0}
+.prev{border-radius:12px;padding:14px;border:1px solid var(--border);transition:background .2s,color .2s}
+.prev .ph{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.prev .ph b{font-size:15px}
+.prev .pb{font-size:11.5px;padding:6px 12px;border-radius:99px;border:1px solid currentColor;background:none;cursor:pointer;font-weight:650;color:inherit}
+.plist{display:grid;gap:9px}
+.pcard{border-radius:12px;padding:11px 13px;border:1px solid;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.pcard b{font-size:13.5px;font-weight:650}
+.pcard span{font-size:11.5px;opacity:.75}
+.pempty{font-size:13px;padding:14px;border-radius:12px;border:1px dashed;text-align:center}
+.pcrash{background:var(--dangerbg);color:var(--danger);border:1px solid rgba(190,18,60,.4);border-radius:12px;padding:14px;font-size:13.5px;line-height:1.5}
+.tokens{display:grid;gap:6px;margin-top:10px}
+.trow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;font-family:var(--mono);font-size:11.5px;padding:6px 9px;border-radius:8px;background:var(--surface2);color:var(--ink2)}
+.dot{width:16px;height:16px;border-radius:5px;border:1px solid var(--border2)}
+.ring{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh1)}
+.rwrap{position:relative;width:88px;height:88px;flex-shrink:0}
+.rsvg{width:88px;height:88px;transform:rotate(-90deg)}
+.rsvg circle{fill:none;stroke-width:9;stroke-linecap:round}
+.rsvg .bgc{stroke:var(--surface3)}
+.rsvg .fgc{stroke:var(--proj);transition:stroke-dashoffset .7s cubic-bezier(.22,.61,.36,1)}
+.rnum{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:18px;font-weight:800}
+.rinfo{flex:1;min-width:210px}
+.rinfo b{display:block;font-size:15px}
+.rinfo span{font-size:13px;color:var(--ink2)}
+.basebar{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.bdot{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);color:var(--ink3)}
+.bdot.on{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.clist{display:grid;gap:8px}
+.ci{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.16s}
+.ci:hover{border-color:rgba(var(--rgb),.45);transform:translateX(3px)}
+.ci:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.ci.on{background:var(--okbg);border-color:rgba(var(--okrgb),.45)}
+.ci.base{border-left:4px solid var(--warn)}
+.ci.base.on{border-left-color:var(--ok)}
+.ci.locked{opacity:.62}
+.ci.main{box-shadow:0 0 0 2px rgba(var(--rgb),.22)}
+.cbox{flex-shrink:0;width:24px;height:24px;border-radius:7px;border:2px solid var(--border2);display:grid;place-items:center;transition:.15s;margin-top:2px}
+.ci.on .cbox{background:var(--ok);border-color:var(--ok)}
+.cbox svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:.15s}
+.ci.on .cbox svg{opacity:1}
+.cnum{flex-shrink:0;font-family:var(--mono);font-size:12px;font-weight:800;color:var(--ink3);min-width:22px;margin-top:3px}
+.ci.on .cnum{color:var(--ok)}
+.ctb{flex:1;min-width:0}
+.ct{font-size:14px;font-weight:650;line-height:1.45;display:block}
+.ch{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.5;display:block}
+.ch b{color:var(--ink3)}
+.btag{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--warnbg);color:var(--warn);margin-left:6px}
+.mtag{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(var(--rgb),.16);color:var(--proj);margin-left:6px}
+.ci.on .btag{background:rgba(var(--okrgb),.16);color:var(--ok)}
+.accept{display:grid;gap:8px;grid-template-columns:1fr}
+@media(min-width:760px){.accept{grid-template-columns:1fr 1fr}}
+.ai{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.16s}
+.ai:hover{border-color:rgba(var(--rgb),.45)}
+.ai:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.ai.on{background:rgba(var(--rgb),.08);border-color:rgba(var(--rgb),.45)}
+.ai .n{flex-shrink:0;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--surface3);color:var(--ink2)}
+.ai.on .n{background:linear-gradient(135deg,var(--proj),var(--proj2));color:#fff}
+.ai .t{flex:1;min-width:0}
+.ai .t b{display:block;font-size:13.5px}
+.ai .t span{display:block;font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.45}
+.verdict{border-radius:var(--rl);padding:18px;border:1px solid var(--border);background:var(--surface2)}
+.verdict.pass{background:var(--okbg);border-color:rgba(var(--okrgb),.45);animation:pop .5s cubic-bezier(.22,.61,.36,1)}
+.verdict.fail{background:var(--warnbg);border-color:rgba(var(--warnrgb),.4)}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.015)}100%{transform:scale(1)}}
+.verdict h3{margin:0 0 6px;font-size:18px}
+.verdict p{margin:0;font-size:14px;line-height:1.6;color:var(--ink2)}
+.verdict ul{margin:8px 0 0;padding-left:20px;font-size:13.5px;color:var(--ink2)}
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);box-shadow:var(--sh1)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+th{text-align:left;padding:11px 14px;background:var(--surface2);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;color:var(--ink2)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(var(--rgb),.05)}
+td b{color:var(--ink)}
+.actions{position:fixed;left:0;right:0;bottom:0;z-index:38;border-top:1px solid var(--border);background:var(--surface);opacity:.97;backdrop-filter:blur(14px);padding:9px 16px}
+.ab{max-width:1200px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ab-i{font-size:12.5px;color:var(--ink3);min-width:0;flex:1}
+.ab-i b{color:var(--ink)}
+.ab-b{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:76px;transform:translate(-50%,20px);z-index:60;opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:650;box-shadow:var(--sh2);transition:.28s cubic-bezier(.22,.61,.36,1);max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.conf{position:fixed;z-index:70;width:9px;height:14px;border-radius:2px;pointer-events:none}
+.errbox{border:2px solid var(--danger);background:var(--dangerbg);color:var(--danger);border-radius:var(--r);padding:18px;font-family:var(--mono);font-size:13px;white-space:pre-wrap}
+[data-reveal]{opacity:0;transform:translateY(16px);transition:opacity .55s cubic-bezier(.22,.61,.36,1),transform .55s cubic-bezier(.22,.61,.36,1)}
+[data-reveal].in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}[data-reveal]{opacity:1;transform:none}}
+@media(max-width:560px){
+:root{--top:52px}
+.tb{padding:0 11px;gap:7px}
+.brand span{display:none}
+main{padding:calc(var(--top) + 70px) 11px 136px}
+.hero{padding:28px 17px}
+.phead{padding:22px 17px}
+.phead .wm{font-size:96px;top:-16px}
+.sec-t{font-size:17px}
+.step-body{padding-left:16px}
+.ab-i{display:none}
+.ab-b{width:100%}
+.ab-b .btn{flex:1}
+.tdial{font-size:32px;min-width:112px}
+}
+@media print{
+@page{size:A4;margin:14mm}
+.aura,.grain,.topbar,.tabwrap,.actions,.toast,.copy,.filters,.no-print{display:none!important}
+body{background:#fff}
+main{padding:0;max-width:100%}
+.code,.code pre,.store{background:#f1f5f9!important;color:#0f172a!important;border-color:#cbd5e1;max-height:none}
+.code-h span{color:#475569!important}
+.card,.step,.pblock,.ci,.tw,.ai{break-inside:avoid;box-shadow:none}
+[data-reveal]{opacity:1!important;transform:none!important}
+.ci.on{background:#dcfce7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.phead{color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="aura" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="tb">
+    <div class="mark">22</div>
+    <div class="brand">
+      <b>Занятие 22 · Спринт 3: MVP</b>
+      <span>Масликов М. М. · модуль 9 · контрольная точка · Qwen + GitHub</span>
+    </div>
+    <span class="stchip" id="stchip">0 / 23</span>
+    <button class="ibtn" id="themeBtn" type="button" aria-label="Тёмная тема" title="Тёмная тема">
+      <svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="ibtn" id="printBtn" type="button" aria-label="Отчёт в PDF" title="Отчёт в PDF">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="tabwrap" id="tabwrap" hidden>
+  <nav class="tabs" id="tabs" aria-label="Вкладки спринта"></nav>
+  <div class="readbar"><i id="readbar"></i></div>
+</div>
+
+<main id="view" class="nostart"></main>
+
+<div class="actions" id="actionbar" hidden>
+  <div class="ab">
+    <div class="ab-i" id="abInfo"></div>
+    <div class="ab-b">
+      <button class="btn btn-s btn-sm" type="button" data-action="go-check">Чек-лист и приёмка</button>
+      <button class="btn btn-p btn-sm" type="button" data-action="print">Отчёт в PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+var TOPICS=[
+ {id:"P01",name:"Ритм 21",kind:"Трекер привычек",c1:"#0f766e",repo:"ritm-21",arr:"habits",fn:"renderHabits",key:"habits-v1",
+  legend:"личный трекер привычек на 21 день",act:"отметка «сегодня» и снятие отметки",
+  rec:'{ id: "h1", title: "Вода 6 стаканов", color: "#0f766e", checks: ["2026-03-01"] }',
+  seed:[{id:"h1",title:"Вода 6 стаканов",meta:"серия 2 дня"},{id:"h2",title:"Прогулка 30 минут",meta:"серия 1 день"},{id:"h3",title:"Сон до 23:00",meta:"серия 0 дней"}],
+  light:{bg:"#f4f6f3",card:"#ffffff",ink:"#111312",muted:"#6b706b",accent:"#0f766e",border:"#e3e7e1"},
+  dark:{bg:"#0f1412",card:"#171d1a",ink:"#f2f4f1",muted:"#9ba29b",accent:"#5eead4",border:"#26302c"}},
+ {id:"P02",name:"Дедлайн-доска",kind:"Менеджер задач",c1:"#b45309",repo:"dedline-doska",arr:"tasks",fn:"renderBoard",key:"tasks-v1",
+  legend:"доска личных задач с тремя колонками статусов",act:"смена статуса и удаление задачи",
+  rec:'{ id: "t1", title: "Черновик стенгазеты", due: "2026-03-12", status: "todo" }',
+  seed:[{id:"t1",title:"Черновик стенгазеты",meta:"срок 12 марта · очередь"},{id:"t2",title:"Сбор макулатуры",meta:"срок 14 марта · в работе"},{id:"t3",title:"Презентация",meta:"срок 15 марта · готово"}],
+  light:{bg:"#faf6f0",card:"#ffffff",ink:"#1a1408",muted:"#7a6a52",accent:"#b45309",border:"#ece2d4"},
+  dark:{bg:"#16120a",card:"#1f1a10",ink:"#f7f1e6",muted:"#b3a48c",accent:"#fbbf24",border:"#33291a"}},
+ {id:"P03",name:"Диванный зал",kind:"Кинопоиск",c1:"#9d174d",repo:"divannyi-zal",arr:"watchlist",fn:"renderWatchlist",key:"watchlist-v1",
+  legend:"поиск фильмов и список «Посмотрим»",act:"добавление в «Посмотрим» и удаление",
+  rec:'{ id: "tv-101", title: "Вымышленный маяк", year: "2019", note: "" }',
+  seed:[{id:"tv-101",title:"Вымышленный маяк",meta:"2019 · в списке"},{id:"tv-102",title:"Северная линия",meta:"2021 · в списке"},{id:"tv-103",title:"Тихий двор",meta:"2018 · в списке"}],
+  light:{bg:"#faf3f6",card:"#ffffff",ink:"#1c0d14",muted:"#7c6470",accent:"#9d174d",border:"#f0dde5"},
+  dark:{bg:"#150a10",card:"#1f1017",ink:"#f9eef3",muted:"#bfa3b0",accent:"#fb7185",border:"#331a24"}},
+ {id:"P04",name:"Пиксельный штаб",kind:"Панель геймера",c1:"#4c1d95",repo:"pixelnyi-shtab",arr:"games",fn:"renderLibrary",key:"games-v1",
+  legend:"библиотека игр и лента скидок",act:"удаление игры и пересчёт сводки",
+  rec:'{ id: "g1", title: "Северная экспедиция", hours: 12, score: 8 }',
+  seed:[{id:"g1",title:"Северная экспедиция",meta:"12 ч · оценка 8"},{id:"g2",title:"Тихий космос",meta:"7 ч · оценка 9"},{id:"g3",title:"Пиксельный лес",meta:"3 ч · оценка 7"}],
+  light:{bg:"#f5f3fb",card:"#ffffff",ink:"#140f24",muted:"#6d6486",accent:"#4c1d95",border:"#e6e0f3"},
+  dark:{bg:"#0f0b1a",card:"#181229",ink:"#efe9fb",muted:"#a99fc4",accent:"#a855f7",border:"#291f42"}},
+ {id:"P05",name:"Классный штаб",kind:"Школьная панель",c1:"#1d4ed8",repo:"klassnyi-shtab",arr:"notices",fn:"renderNotices",key:"notices-v1",
+  legend:"объявления, дежурства, дни рождения и погода",act:"назначение дежурного и удаление объявления",
+  rec:'{ id: "n1", title: "Сбор макулатуры", body: "Кабинет 12", date: "2026-03-14" }',
+  seed:[{id:"n1",title:"Сбор макулатуры",meta:"14 марта · кабинет 12"},{id:"n2",title:"Репетиция линейки",meta:"16 марта · актовый зал"},{id:"n3",title:"Дежурство вторника",meta:"Алина, Тимур"}],
+  light:{bg:"#f2f6fc",card:"#ffffff",ink:"#0c1424",muted:"#61708c",accent:"#1d4ed8",border:"#dde6f5"},
+  dark:{bg:"#0a1020",card:"#111a2e",ink:"#e8f0fb",muted:"#9db0cd",accent:"#60a5fa",border:"#1e2c48"}},
+ {id:"P06",name:"Банк добрых дел",kind:"Волонтёрская панель",c1:"#be123c",repo:"bank-dobryh-del",arr:"events",fn:"renderEvents",key:"events-v1",
+  legend:"акции, записи участников, часы и витрина книг",act:"запись участника и снятие записи",
+  rec:'{ id: "e1", title: "Помощь 5 классам", date: "2026-03-18", hours: 2, slots: 6 }',
+  seed:[{id:"e1",title:"Помощь 5 классам",meta:"18 марта · 2 ч · 6 мест"},{id:"e2",title:"Сбор книг",meta:"20 марта · 3 ч · 8 мест"},{id:"e3",title:"Тёплая парта",meta:"22 марта · 2 ч · 4 места"}],
+  light:{bg:"#fbf3f4",card:"#ffffff",ink:"#1d0b11",muted:"#7d6167",accent:"#be123c",border:"#f2dde1"},
+  dark:{bg:"#160a0e",card:"#201014",ink:"#fbeef0",muted:"#c2a4aa",accent:"#fb7185",border:"#351a20"}}
+];
+
+var CHECKS=[
+ {n:1,t:"Данные сохраняются в хранилище браузера",how:"Добавь запись, F12 → Application → Local Storage: ключ есть, значение читаемое.",base:true},
+ {n:2,t:"Сохранение вызывается после каждого изменения, а не только при добавлении",how:"Удали запись и смени статус, каждый раз смотри хранилище: значение меняется сразу.",base:true},
+ {n:3,t:"Запись через JSON.stringify, а не массив напрямую",how:"В хранилище квадратные скобки и кавычки, а не строка [object Object]."},
+ {n:4,t:"Ключ с версией: суффикс -v1",how:"Имя ключа в Application заканчивается на -v1."},
+ {n:5,t:"JSON в хранилище читается глазами",how:"Скопируй значение и посмотри: понятно, где какая запись и какое поле."},
+ {n:6,t:"Восстановление происходит один раз при загрузке, до отрисовки",how:"Перезагрузи страницу: записи на месте сразу, без пустого кадра.",base:true},
+ {n:7,t:"Защитное чтение: три уровня проверки, страница не падает",how:"Хранилище недоступно, строка испорчена, данные не массив — во всех трёх случаях страница открывается.",base:true},
+ {n:8,t:"После JSON.parse стоит проверка Array.isArray",how:"Найди в коде строку с Array.isArray: она есть и возвращает пустой массив при провале."},
+ {n:9,t:"Испорченные данные проверены руками",how:"Application → сотри закрывающую скобку → обнови: пустой список и объяснение, не белый экран."},
+ {n:10,t:"Первый визит проверен в приватном окне",how:"Открой публичную ссылку в приватном окне: страница работает, список пуст и объясняет, что делать.",base:true},
+ {n:11,t:"Значение по умолчанию подставляется вместо отсутствующего поля",how:"Удали в хранилище одно необязательное поле, обнови: запись открылась, поле заменено значением по умолчанию."},
+ {n:12,t:"Тёмная тема — второй набор тех же токенов",how:"В style.css блок html[data-theme=dark] повторяет все имена из :root."},
+ {n:13,t:"Переключатель темы меняет атрибут data-theme",how:"Нажми переключатель: в Elements у html меняется data-theme, цвета меняются."},
+ {n:14,t:"Выбранная тема сохраняется и восстанавливается",how:"Включи тёмную, перезагрузи: страница сразу тёмная."},
+ {n:15,t:"Тема применяется до отрисовки — нет светлой вспышки",how:"Перезагрузи с тёмной темой и смотри внимательно: белого кадра нет."},
+ {n:16,t:"Три микроанимации, только transform и opacity",how:"Наведение, нажатие, появление. В коде нет анимаций width, height, top, margin."},
+ {n:17,t:"transition в базовом правиле, длительность 120–250 мс",how:"Найди transition: он не внутри :hover и не all 500ms."},
+ {n:18,t:"Блок prefers-reduced-motion в конце файла",how:"Включи в системе «уменьшить движение»: анимации почти исчезли."},
+ {n:19,t:"Второй рефакторинг сделан и проверен",how:"Три набора данных дают одинаковый результат, каждую строку можешь пересказать."},
+ {n:20,t:"Порядок загрузки: тема → чтение → массив → отрисовка",how:"Прочитай код запуска сверху вниз: именно эти четыре шага в этом порядке."},
+ {n:21,t:"Публичная ссылка обновлена и открывается с телефона",how:"Actions — зелёная галочка, Ctrl+F5, открой адрес на настоящем телефоне."},
+ {n:22,t:"Ветка спринта, осмысленные коммиты и принятый PR",how:"Commits: сообщения называют файл и изменение. Pull requests: PR слит, ветка удалена."},
+ {n:23,t:"Сценарий приёмки пройден целиком — все восемь шагов",how:"Открывается только когда отмечены все восемь шагов ниже. Частичного прохождения нет.",base:true,main:true,gated:true}
+];
+
+var SCENARIO=[
+ {id:"s1",t:"Открыть в приватном окне",d:"Публичная ссылка, приватное окно. Страница открылась, список пуст и объясняет, что делать."},
+ {id:"s2",t:"Добавить запись",d:"Заполни форму и отправь. Запись появилась в списке."},
+ {id:"s3",t:"Отправить пустую форму",d:"Очисти поле и отправь. Появилось сообщение под полем, запись не добавилась."},
+ {id:"s4",t:"Перезагрузить страницу",d:"F5. Запись на месте — значит сохранение и восстановление работают."},
+ {id:"s5",t:"Переключить тему и перезагрузить",d:"Тема сменилась и осталась после перезагрузки, светлой вспышки нет."},
+ {id:"s6",t:"Включить Offline",d:"F12 → Network → Offline, обнови. Свои записи на месте, внешний блок — фолбэк с пометкой."},
+ {id:"s7",t:"Сузить до 320 px",d:"Горизонтальной прокрутки нет, текст читается, кнопки нажимаются."},
+ {id:"s8",t:"Посмотреть консоль",d:"F12 → Console: ноль красных строк за весь сценарий."}
+];
+
+var EXTRAS=[
+ {id:"e1",t:"Кэш последнего удачного ответа сервиса",how:"Загрузи данные, включи Offline, обнови: видно прошлые данные с пометкой времени."},
+ {id:"e2",t:"Кнопка «Очистить всё» с подтверждением",how:"Нажми, подтверди: хранилище пусто, список пуст, страница не сломалась."},
+ {id:"e3",t:"Экспорт данных в файл JSON",how:"Скачал файл, открыл его: тот же читаемый JSON, что в хранилище."},
+ {id:"e4",t:"Счётчик записей в заголовке вкладки",how:"Добавь и удали запись: число в названии вкладки меняется."},
+ {id:"e5",t:"Появление карточек «лесенкой»",how:"Задержки разные, сумма не больше 300 мс, reduced-motion выключает всё."},
+ {id:"e6",t:"Известные ограничения записаны в README",how:"В README честно названо, чего в проекте нет."}
+];
+
+var STEPS=[
+ {n:1,min:"2 мин",where:"g",title:"Ветка спринта feature/mvp",
+  body:"<p>Логика с занятия 21 уже опубликована. Сегодня доводим продукт до MVP в отдельной ветке.</p><ol><li>Открой репозиторий, убедись что main открывается по ссылке.</li><li>Переключатель веток → feature/mvp → Create branch from main.</li></ol>",
+  closes:[],act:[{t:"Мои ветки",link:"branches"},{t:"Инструкция GitHub",a:"go-github"}]},
+ {n:2,min:"3 мин",where:"l",title:"Ключ хранилища и структура записи",
+  body:"<p>До кода реши, что и под каким ключом хранится. Ключ с версией, значение — читаемый JSON.</p><ul><li>Ключ проекта: <b>{KEY}</b>.</li><li>Массив: <b>{ARR}</b>, функция перерисовки <b>{FN}</b>.</li><li>Структура записи — в «Шаблонах».</li></ul>",
+  closes:[4,5],act:[{t:"Структура и ключ",a:"go-tpl"}]},
+ {n:3,min:"6 мин",where:"q",title:"Промпт П1 — две точки: сохранение и восстановление",
+  body:"<p>Сохранение — после каждого изменения. Восстановление — один раз при загрузке до отрисовки.</p><ol><li>Скопируй П1: ключ, массив и функция подставлены.</li><li>Отправь в chat.qwen.ai.</li><li>Проверь: JSON.stringify при записи, вызов сохранения внутри одной функции вместе с перерисовкой.</li></ol>",
+  closes:[1,2,3],act:[{t:"Промпт П1",a:"go-p1"},{t:"Открыть Qwen",href:"https://chat.qwen.ai/"}]},
+ {n:4,min:"4 мин",where:"b",title:"Проверь: сохраняются все изменения",
+  body:"<p>Самая частая ошибка спринта: сохранение стоит только в обработчике добавления.</p><ol><li>Добавь запись → смотри Application.</li><li>Удали запись → смотри Application: значение изменилось.</li><li>{ACT} → снова смотри Application.</li><li>Если значение не меняется — сохранения в этом обработчике нет.</li></ol>",
+  closes:[2,5],act:[{t:"Лаборатория хранилища",a:"go-lab"}]},
+ {n:5,min:"5 мин",where:"q",title:"Промпт П2 — защитное чтение в три уровня",
+  body:"<p>Хранилище может быть недоступно, строка испорчена, данные не той формы. Функция чтения возвращает данные или пустой массив, но никогда не роняет страницу.</p><ol><li>Скопируй П2, отправь в том же чате.</li><li>Проверь: try вокруг доступа, try вокруг JSON.parse, Array.isArray после разбора.</li></ol>",
+  closes:[6,7,8,11],act:[{t:"Промпт П2",a:"go-p2"}]},
+ {n:6,min:"4 мин",where:"b",title:"Испорть данные руками и посмотри",
+  body:"<p>Проверка, которую нельзя пропустить: она ловит половину ошибок спринта.</p><ol><li>F12 → Application → Local Storage → твой ключ.</li><li>Сотри закрывающую скобку в значении, обнови страницу.</li><li>Должен открыться пустой список с объяснением, а не белый экран.</li><li>Замени значение на число или на объект: то же поведение.</li></ol>",
+  closes:[9],act:[{t:"Лаборатория: испортить строку",a:"go-lab"}]},
+ {n:7,min:"4 мин",where:"b",title:"Первый визит — только приватное окно",
+  body:"<p>В твоём обычном браузере хранилище уже заполнено. Первый визит там не проверить.</p><ol><li>Ctrl+Shift+N (или Ctrl+Shift+P) — приватное окно.</li><li>Открой публичную ссылку.</li><li>Список пуст, есть приглашение добавить первую запись, консоль чистая.</li></ol>",
+  closes:[10],act:[{t:"Открыть сайт",link:"site"}]},
+ {n:8,min:"6 мин",where:"q",title:"Промпт П3 — тёмная тема теми же именами",
+  body:"<p>Второй набор токенов, правила ниже не меняются вообще.</p><ol><li>Скопируй П3: имена токенов подставлены по теме.</li><li>Проверь: в тёмном наборе те же имена, ни одно не потеряно.</li><li>Контраст текста к фону не ниже 4.5:1 в обеих темах.</li></ol>",
+  closes:[12,13],act:[{t:"Промпт П3",a:"go-p3"},{t:"Таблица токенов",a:"go-tpl"}]},
+ {n:9,min:"4 мин",where:"q",title:"Промпт П5 — порядок загрузки и тема без вспышки",
+  body:"<p>Четыре шага при загрузке: применить тему → прочитать данные → положить в массив → отрисовать.</p><ol><li>Скопируй П5, отправь.</li><li>Проверь: тема применяется до первой отрисовки.</li><li>Перезагрузи с тёмной темой: белого кадра нет.</li></ol>",
+  closes:[14,15,20],act:[{t:"Промпт П5",a:"go-p5"}]},
+ {n:10,min:"5 мин",where:"q",title:"Промпт П4 — три микроанимации",
+  body:"<p>Наведение, нажатие, появление. Только transform и opacity, 120–250 мс, transition в базовом правиле.</p><ol><li>Скопируй П4, отправь.</li><li>Проверь: transition не внутри :hover, нет all и 500 мс.</li><li>В конце файла блок prefers-reduced-motion.</li></ol>",
+  closes:[16,17,18],act:[{t:"Промпт П4",a:"go-p4"},{t:"Лаборатория: анимации",a:"go-lab"}]},
+ {n:11,min:"4 мин",where:"q",title:"Промпт П6 — второй рефакторинг",
+  body:"<p>Второй из двух обязательных по ТЗ. Поведение не меняется, проверяется на трёх наборах.</p><ol><li>Выбери функцию длиннее двадцати строк.</li><li>Скопируй П6, вставь её целиком.</li><li>Прогони обе версии: обычные данные, пустой массив, Offline.</li><li>Сохрани старую версию — она понадобится при расхождении.</li></ol>",
+  closes:[19],act:[{t:"Промпт П6",a:"go-p6"}]},
+ {n:12,min:"7 мин",where:"g",title:"Приёмка, PR, телефон, доска",
+  body:"<ol><li>Пройди все восемь шагов сценария в приватном окне по публичной ссылке.</li><li>Отметь их во вкладке «Чек-лист» — пункт 23 откроется только после всех восьми.</li><li>Коммиты по шаблонам, PR с описанием в три блока, README с известными ограничениями.</li><li>Merge → Delete branch → Actions → Ctrl+F5 → телефон.</li><li>Переведи задачу на доске в «Сделано».</li></ol>",
+  closes:[21,22,23],act:[{t:"Сценарий приёмки",a:"go-check"},{t:"Шаблон PR",a:"go-tpl"},{t:"Создать PR",link:"compare"}]}
+];
+
+var PHASES=[
+ {from:0,to:300,t:"Ветка и ключ хранилища",d:"Шаги 1–2"},
+ {from:300,to:960,t:"Сохранение и восстановление",d:"Шаги 3–4"},
+ {from:960,to:1560,t:"Защитное чтение и первый визит",d:"Шаги 5–7"},
+ {from:1560,to:2160,t:"Тёмная тема без вспышки",d:"Шаги 8–9"},
+ {from:2160,to:2640,t:"Микроанимации и рефакторинг",d:"Шаги 10–11"},
+ {from:2640,to:3000,t:"Приёмка, PR, телефон",d:"Шаг 12"}
+];
+
+var KEY="wdc-l22-sprint-v1";
+var state={started:false,tab:"sprint",topic:"P01",owner:"",repo:"",link:"",dark:false,
+ steps:{},checks:{},extras:{},accept:{},filter:"all",q:"",
+ lab:{stringify:true,version:"v1",unavailable:false,broken:false,wrongShape:false,guard:true,theme:"light",duration:160,reduced:false,count:3},
+ timer:{left:3000,running:false,endsAt:null}};
+
+try{
+ var raw=localStorage.getItem(KEY);
+ if(raw){var pj=JSON.parse(raw);if(pj&&typeof pj==="object"){for(var kk in pj){if(Object.prototype.hasOwnProperty.call(pj,kk))state[kk]=pj[kk];}}}
+}catch(e){}
+if(!state.timer||typeof state.timer.left!=="number")state.timer={left:3000,running:false,endsAt:null};
+if(!state.steps)state.steps={};
+if(!state.checks)state.checks={};
+if(!state.extras)state.extras={};
+if(!state.accept)state.accept={};
+if(!state.lab)state.lab={stringify:true,version:"v1",unavailable:false,broken:false,wrongShape:false,guard:true,theme:"light",duration:160,reduced:false,count:3};
+var tFound=false;
+for(var ti=0;ti<TOPICS.length;ti++){if(TOPICS[ti].id===state.topic)tFound=true;}
+if(!tFound)state.topic="P01";
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function T(){for(var i=0;i<TOPICS.length;i++){if(TOPICS[i].id===state.topic)return TOPICS[i];}return TOPICS[0];}
+function esc(s){if(s===null||s===undefined)return "";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function fill(s){var t=T();return String(s).replace(/\{ARR\}/g,t.arr).replace(/\{FN\}/g,t.fn).replace(/\{KEY\}/g,t.key).replace(/\{ACT\}/g,t.act);}
+function slug(s){return String(s||"").trim().toLowerCase().replace(/[^a-z0-9-]/g,"");}
+function owner(){return slug(state.owner);}
+function repo(){return slug(state.repo)||T().repo;}
+function hasGH(){return owner().length>0&&repo().length>0;}
+function ghURL(p){return hasGH()?"https://github.com/"+owner()+"/"+repo()+(p||""):"";}
+function pagesURL(){return owner()?"https://"+owner()+".github.io/"+repo()+"/":"";}
+function dynLink(k){
+ if(k==="repo")return ghURL("");
+ if(k==="branches")return ghURL("/branches");
+ if(k==="compare")return ghURL("/compare/main...feature/mvp");
+ if(k==="pages")return ghURL("/settings/pages");
+ if(k==="actions")return ghURL("/actions");
+ if(k==="pulls")return ghURL("/pulls");
+ if(k==="site")return pagesURL();
+ return "";
+}
+
+var view=document.getElementById("view");
+var tabsEl=document.getElementById("tabs");
+var tabwrap=document.getElementById("tabwrap");
+var actionbar=document.getElementById("actionbar");
+var stchip=document.getElementById("stchip");
+var abInfo=document.getElementById("abInfo");
+var toastEl=document.getElementById("toast");
+var toastT=null;
+function toast(m){toastEl.textContent=m;toastEl.classList.add("on");if(toastT)clearTimeout(toastT);toastT=setTimeout(function(){toastEl.classList.remove("on");},2800);}
+
+var HUES={
+ sprint:["#6d28d9","#a855f7","109,40,217"],
+ route:["#4f46e5","#7c3aed","79,70,229"],
+ prompts:["#7e22ce","#c026d3","126,34,206"],
+ lab:["#0f766e","#14b8a6","15,118,110"],
+ tpl:["#9d174d","#ec4899","157,23,77"],
+ github:["#15803d","#84cc16","21,128,61"],
+ check:["#b45309","#f59e0b","180,83,9"]
+};
+function setHue(){var h=HUES[state.tab]||HUES.sprint,r=document.documentElement;r.style.setProperty("--proj",h[0]);r.style.setProperty("--proj2",h[1]);r.style.setProperty("--rgb",h[2]);}
+function applyTheme(){
+ document.documentElement.setAttribute("data-theme",state.dark?"dark":"light");
+ var ic=document.getElementById("themeIcon");
+ if(ic){ic.innerHTML=state.dark?'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>':'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';}
+}
+
+/* ---------- промпты ---------- */
+function ctx(){
+ var t=T();
+ return [
+  "[КТО Я]",
+  "Я школьник, 10–11 класс. Делаю учебный проект — "+t.legend+".",
+  "Чистые HTML, CSS и JavaScript: без фреймворков, сборщиков, npm и TypeScript.",
+  "Файлы правлю в браузере на GitHub. Третий спринт из четырёх: сегодня память, тема и микроанимации.",
+  "",
+  "[ЧТО Я УЖЕ УМЕЮ]",
+  "Семантические теги, aria-атрибуты, видимый фокус, CSS-переменные в :root и var(),",
+  "Grid и Flexbox, Mobile First через min-width, transition, transform, @keyframes.",
+  "const и let, Number(), функции с return, массив объектов, map, filter, find, join, sort,",
+  "циклы for и for...of, шаблонные строки, querySelector, addEventListener, делегирование через closest,",
+  "textContent, classList, валидация форм, async и await, try/catch/finally, fetch, response.ok,",
+  "JSON.stringify и JSON.parse, localStorage, Array.isArray.",
+  "",
+  "[ЧЕГО Я НЕ УМЕЮ — НЕ ИСПОЛЬЗУЙ]",
+  "reduce, регулярные выражения, деструктуризацию, spread вне копии массива, optional chaining,",
+  "классы, модули, import и export, библиотеки, сборщики, IndexedDB, sessionStorage."
+ ].join("\n");
+}
+function tail(name){
+ return [
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Только код "+name+" в одном блоке, без вступления и заключения.",
+  "После кода — ровно пять строк «Что проверить», по одной проверке на строку.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Я открою страницу и увижу результат сразу, в консоли ноль ошибок.",
+  "Я смогу объяснить каждую строку вслух: если строку нельзя объяснить школьнику — перепиши проще."
+ ].join("\n");
+}
+function P1(){
+ var t=T();
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Напиши две функции: сохранение состояния и восстановление при загрузке.",
+  "Массив проекта называется "+t.arr+", ключ хранилища — "+t.key+".",
+  "",
+  "[ДВЕ ТОЧКИ, ПОРЯДОК НЕ МЕНЯЕТСЯ]",
+  "1. Точка сохранения: вызывается сразу после каждого изменения данных —",
+  "   добавление, удаление, "+t.act+". Надёжнее всего внутри одной функции",
+  "   вместе с перерисовкой: сначала "+t.fn+"(), потом save().",
+  "2. Точка восстановления: единственный вызов чтения при загрузке страницы,",
+  "   после применения темы и до первой отрисовки.",
+  "",
+  "[ЧТО ДОЛЖНО БЫТЬ В КОДЕ]",
+  "- запись только через JSON.stringify: массив напрямую в хранилище класть нельзя;",
+  "- ключ строкой с версией: "+t.key+";",
+  "- функция save() ничего не возвращает и не рисует;",
+  "- функция load() возвращает массив;",
+  "- функция update() вызывает "+t.fn+"() и save() — её вызывают все обработчики.",
+  "",
+  "[СТРУКТУРА ЗАПИСИ]",
+  t.rec,
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не больше 40 строк;",
+  "- никаких библиотек и обёрток над хранилищем;",
+  "- комментарий на русском к каждой из двух точек: когда именно она вызывается."
+ ].join("\n")+tail("функций save и load");
+}
+function P2(){
+ var t=T();
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Перепиши функцию чтения из хранилища так, чтобы она никогда не роняла страницу.",
+  "Ключ: "+t.key+". Функция возвращает массив — заполненный или пустой.",
+  "",
+  "[ТРИ УРОВНЯ ЗАЩИТЫ, ВСЕ ОБЯЗАТЕЛЬНЫ]",
+  "1. Хранилище может быть недоступно: доступ обёрнут в try, при отказе вернуть пустой массив.",
+  "2. Строка может быть испорчена: JSON.parse обёрнут в отдельный try, при ошибке вернуть пустой массив.",
+  "3. Данные могут быть не той формы: после разбора проверка Array.isArray.",
+  "   Если это не массив — вернуть пустой массив.",
+  "",
+  "[ДОПОЛНИТЕЛЬНО]",
+  "- если ключа нет вообще, getItem вернёт null: это первый визит, вернуть пустой массив;",
+  "- у записи может не хватать необязательного поля: подставь значение по умолчанию,",
+  "  не меняя версию ключа;",
+  "- функция не показывает сообщений пользователю: она только возвращает данные.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не больше 35 строк;",
+  "- никаких optional chaining и деструктуризации;",
+  "- комментарий на русском перед каждым из трёх уровней: от чего он защищает."
+ ].join("\n")+tail("функции чтения");
+}
+function P3(){
+ var t=T(),i,names=["--bg","--card","--ink","--muted","--accent","--border"],lines=[];
+ for(i=0;i<names.length;i++)lines.push("- "+names[i]+": светлое "+t.light[["bg","card","ink","muted","accent","border"][i]]+", тёмное "+t.dark[["bg","card","ink","muted","accent","border"][i]]);
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Сделай тёмную тему для проекта «"+t.name+"» и переключатель с сохранением.",
+  "",
+  "[МОИ ТОКЕНЫ]",
+  lines.join("\n"),
+  "",
+  "[ЧТО ДОЛЖНО БЫТЬ]",
+  "1. В :root светлый набор. Ниже по файлу блок html[data-theme=\"dark\"] с теми же именами.",
+  "   Ни одно имя не потеряно, новых имён в тёмном наборе нет.",
+  "2. Правила ниже :root не меняются: они обращаются через var(), а не к значению.",
+  "3. Кнопка переключателя меняет атрибут data-theme у html и сохраняет выбор в хранилище.",
+  "4. Ключ темы отдельный от ключа данных, с версией.",
+  "5. У кнопки понятная подпись и aria-label, если внутри только значок."
+ ,
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- контраст основного текста к фону не ниже 4.5:1 в обеих темах;",
+  "- никаких !important и дублирования правил под каждую тему;",
+  "- не больше 45 строк CSS и 20 строк JavaScript;",
+  "- комментарий на русском: почему правила ниже не трогаем."
+ ].join("\n")+tail("темы и переключателя");
+}
+function P4(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Добавь ровно три микроанимации: наведение на карточку, нажатие на кнопку, появление новой карточки.",
+  "",
+  "[ПРАВИЛА, КОТОРЫЕ НЕЛЬЗЯ НАРУШАТЬ]",
+  "- анимируются только transform и opacity;",
+  "- длительность от 120 до 250 миллисекунд;",
+  "- transition пишется в базовом правиле элемента, не внутри :hover;",
+  "- никаких transition: all и никаких 500 мс;",
+  "- в конце файла блок @media (prefers-reduced-motion: reduce), который укорачивает",
+  "  анимации и переходы до незаметных.",
+  "",
+  "[ЧТО ДОЛЖНО БЫТЬ ВИДНО]",
+  "1. Наведение: карточка приподнимается на 2 пикселя через transform.",
+  "2. Нажатие: кнопка проседает на 1 пиксель, отдача под палец.",
+  "3. Появление: новая карточка приходит снизу и проявляется, один раз, без бесконечности.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не анимировать width, height, top, left, margin и padding;",
+  "- не больше 35 строк;",
+  "- комментарий на русском перед каждым блоком: что сообщает эта анимация."
+ ].join("\n")+tail("CSS с тремя анимациями");
+}
+function P5(){
+ var t=T();
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Напиши код запуска страницы в правильном порядке, чтобы тёмная тема не мигала светлым.",
+  "",
+  "[ПОРЯДОК ЧЕТЫРЁХ ШАГОВ]",
+  "1. Применить сохранённую тему к html — до любой отрисовки.",
+  "2. Прочитать данные из хранилища защищённым чтением.",
+  "3. Положить прочитанное в массив "+t.arr+".",
+  "4. Отрисовать список функцией "+t.fn+"().",
+  "",
+  "[ЧТО ДОЛЖНО БЫТЬ]",
+  "- обработчики назначаются после первой отрисовки и висят на контейнерах;",
+  "- если данных нет, отрисовка показывает приглашение добавить первую запись;",
+  "- тема читается из своего ключа, при отсутствии ставится светлая.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не больше 30 строк;",
+  "- никакого DOMContentLoaded ради темы: она применяется сразу;",
+  "- комментарий на русском с номером шага перед каждым блоком."
+ ].join("\n")+tail("кода запуска");
+}
+function P6(){
+ return [
+  "[КОНТЕКСТ]",
+  "Я школьник, делаю учебный проект — веб-панель на чистых HTML, CSS и JavaScript,",
+  "без фреймворков и без бэкенда. На занятиях были: массивы и объекты,",
+  "filter/map/join/find/sort, циклы for и for...of, функции, условия, шаблонные строки,",
+  "querySelector, addEventListener, делегирование через closest, textContent, classList,",
+  "валидация форм, Promise, async/await, try/catch/finally, fetch,",
+  "JSON.stringify и JSON.parse, localStorage, Array.isArray.",
+  "Данные хранятся в массиве, интерфейс всегда перерисовывается целиком,",
+  "после каждого изменения состояние сохраняется в хранилище браузера.",
+  "",
+  "Функция, которую нужно переписать:",
+  "<<< сюда вставить свой код целиком >>>",
+  "",
+  "[ЗАДАЧА]",
+  "Перепиши эту функцию так, чтобы её было легче читать. Это второй рефакторинг из двух по ТЗ.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- ПОВЕДЕНИЕ НЕ МЕНЯТЬ: на тех же данных обе версии дают одинаковый результат,",
+  "  включая границы — пустой массив, испорченная строка в хранилище, отсутствующее поле, сбой запроса;",
+  "- не использовать приёмы, которых нет в списке выше, в частности reduce,",
+  "  регулярные выражения и деструктуризацию: я не смогу объяснить такой код;",
+  "- не менять имена функций, которые вызываются снаружи;",
+  "- не убирать вызов сохранения состояния и не переносить его в другое место;",
+  "- числа-константы вынести наверх с говорящими именами;",
+  "- не длиннее исходной функции больше чем на пять строк;",
+  "- const и let, никакого var.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Сначала список из 3–5 строк: что именно ты изменишь и почему.",
+  "Потом один блок кода с функцией целиком. Без пояснений после кода.",
+  "Если данных не хватает — не пиши код, задай не больше трёх вопросов.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "1. Прогоняю обе версии на обычных данных — результат совпадает.",
+  "2. Прогоняю на пустом массиве — совпадает.",
+  "3. Прогоняю с испорченной строкой в хранилище — совпадает.",
+  "4. Каждую строку новой версии я могу пересказать своими словами.",
+  "5. Ни одного метода, которого нет в списке с занятий."
+ ].join("\n");
+}
+function P7(){
+ return [
+  "Ты объясняешь готовый код построчно ученику 10–11 класса.",
+  "",
+  "[КОНТЕКСТ]",
+  "Это файл моего учебного проекта: панель на чистых HTML, CSS и JavaScript.",
+  "Код мне написала модель, и я обязан понимать каждую строку: на защите спросят про любой фрагмент.",
+  "Сегодняшний спринт — память браузера, тёмная тема и микроанимации.",
+  "",
+  "[ЗАДАЧА]",
+  "Разбери код построчно: что делает каждая строка и что сломается, если её убрать.",
+  "Отдельно ответь на три вопроса:",
+  "1) что произойдёт, если записать массив в хранилище без JSON.stringify;",
+  "2) что произойдёт, если убрать проверку Array.isArray после JSON.parse;",
+  "3) что произойдёт, если применить тему после первой отрисовки.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не переписывай мой код и не предлагай улучшений;",
+  "- не используй термины, которых нет в моём коде, без объяснения тут же;",
+  "- не упоминай классы, модули, сборщики и библиотеки;",
+  "- пиши по-русски короткими предложениями, как для одноклассника.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Таблица из трёх колонок: строка кода — что делает — что сломается без неё.",
+  "После таблицы три абзаца ответов на вопросы. Потом раздел «Что мне пока непонятно», не больше трёх пунктов.",
+  "",
+  "Вот мой код:",
+  "<<< вставь сюда код файла целиком >>>"
+ ].join("\n");
+}
+function P8(){
+ return [
+  "Ты помогаешь школьнику починить одну конкретную ошибку в учебном проекте.",
+  "",
+  "[КОНТЕКСТ]",
+  "Чистые HTML, CSS и JavaScript, без библиотек. Панель хранит данные в массиве,",
+  "перерисовывает список целиком и сохраняет состояние в localStorage через JSON.stringify.",
+  "",
+  "[ЧТО СЛОМАЛОСЬ]",
+  "Что я делал: <<< добавил запись / перезагрузил / открыл приватное окно / испортил строку / включил тёмную тему >>>",
+  "Что ожидал: <<< что должно было произойти >>>",
+  "Что получилось: <<< что увидел на самом деле >>>",
+  "Текст ошибки из консоли: <<< вставь красную строку или напиши «ошибок нет» >>>",
+  "Что лежит в хранилище: <<< вставь значение ключа из Application целиком >>>",
+  "",
+  "Мой код:",
+  "<<< вставь только тот файл, где ошибка >>>",
+  "",
+  "[ЗАДАЧА]",
+  "Найди одну причину и покажи минимальную правку.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не переписывай файл целиком: покажи только строку до и строку после;",
+  "- не предлагай библиотек и незнакомых мне методов;",
+  "- объясни причину одним предложением, понятным школьнику;",
+  "- если причин несколько — назови самую вероятную первой и остановись на ней.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "1) Причина — одно предложение.",
+  "2) Было: строка кода. Стало: строка кода.",
+  "3) Как проверить, что починилось — одно действие.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Я могу внести правку сам и объяснить, почему она работает."
+ ].join("\n");
+}
+function P9(){
+ var t=T();
+ return [
+  "Ты помогаешь школьнику проверить, достигнут ли MVP его учебного проекта.",
+  "",
+  "Контекст: проект «"+t.name+"» — "+t.legend+". Чистые HTML, CSS и JavaScript.",
+  "Опубликован по публичной ссылке. Данные хранятся в массиве и в localStorage,",
+  "есть тёмная тема и три микроанимации, внешний блок получает данные с API и имеет фолбэк.",
+  "",
+  "Задача: перечисли, что может пойти не так при первом визите постороннего человека,",
+  "и что он должен увидеть в каждом случае.",
+  "",
+  "Ограничения:",
+  "- рассматривай только то, что видит человек на экране, а не в консоли;",
+  "- обязательно разбери: пустое хранилище, испорченная строка, недоступное хранилище,",
+  "  отключённая сеть, узкий экран 320 px;",
+  "- не предлагай библиотек и серверного кода;",
+  "- не переписывай мой код;",
+  "- не больше шести случаев;",
+  "- пиши по-русски.",
+  "",
+  "Формат ответа: таблица из четырёх колонок — что случилось, что увидит человек без обработки,",
+  "что должен увидеть, какая проверка в коде это обеспечивает (одна-две строки).",
+  "",
+  "Критерии проверки: перечислены все пять обязательных случаев; для каждого описано,",
+  "что видно на экране; ни одного совета про библиотеки."
+ ].join("\n");
+}
+function P10(){
+ var t=T();
+ return [
+  "Ты помогаешь школьнику оформить Pull Request и README в учебном проекте.",
+  "",
+  "Контекст: проект «"+t.name+"» — "+t.legend+". Чистые HTML, CSS и JavaScript.",
+  "Ветка feature/mvp, третий спринт из четырёх. Сегодня контрольная точка: MVP.",
+  "",
+  "Факты об изменении (ничего не добавляй от себя):",
+  "- состояние сохраняется в localStorage под ключом "+t.key+" через JSON.stringify;",
+  "- восстановление один раз при загрузке, защищённое чтение в три уровня;",
+  "- тёмная тема вторым набором тех же токенов, выбор сохраняется, применяется до отрисовки;",
+  "- три микроанимации на transform и opacity, блок prefers-reduced-motion;",
+  "- второй рефакторинг: одна функция переписана понятнее, поведение проверено;",
+  "- сценарий приёмки из восьми шагов пройден в приватном окне по публичной ссылке.",
+  "",
+  "Задача: напиши заголовок и описание Pull Request, затем блок «Известные ограничения» для README.",
+  "",
+  "Ограничения:",
+  "- заголовок называет изменение, до 72 символов;",
+  "- описание ровно из трёх блоков: Что сделано по файлам; Как проверить — пронумерованные шаги,",
+  "  обязательно шаг про приватное окно, шаг про испорченную строку и шаг про 320 px; Что осталось;",
+  "- в ограничениях честно назвать то, чего нет: данные не переносятся между устройствами,",
+  "  хранилище может быть недоступно в приватном режиме;",
+  "- не выдумывать возможности, которых нет в списке фактов;",
+  "- без слов работа, правки, фикс, рефакторинг в заголовке.",
+  "",
+  "Формат ответа: строка заголовка, описание в Markdown, затем отдельный блок ограничений в Markdown.",
+  "",
+  "Критерии проверки: ревьюер понимает, что смотреть и как проверить, не открывая код."
+ ].join("\n");
+}
+
+var PROMPTS=[
+ {id:"p1",n:"П1",t:"Две точки: сохранение и восстановление",s:"Шаг 3 · после каждого изменения",make:P1,
+  checks:["Запись только через JSON.stringify","Ключ строкой с версией","Сохранение вызывается из всех обработчиков","Восстановление один раз, до отрисовки","save ничего не рисует и не возвращает"]},
+ {id:"p2",n:"П2",t:"Защитное чтение в три уровня",s:"Шаг 5 · страница не падает никогда",make:P2,
+  checks:["try вокруг доступа к хранилищу","отдельный try вокруг JSON.parse","Array.isArray после разбора","нет ключа — пустой массив, это первый визит","отсутствующее поле заменено значением по умолчанию"]},
+ {id:"p3",n:"П3",t:"Тёмная тема теми же именами",s:"Шаг 8 · правила ниже не меняются",make:P3,
+  checks:["В тёмном наборе те же имена, ничего не потеряно","Ниже :root только var()","Контраст не ниже 4.5:1 в обеих темах","Переключатель меняет data-theme и сохраняет","Нет !important и дублирования правил"]},
+ {id:"p4",n:"П4",t:"Три микроанимации",s:"Шаг 10 · transform и opacity",make:P4,
+  checks:["Ровно три анимации, ничего лишнего","transition в базовом правиле","Длительность 120–250 мс","Нет transition: all и 500 мс","prefers-reduced-motion в конце файла"]},
+ {id:"p5",n:"П5",t:"Порядок загрузки без вспышки",s:"Шаг 9 · тема → данные → массив → отрисовка",make:P5,
+  checks:["Тема применяется первым делом","Чтение защищённое","Отрисовка после заполнения массива","Обработчики после первой отрисовки","Перезагрузка с тёмной темой без белого кадра"]},
+ {id:"p6",n:"П6",t:"Второй рефакторинг из двух",s:"Шаг 11 · поведение не меняется",make:P6,
+  checks:["Три набора данных совпали","Испорченная строка проверена","Имена снаружи не изменились","Вызов сохранения на месте","Каждую строку можешь пересказать","Старая версия сохранена"]},
+ {id:"p7",n:"П7",t:"Объясни построчно",s:"Аудит ответа модели",make:P7,
+  checks:["Разобрана каждая строка","Ответы про stringify, Array.isArray и порядок конкретные","Объяснение совпадает с твоим пониманием","Код не переписан","Терминов без пояснения нет"]},
+ {id:"p8",n:"П8",t:"Почини одну ошибку",s:"Правило трёх попыток",make:P8,
+  checks:["Названа одна причина","Показана строка до и строка после","Значение из хранилища приложено","Правку можешь внести сам"]},
+ {id:"p9",n:"П9",t:"Что может пойти не так при первом визите",s:"Шаг 12 · проверка MVP",make:P9,
+  checks:["Все пять обязательных случаев разобраны","Описано, что видно на экране","Нет советов про библиотеки","Проверено в приватном окне самому"]},
+ {id:"p10",n:"П10",t:"PR спринта 3 и ограничения README",s:"Шаг 12 · три блока и честность",make:P10,
+  checks:["Заголовок называет изменение","В «Как проверить» есть приватное окно и испорченная строка","Ограничения названы честно","Нет выдуманных возможностей"]}
+];
+
+/* ---------- шаблоны ---------- */
+function tplStore(){
+ var t=T();
+ return [
+  "/* Ключ данных: имя по проекту плюс версия структуры */",
+  'const STORE_KEY = "'+t.key+'";',
+  'const THEME_KEY = "'+t.repo+'-theme-v1";',
+  "",
+  "/* Форма записи в массиве "+t.arr+" */",
+  t.rec,
+  "",
+  "/* Что лежит в хранилище после JSON.stringify:",
+  "   квадратные скобки, кавычки, имена полей — читается глазами.",
+  "   Без stringify там будет [object Object],[object Object] —",
+  "   ошибки не будет, данные испортятся тихо. */",
+  "",
+  "/* Версию ключа меняем, когда новая структура несовместима со старой.",
+  "   Если добавилось необязательное поле — версию не меняем,",
+  "   а подставляем значение по умолчанию при чтении. */"
+ ].join("\n");
+}
+function tplTokens(){
+ var t=T(),names=["bg","card","ink","muted","accent","border"],L=[":root {"],i;
+ for(i=0;i<names.length;i++)L.push("  --"+names[i]+": "+t.light[names[i]]+";");
+ L.push("}");L.push("");L.push('html[data-theme="dark"] {');
+ for(i=0;i<names.length;i++)L.push("  --"+names[i]+": "+t.dark[names[i]]+";");
+ L.push("}");L.push("");
+ L.push("/* Правила ниже не меняются: они обращаются через var(),");
+ L.push("   а не к значению. Потерянное имя в тёмном наборе —");
+ L.push("   это один элемент в старом цвете, обычно тёмный текст на тёмном фоне. */");
+ return L.join("\n");
+}
+function tplPR(){
+ var t=T();
+ return [
+  "ЗАГОЛОВОК:",
+  "MVP: память браузера, тёмная тема, три микроанимации",
+  "",
+  "ОПИСАНИЕ:",
+  "## Что сделано",
+  "- script.js: сохранение состояния под ключом "+t.key+" после каждого изменения",
+  "- script.js: защищённое чтение в три уровня, Array.isArray после разбора",
+  "- script.js: порядок запуска — тема, чтение, массив, отрисовка",
+  "- style.css: второй набор токенов для тёмной темы теми же именами",
+  "- style.css: три микроанимации на transform и opacity, prefers-reduced-motion",
+  "- README.md: известные ограничения названы честно",
+  "",
+  "## Как проверить",
+  "1. Открыть публичную ссылку в приватном окне — список пуст и объясняет, что делать",
+  "2. Добавить запись, перезагрузить — запись на месте",
+  "3. Удалить запись и сменить статус — в Application значение меняется сразу",
+  "4. Application → стереть закрывающую скобку в значении → обновить: пустой список, не белый экран",
+  "5. Включить тёмную тему, перезагрузить — тема на месте, светлой вспышки нет",
+  "6. Network → Offline, обновить — свои записи на месте, внешний блок с пометкой",
+  "7. Сузить до 320 px — горизонтальной прокрутки нет",
+  "8. Console — ноль красных строк за весь сценарий",
+  "",
+  "## Что осталось",
+  "- взаимное тестирование на чужом устройстве и баг-репорты — четвёртый спринт",
+  "- данные не переносятся между устройствами: это ограничение хранилища браузера"
+ ].join("\n");
+}
+function tplReadme(){
+ var t=T(),site=pagesURL()||("https://МОЙ-ЛОГИН.github.io/"+t.repo+"/");
+ return [
+  "# "+t.name+" — "+t.kind.toLowerCase(),
+  "",
+  "**Открыть:** "+site,
+  "",
+  "## Стек",
+  "HTML, CSS, JavaScript. Без фреймворков и сборщиков.",
+  "",
+  "## Что умеет",
+  "- добавление записи через форму с проверкой пустого значения",
+  "- "+t.act,
+  "- записи переживают закрытие вкладки и перезагрузку",
+  "- данные с внешнего сервиса, при сбое — запасные с честной пометкой",
+  "- тёмная тема, выбор запоминается",
+  "- три микроанимации, уважают настройку «уменьшить движение»",
+  "",
+  "## Что сделано с помощью ИИ",
+  "- сохранение, защищённое чтение и тема написаны моделью Qwen по моим промптам",
+  "- код разобран построчно и проверен в приватном окне вручную",
+  "- две функции переписаны понятнее, поведение проверено на трёх наборах данных",
+  "",
+  "## Известные ограничения",
+  "- данные хранятся только в этом браузере и не переносятся между устройствами",
+  "- в приватном режиме хранилище может быть недоступно: панель работает, но не запоминает",
+  "- испорченное значение хранилища приводит к пустому списку, а не к восстановлению"
+ ].join("\n");
+}
+function tplAccept(){
+ var L=["СЦЕНАРИЙ ПРИЁМКИ MVP · восемь действий","Только по публичной ссылке и только в приватном окне.",""],i;
+ for(i=0;i<SCENARIO.length;i++)L.push((i+1)+". "+SCENARIO[i].t+" — "+SCENARIO[i].d);
+ L.push("");
+ L.push("Частичного прохождения нет: пункт 23 чек-листа закрывается,");
+ L.push("когда пройдены все восемь. Если что-то не работает —");
+ L.push("сокращай объём проекта, а не догоняй в последний вечер.");
+ return L.join("\n");
+}
+var COMMITS=[
+ {id:"k1",t:"К1 · после сохранения",v:"script.js: состояние сохраняется после изменений"},
+ {id:"k2",t:"К2 · после чтения",v:"script.js: защищённое чтение в три уровня"},
+ {id:"k3",t:"К3 · после темы",v:"style.css: тёмная тема теми же токенами"},
+ {id:"k4",t:"К4 · после переключателя",v:"script.js: выбор темы запоминается"},
+ {id:"k5",t:"К5 · после анимаций",v:"style.css: три микроанимации и reduced-motion"},
+ {id:"k6",t:"К6 · после рефакторинга",v:"script.js: функция чтения разбита на части"},
+ {id:"k7",t:"К7 · после README",v:"README: известные ограничения проекта"}
+];
+function textFor(id){
+ var i;
+ for(i=0;i<PROMPTS.length;i++){if(PROMPTS[i].id===id)return PROMPTS[i].make();}
+ for(i=0;i<COMMITS.length;i++){if(COMMITS[i].id===id)return COMMITS[i].v;}
+ if(id==="tpl-store")return tplStore();
+ if(id==="tpl-tokens")return tplTokens();
+ if(id==="tpl-pr")return tplPR();
+ if(id==="tpl-readme")return tplReadme();
+ if(id==="tpl-accept")return tplAccept();
+ if(id==="lab-code")return labCode();
+ if(id==="lab-raw")return labRaw();
+ return "";
+}
+
+/* ---------- подсчёты ---------- */
+function checkedCount(){var n=0,i;for(i=0;i<CHECKS.length;i++){if(state.checks[CHECKS[i].n])n++;}return n;}
+function baseList(){var a=[],i;for(i=0;i<CHECKS.length;i++){if(CHECKS[i].base)a.push(CHECKS[i]);}return a;}
+function baseDone(){var b=baseList(),n=0,i;for(i=0;i<b.length;i++){if(state.checks[b[i].n])n++;}return n;}
+function acceptDone(){var n=0,i;for(i=0;i<SCENARIO.length;i++){if(state.accept[SCENARIO[i].id])n++;}return n;}
+function acceptAll(){return acceptDone()===SCENARIO.length;}
+function passed(){return baseDone()===6&&checkedCount()>=17;}
+function stepsDone(){var n=0,i;for(i=0;i<STEPS.length;i++){if(state.steps[STEPS[i].n])n++;}return n;}
+function extrasDone(){var n=0,i;for(i=0;i<EXTRAS.length;i++){if(state.extras[EXTRAS[i].id])n++;}return n;}
+
+/* ---------- лаборатория ---------- */
+function labItems(){
+ var t=T(),n=Math.max(0,Math.min(6,state.lab.count)),a=[],i;
+ for(i=0;i<n;i++)a.push({id:t.seed[i%t.seed.length].id+(i>2?"-"+i:""),title:t.seed[i%t.seed.length].title,meta:t.seed[i%t.seed.length].meta});
+ return a;
+}
+function labKey(){var t=T();return state.lab.version==="none"?t.arr:t.arr+"-"+state.lab.version;}
+function labRaw(){
+ var L=state.lab;
+ if(L.unavailable)return "";
+ if(L.wrongShape)return '{"total":3,"note":"это объект, а не массив"}';
+ var items=labItems(),s;
+ if(L.stringify){s=JSON.stringify(items,null,1);}
+ else{var parts=[],i;for(i=0;i<items.length;i++)parts.push("[object Object]");s=parts.join(",");}
+ if(L.broken&&s.length>2)s=s.slice(0,s.length-1);
+ return s;
+}
+function labRead(){
+ var L=state.lab,log=[],data=null,crash=false,raw=labRaw();
+ if(L.unavailable){
+  if(L.guard){log.push({k:"warn",t:"Уровень 1: хранилище недоступно. Защита вернула пустой массив — это первый визит."});data=[];}
+  else{log.push({k:"bad",t:"Уровень 1: хранилище недоступно, try нет. Обращение бросило ошибку — страница не открылась."});crash=true;}
+  return {log:log,data:data,crash:crash,raw:raw};
+ }
+ log.push({k:"ok",t:"Уровень 1: хранилище доступно, значение по ключу "+labKey()+" прочитано."});
+ var parsed=null,parseOk=true;
+ try{parsed=JSON.parse(raw);}catch(e){parseOk=false;}
+ if(!parseOk){
+  if(L.guard){log.push({k:"warn",t:"Уровень 2: строка испорчена, JSON.parse не смог разобрать. Защита вернула пустой массив."});data=[];}
+  else{log.push({k:"bad",t:"Уровень 2: строка испорчена, try вокруг JSON.parse нет. SyntaxError — страница не открылась."});crash=true;}
+  return {log:log,data:data,crash:crash,raw:raw};
+ }
+ log.push({k:"ok",t:"Уровень 2: строка разобрана без ошибки."});
+ if(!Array.isArray(parsed)){
+  if(L.guard){log.push({k:"warn",t:"Уровень 3: разобрано не в массив. Array.isArray вернул ложь — защита вернула пустой массив."});data=[];}
+  else{log.push({k:"bad",t:"Уровень 3: разобрано не в массив, проверки нет. Отрисовка обратилась к .map и упала."});crash=true;}
+  return {log:log,data:data,crash:crash,raw:raw};
+ }
+ log.push({k:"ok",t:"Уровень 3: это массив, записей "+parsed.length+". Данные легли в "+T().arr+", список отрисован."});
+ data=parsed;
+ return {log:log,data:data,crash:crash,raw:raw};
+}
+function labCode(){
+ var t=T(),L=state.lab;
+ return [
+  'const STORE_KEY = "'+labKey()+'";',
+  "",
+  "/* Точка сохранения: вызывается после каждого изменения */",
+  "function save() {",
+  "  try {",
+  L.stringify?'    localStorage.setItem(STORE_KEY, JSON.stringify('+t.arr+'));':'    localStorage.setItem(STORE_KEY, '+t.arr+');  /* ошибка: массив без stringify */',
+  "  } catch (e) {",
+  "    /* хранилище недоступно — панель продолжает работать */",
+  "  }",
+  "}",
+  "",
+  "/* Точка восстановления: один раз при загрузке, до отрисовки */",
+  "function load() {",
+  L.guard?"  let raw = null;":"  /* защиты нет: любой сбой уронит страницу */",
+  L.guard?"  try {":"",
+  L.guard?"    raw = localStorage.getItem(STORE_KEY);":"  const raw = localStorage.getItem(STORE_KEY);",
+  L.guard?"  } catch (e) {":"",
+  L.guard?"    return [];":"",
+  L.guard?"  }":"",
+  "  if (raw === null) return [];",
+  L.guard?"  let data = null;":"",
+  L.guard?"  try {":"",
+  L.guard?"    data = JSON.parse(raw);":"  const data = JSON.parse(raw);",
+  L.guard?"  } catch (e) {":"",
+  L.guard?"    return [];":"",
+  L.guard?"  }":"",
+  L.guard?"  if (!Array.isArray(data)) return [];":"",
+  "  return data;",
+  "}",
+  "",
+  "/* Одна функция на все обработчики: сначала рисуем, потом сохраняем */",
+  "function update() {",
+  "  "+t.fn+"();",
+  "  save();",
+  "}"
+ ].filter(function(s){return s!==""||true;}).join("\n");
+}
+
+/* ---------- хелперы ---------- */
+function sec(n,t,s,inner){
+ return '<section class="sec" data-reveal><div class="sec-h"><div class="sec-n">'+esc(n)+'</div><div class="sec-hb">'+
+  '<h3 class="sec-t">'+esc(t)+'</h3>'+(s?'<p class="sec-s">'+esc(s)+'</p>':'')+'</div></div>'+inner+'</section>';
+}
+function codeBox(text,label,id){
+ return '<div class="code"><div class="code-h"><span>'+esc(label)+'</span>'+
+  '<button class="copy" type="button" data-copy="'+esc(id)+'">Копировать</button></div>'+
+  '<pre data-code="'+esc(id)+'">'+esc(text)+'</pre></div>';
+}
+function linkBtn(label,url){
+ var off=!url;
+ return '<a class="lnk'+(off?' off':'')+'" href="'+(off?'#':esc(url))+'"'+(off?'':' target="_blank" rel="noopener"')+'>'+
+  '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'+esc(label)+'</a>';
+}
+function dynLinksHTML(){
+ return linkBtn("Репозиторий",dynLink("repo"))+linkBtn("Ветки",dynLink("branches"))+
+  linkBtn("Создать PR",dynLink("compare"))+linkBtn("Settings → Pages",dynLink("pages"))+
+  linkBtn("Actions",dynLink("actions"))+linkBtn("Опубликованный сайт",dynLink("site"));
+}
+function fmt(s){s=Math.max(0,Math.floor(s));var m=Math.floor(s/60),x=s%60;return (m<10?"0":"")+m+":"+(x<10?"0":"")+x;}
+function curPhase(){var el=3000-state.timer.left,i;for(i=0;i<PHASES.length;i++){if(el<PHASES[i].to)return PHASES[i];}return PHASES[PHASES.length-1];}
+function linkHint(){
+ var v=String(state.link||"").trim();
+ if(!v)return "Ссылка с занятия 15. Формат: https://логин.github.io/проект/";
+ if(v.indexOf("https://")!==0)return "Ссылка должна начинаться с https://";
+ if(v.indexOf("file:")===0)return "Это локальный путь, а не публичная ссылка.";
+ if(v.indexOf(".")===-1)return "Адрес не похож на публичный сайт.";
+ return "Похоже на публичную ссылку. Открой её в приватном окне и с телефона.";
+}
+function sw(id,label,on){
+ return '<button class="sw" type="button" role="switch" aria-checked="'+(on?"true":"false")+'" data-sw="'+id+'"><span>'+esc(label)+'</span><i></i></button>';
+}
+
+/* ---------- вкладка Спринт ---------- */
+function renderStart(){
+ var cards="",i,t;
+ for(i=0;i<TOPICS.length;i++){t=TOPICS[i];cards+='<div class="hg" style="--c1:'+t.c1+'"><em>'+t.id+'</em><b>«'+esc(t.name)+'»</b><span>'+esc(t.kind)+'</span></div>';}
+ view.className="nostart";
+ view.innerHTML='<section class="hero" data-reveal><span class="badge">● Занятие 22 из 24 · модуль 9 · спринт 3 из 4 · контрольная точка</span>'+
+  '<h1>Продукт переживает<br><em>закрытую вкладку</em></h1>'+
+  '<p>Человек заполнил панель вечером, закрыл вкладку, вернулся утром — пусто. Второй раз он заполнять не станет: он просто больше не откроет твой сайт. Сегодня память, тёмная тема, три микроанимации и приёмка MVP из восьми действий.</p>'+
+  '<div class="meta"><span class="chip">🧩 <b>12 шагов</b> маршрута</span><span class="chip">✍️ <b>10 промптов</b></span><span class="chip">🧪 <b>лаборатория</b> хранилища</span><span class="chip">✅ <b>23 пункта</b> + 8 шагов приёмки</span><span class="chip">⏱ 50 минут</span></div>'+
+  '<button class="btn btn-p btn-lg" type="button" data-action="start">Начать спринт'+
+  '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>'+
+  '<div class="hgrid">'+cards+'</div></section>';
+ observe();
+}
+function varsBlock(){
+ var t=T(),topics="",i,x;
+ for(i=0;i<TOPICS.length;i++){x=TOPICS[i];topics+='<button type="button" class="topic'+(x.id===state.topic?' on':'')+'" style="--c1:'+x.c1+'" data-topic="'+x.id+'"><em>'+x.id+'</em><b>«'+esc(x.name)+'»</b><span>'+esc(x.kind)+'</span></button>';}
+ var ob=state.owner&&!owner(),rb=state.repo&&!slug(state.repo);
+ return '<div class="grid g2">'+
+  '<div class="card"><div class="kv-k" style="margin-bottom:8px">Твоя тема</div><div class="topics">'+topics+'</div>'+
+  '<div class="hint" style="margin-top:8px">От темы зависят ключ хранилища, массив, токены обеих тем и все промпты.</div></div>'+
+  '<div class="card">'+
+   '<div class="field"><label class="flabel" for="fOwner">Логин GitHub</label>'+
+   '<input class="inp'+(owner()?' filled':'')+'" id="fOwner" data-var="owner" type="text" autocomplete="off" placeholder="например, ivanov-ivan" value="'+esc(state.owner)+'">'+
+   '<div class="hint'+(ob?' bad':'')+'">'+(ob?'Только латиница, цифры и дефис.':'Латиница, строчные, без пробелов.')+'</div></div>'+
+   '<div class="field"><label class="flabel" for="fRepo">Имя репозитория</label>'+
+   '<input class="inp filled" id="fRepo" data-var="repo" type="text" autocomplete="off" placeholder="'+esc(t.repo)+'" value="'+esc(state.repo)+'">'+
+   '<div class="hint'+(rb?' bad':'')+'">'+(rb?'Только латиница, цифры и дефис.':'Пусто — подставим «'+esc(t.repo)+'».')+'</div></div>'+
+   '<div class="field"><label class="flabel" for="fLink">Публичная ссылка проекта</label>'+
+   '<input class="inp'+(state.link?' filled':'')+'" id="fLink" data-var="link" type="url" autocomplete="off" placeholder="'+esc(pagesURL()||"https://логин.github.io/проект/")+'" value="'+esc(state.link)+'">'+
+   '<div class="hint" id="linkHint">'+esc(linkHint())+'</div></div>'+
+  '</div></div>'+
+  '<div class="links" id="dynLinks" style="margin-top:12px">'+dynLinksHTML()+'</div>'+
+  (hasGH()?'':'<div class="hint" style="margin-top:8px">Впиши логин — ссылки станут рабочими и поведут прямо в твой репозиторий.</div>');
+}
+function renderSprint(){
+ var ph="",i,p,on,done,el=3000-state.timer.left;
+ for(i=0;i<PHASES.length;i++){p=PHASES[i];on=el>=p.from&&el<p.to;done=el>=p.to;
+  ph+='<div class="phase'+(on?' on':'')+(done?' done':'')+'" data-phase="'+i+'"><em>'+fmt(p.from)+'–'+fmt(p.to)+'</em><span><b>'+esc(p.t)+'</b> · '+esc(p.d)+'</span></div>';}
+ var cp=curPhase(),t=T();
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">03</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">СПРИНТ 3 ИЗ 4</span><span class="pcode">КОНТРОЛЬНАЯ ТОЧКА</span><span class="pcode">БАЗА: 6 ПУНКТОВ</span></div>'+
+  '<h2>Доведение до MVP</h2>'+
+  '<p>Продукт должен работать целиком: запись переживает перезагрузку, тема запоминается, испорченные данные не роняют страницу, первый визит проверен в приватном окне. Если MVP не достигнут — сокращаем объём, а не догоняем в последний вечер.</p></div></div>'+
+  sec("1","Твоя тема и твои ссылки","Ключ: "+t.key+" · массив: "+t.arr+" · перерисовка: "+t.fn,varsBlock())+
+  sec("2","Таймер спринта","Пятьдесят минут практики, шесть отрезков",
+   '<div class="timer"><div class="tdial'+(state.timer.running?' run':'')+'" id="tdial">'+fmt(state.timer.left)+'</div>'+
+   '<div class="tphase" id="tphase"><b>'+esc(cp.t)+'</b>'+esc(cp.d)+'</div>'+
+   '<div class="tbtns"><button class="btn btn-p btn-sm" type="button" data-action="timer" id="tbtn">'+(state.timer.running?"Пауза":"Старт")+'</button>'+
+   '<button class="btn btn-s btn-sm" type="button" data-action="timer-reset">Сброс</button></div></div>'+
+   '<div class="phases" id="phases">'+ph+'</div>')+
+  sec("3","Что делаем и чего не делаем","Граница спринта",
+   '<div class="grid g2">'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px;color:var(--ok)">Делаем сегодня</div><ul style="margin:0;padding-left:18px;font-size:13.8px;color:var(--ink2);line-height:1.6">'+
+   '<li>сохранение после каждого изменения</li><li>восстановление один раз до отрисовки</li>'+
+   '<li>защитное чтение в три уровня</li><li>проверка испорченных данных руками</li>'+
+   '<li>первый визит в приватном окне</li><li>тёмная тема теми же токенами</li>'+
+   '<li>три микроанимации и reduced-motion</li><li>второй рефакторинг</li><li>сценарий приёмки из восьми шагов</li></ul></div>'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px;color:var(--danger)">Не делаем сегодня</div><ul style="margin:0;padding-left:18px;font-size:13.8px;color:var(--ink2);line-height:1.6">'+
+   '<li>новые функции сверх обязательного</li><li>перенос данных между устройствами</li>'+
+   '<li>IndexedDB и sessionStorage</li><li>анимации всего подряд и transition: all</li>'+
+   '<li>проверку первого визита в обычном окне</li><li>взаимное тестирование — четвёртый спринт</li>'+
+   '<li>репетицию защиты — четвёртый спринт</li></ul></div></div>'+
+   '<div class="note acc" style="margin-top:12px"><b>Если MVP не достигнут.</b> Вычеркни вторую часть списка задач целиком, упрости обязательное до минимума, несделанное честно запиши в «известные ограничения» README. Это нормальное инженерное решение, а не провал.</div>')+
+  sec("4","Как работать с Qwen","Пять правил вайб-кодинга",
+   '<div class="kv">'+
+   '<div class="kv-row"><span class="kv-k">Рамка промпта</span><span class="kv-v">Контекст → задача → ограничения → формат ответа → критерии проверки. Все промпты здесь уже собраны по этой рамке.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">Один кусок за раз</span><span class="kv-v">Сохранение, чтение, тема, анимации, порядок запуска — пять отдельных запросов.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">Проверяй руками</span><span class="kv-v">Испорченная строка и приватное окно — две проверки, которые модель за тебя не сделает.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">Три попытки</span><span class="kv-v">После третьей неудачи код читается вручную или задача дробится.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">Объяснимость</span><span class="kv-v">На защите объясняешь любой фрагмент, включая написанный моделью.</span></div>'+
+   '</div><div class="links" style="margin-top:12px">'+linkBtn("Открыть Qwen","https://chat.qwen.ai/")+linkBtn("Открыть GitHub","https://github.com/")+'</div>');
+ observe();
+}
+
+/* ---------- вкладка Маршрут ---------- */
+function renderRoute(){
+ var items="",i,j,s,a,acts,closes,wh,done;
+ for(i=0;i<STEPS.length;i++){
+  s=STEPS[i];done=!!state.steps[s.n];acts="";
+  for(j=0;j<s.act.length;j++){a=s.act[j];
+   if(a.href)acts+=linkBtn(a.t,a.href);
+   else if(a.link)acts+=linkBtn(a.t,dynLink(a.link));
+   else acts+='<button class="btn btn-s btn-sm" type="button" data-action="'+a.a+'">'+esc(a.t)+'</button>';}
+  closes=s.closes.length?'<div><span class="closes">Закрывает пункты '+s.closes.join(", ")+'</span></div>':"";
+  wh=s.where==="q"?'<span class="where q">Qwen</span>':(s.where==="g"?'<span class="where g">GitHub</span>':(s.where==="l"?'<span class="where l">Лаборатория</span>':'<span class="where b">Браузер</span>'));
+  items+='<div class="step'+(done?' done':'')+'"><div class="step-h" data-steptoggle="'+s.n+'" role="button" tabindex="0" aria-pressed="'+done+'">'+
+   '<span class="step-n">'+s.n+'</span><span class="step-tb"><span class="step-t">'+esc(fill(s.title))+'</span>'+
+   '<span class="step-m">'+wh+'<span>'+esc(s.min)+'</span></span></span>'+
+   '<span class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span></div>'+
+   '<div class="step-body">'+fill(s.body)+closes+'<div class="step-act">'+acts+'</div></div></div>';
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">12</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">МАРШРУТ</span><span class="pcode">'+stepsDone()+' / 12 ШАГОВ</span></div>'+
+  '<h2>От памяти до принятого MVP</h2>'+
+  '<p>Идёшь сверху вниз. Отмечай шаг, когда он реально сделан. Каждый шаг показывает, какие пункты чек-листа он закрывает, и ведёт к нужному промпту или проверке.</p></div></div>'+
+  sec("→","Шаги спринта","Нажми на строку, чтобы отметить шаг пройденным",'<div class="steps">'+items+'</div>')+
+  sec("✓","Базовый блок спринта","Пункты 1, 2, 6, 7, 10, 23 — без них MVP не закрыт",
+   '<div class="note warn"><b>Ловушка спринта.</b> Семнадцать мелочей без шести базовых пунктов MVP не закрывают. Пункты 1 и 2 оба обязательны: «нет сохранения вообще» и «сохранение только при добавлении» — разные ошибки. Пункт 23 открывается только после всех восьми шагов сценария.</div>'+
+   '<div style="margin-top:12px"><button class="btn btn-p btn-sm" type="button" data-action="go-check">Открыть чек-лист и приёмку</button></div>');
+ observe();
+}
+
+/* ---------- вкладка Промпты ---------- */
+function renderPrompts(){
+ var q=String(state.q||"").toLowerCase().trim(),blocks="",shown=0,i,j,p,hit,ch;
+ for(i=0;i<PROMPTS.length;i++){
+  p=PROMPTS[i];hit=!q||(p.n+" "+p.t+" "+p.s).toLowerCase().indexOf(q)!==-1;
+  if(!hit)continue;shown++;ch="";
+  for(j=0;j<p.checks.length;j++)ch+="<li>"+esc(p.checks[j])+"</li>";
+  blocks+='<div class="pblock" id="'+p.id+'" data-reveal><div class="pb-h"><span class="pb-n">'+p.n+'</span>'+
+   '<span class="pb-tb"><span class="pb-t">'+esc(p.t)+'</span><span class="pb-s">'+esc(p.s)+'</span></span>'+
+   '<button class="btn btn-p btn-sm no-print" type="button" data-copy="'+p.id+'">Копировать</button></div>'+
+   '<div class="pb-body">'+codeBox(p.make(),"промпт для qwen · тема "+T().id,p.id)+
+   '<div class="checks"><b>Проверить ответ руками</b><ul>'+ch+'</ul></div></div></div>';
+ }
+ if(!shown)blocks='<div class="note">Под этот поиск промптов нет. Очисти строку поиска.</div>';
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">AI</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">10 ПРОМПТОВ</span><span class="pcode">ТЕМА: '+T().id+'</span><span class="pcode">КЛЮЧ: '+T().key+'</span></div>'+
+  '<h2>Промпты под твою тему и твой уровень</h2>'+
+  '<p>Каждый промпт знает имя массива, ключ хранилища, структуру записи и токены обеих тем. Копируй целиком, отправляй в Qwen, читай ответ и проверяй по списку под ним.</p></div></div>'+
+  '<div class="filters no-print"><input class="inp" data-var="q" type="search" placeholder="Поиск промпта: память, чтение, тема, анимации…" value="'+esc(state.q)+'" style="max-width:340px">'+
+  linkBtn("Открыть Qwen","https://chat.qwen.ai/")+'<button class="btn btn-s btn-sm" type="button" data-action="go-sprint">Сменить тему</button></div>'+blocks+
+  '<div class="note acc" style="margin-top:14px"><b>Две проверки модель за тебя не сделает.</b> Испорченная строка в Application и первый визит в приватном окне — только руками. Без них защитное чтение считается ненаписанным.</div>';
+ observe();
+}
+
+/* ---------- вкладка Лаборатория ---------- */
+function renderLab(){
+ var t=T(),L=state.lab,r=labRead(),i;
+ var logHtml="";
+ for(i=0;i<r.log.length;i++)logHtml+='<div class="'+r.log[i].k+'"><em>'+(i+1)+'</em><span>'+esc(r.log[i].t)+'</span></div>';
+ var pal=L.theme==="dark"?t.dark:t.light;
+ var prevStyle='background:'+pal.bg+';color:'+pal.ink+';border-color:'+pal.border;
+ var cardsHtml="";
+ if(r.crash){
+  cardsHtml='<div class="pcrash"><b>Страница не открылась.</b><br>Чтение упало на одном из трёх уровней, отрисовка не выполнилась. Включи защитное чтение слева и посмотри, что изменится.</div>';
+ }else if(r.data&&r.data.length===0){
+  cardsHtml='<div class="pempty" style="border-color:'+pal.border+';color:'+pal.muted+'">Пока пусто. Добавь первую запись — и она переживёт перезагрузку.</div>';
+ }else{
+  var items=r.data||[];
+  for(i=0;i<items.length;i++){
+   var delay=L.reduced?0:Math.min(i*40,160);
+   cardsHtml+='<div class="pcard" style="background:'+pal.card+';border-color:'+pal.border+';transition:transform '+L.duration+'ms ease;'+(L.reduced?'':'animation:labIn '+L.duration+'ms ease '+delay+'ms both;')+'">'+
+    '<b>'+esc(items[i].title||"Без названия")+'</b><span style="color:'+pal.muted+'">'+esc(items[i].meta||"—")+'</span></div>';
+  }
+ }
+ var tokensHtml="",names=["bg","card","ink","muted","accent","border"];
+ for(i=0;i<names.length;i++){
+  tokensHtml+='<div class="trow"><span>--'+names[i]+'</span><span>'+esc(t.light[names[i]])+'</span><span class="dot" style="background:'+esc(t.light[names[i]])+'"></span></div>';
+  tokensHtml+='<div class="trow"><span>--'+names[i]+' · dark</span><span>'+esc(t.dark[names[i]])+'</span><span class="dot" style="background:'+esc(t.dark[names[i]])+'"></span></div>';
+ }
+ var rawCls="store"+((L.broken||!L.stringify||L.wrongShape)?" bad":"");
+ view.className="";
+ view.innerHTML='<style>@keyframes labIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}</style>'+
+  '<div class="phead" data-reveal><div class="wm">LAB</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ЖИВАЯ МОДЕЛЬ</span><span class="pcode">КЛЮЧ: '+esc(labKey())+'</span></div>'+
+  '<h2>Лаборатория памяти, темы и движения</h2>'+
+  '<p>Всё слева применяется мгновенно. Ломай строку, выключай stringify, отключай хранилище, снимай защиту — и смотри, что легло в хранилище, что вернуло чтение и что увидел бы человек. Это учебная модель в памяти страницы, твоё хранилище она не трогает.</p></div></div>'+
+  '<div class="lab">'+
+   '<div class="ctrl no-print">'+
+    '<h4>Хранилище</h4>'+
+    sw("stringify","JSON.stringify при записи",L.stringify)+
+    '<div class="field" style="margin-top:8px"><label class="flabel" for="labVer">Версия ключа</label>'+
+    '<select class="inp" id="labVer" data-lab="version">'+
+    '<option value="v1"'+(L.version==="v1"?" selected":"")+'>-v1 (как на курсе)</option>'+
+    '<option value="v2"'+(L.version==="v2"?" selected":"")+'>-v2 (новая структура)</option>'+
+    '<option value="none"'+(L.version==="none"?" selected":"")+'>без версии</option></select></div>'+
+    sw("unavailable","Хранилище недоступно",L.unavailable)+
+    sw("broken","Строка испорчена: скобка стёрта",L.broken)+
+    sw("wrongShape","Данные не массив, а объект",L.wrongShape)+
+    '<hr><h4>Защита</h4>'+
+    sw("guard","Защитное чтение в три уровня",L.guard)+
+    '<hr><h4>Тема и движение</h4>'+
+    sw("theme","Тёмная тема",L.theme==="dark")+
+    '<div class="field" style="margin-top:8px"><label class="flabel" for="labDur">Длительность анимации: <b id="labDurVal">'+L.duration+' мс</b></label>'+
+    '<input class="rng" id="labDur" data-lab="duration" type="range" min="120" max="250" step="10" value="'+L.duration+'">'+
+    '<div class="hint">Норма курса — 120–250 мс. Ниже и выше — за пределами требования.</div></div>'+
+    sw("reduced","prefers-reduced-motion: reduce",L.reduced)+
+    '<hr><h4>Записи</h4>'+
+    '<div class="field"><label class="flabel" for="labCount">Сколько записей: <b id="labCountVal">'+L.count+'</b></label>'+
+    '<input class="rng" id="labCount" data-lab="count" type="range" min="0" max="6" step="1" value="'+L.count+'"></div>'+
+    '<div class="links" style="margin-top:10px">'+
+    '<button class="btn btn-s btn-sm" type="button" data-action="lab-add">Добавить</button>'+
+    '<button class="btn btn-s btn-sm" type="button" data-action="lab-del">Удалить</button>'+
+    '<button class="btn btn-s btn-sm" type="button" data-action="lab-private">Приватное окно</button>'+
+    '<button class="btn btn-g btn-sm" type="button" data-action="lab-reset">Сбросить</button></div>'+
+   '</div>'+
+   '<div class="panes">'+
+    '<div class="pane" data-reveal><div class="pane-h"><b>1 · Что легло в хранилище</b>'+
+    '<button class="copy" type="button" data-copy="lab-raw" style="border-color:var(--border2);background:var(--surface2);color:var(--ink2)">Копировать значение</button></div>'+
+    '<div class="pane-b"><div class="'+rawCls+'" data-labraw>'+esc(r.raw||"— хранилище недоступно, значения нет —")+'</div>'+
+    (L.stringify?'':'<div class="note bad" style="margin-top:10px"><b>Так нельзя.</b> Массив записан без stringify: в хранилище строка из [object Object]. Ошибки не будет — данные испортятся тихо.</div>')+
+    (L.broken?'<div class="note warn" style="margin-top:10px"><b>Строка испорчена вручную.</b> Ровно это ты сделаешь в Application: сотрёшь закрывающую скобку и обновишь страницу.</div>':'')+
+    '</div></div>'+
+    '<div class="pane" data-reveal><div class="pane-h"><b>2 · Что вернуло чтение</b>'+
+    '<span class="hint">'+(r.crash?"страница упала":(r.data?("массив, записей "+r.data.length):"—"))+'</span></div>'+
+    '<div class="pane-b"><div class="log">'+logHtml+'</div>'+
+    codeBox(labCode(),"код двух точек · под текущие переключатели","lab-code")+
+    '</div></div>'+
+    '<div class="pane" data-reveal><div class="pane-h"><b>3 · Что увидел бы человек</b>'+
+    '<span class="hint">'+esc(t.name)+' · '+(L.theme==="dark"?"тёмная":"светлая")+' тема</span></div>'+
+    '<div class="pane-b"><div class="prev" style="'+prevStyle+'">'+
+    '<div class="ph"><b>'+esc(t.name)+'</b><button class="pb" type="button" data-action="lab-theme">'+(L.theme==="dark"?"Светлая тема":"Тёмная тема")+'</button></div>'+
+    '<div class="plist">'+cardsHtml+'</div></div>'+
+    '<div class="tokens">'+tokensHtml+'</div>'+
+    '<div class="note acc" style="margin-top:10px">Имена токенов в обоих наборах совпадают. Правила ниже не меняются — меняется только значение. Потерянное имя в тёмном наборе даёт один элемент в старом цвете.</div>'+
+    '</div></div>'+
+   '</div>'+
+  '</div>'+
+  sec("→","Как повторить это в своём проекте","Три проверки, которые модель за тебя не сделает",
+   '<div class="grid g2">'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px">Испортить строку</div><ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+
+   '<li>F12 → Application → Local Storage → твой ключ</li><li>Сотри закрывающую скобку в значении</li>'+
+   '<li>Обнови страницу</li><li>Должен открыться пустой список с объяснением</li></ol></div>'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px">Первый визит</div><ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+
+   '<li>Ctrl+Shift+N — приватное окно</li><li>Открой публичную ссылку</li>'+
+   '<li>Список пуст и приглашает добавить первую запись</li><li>Консоль чистая</li></ol></div></div>');
+ observe();
+}
+
+/* ---------- вкладка Шаблоны ---------- */
+function renderTpl(){
+ var cm="",i,c,t=T();
+ for(i=0;i<COMMITS.length;i++){c=COMMITS[i];
+  cm+='<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">'+
+   '<span style="flex:1;min-width:200px"><b style="display:block;font-size:13px">'+esc(c.t)+'</b>'+
+   '<code style="display:inline-block;margin-top:5px">'+esc(c.v)+'</code>'+
+   '<span class="hint">'+c.v.length+' символов · правило 5–72</span></span>'+
+   '<button class="btn btn-s btn-sm no-print" type="button" data-copy="'+c.id+'">Копировать</button></div>';}
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">TPL</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ШАБЛОНЫ</span><span class="pcode">ТЕМА: '+t.id+'</span><span class="pcode">КЛЮЧ: '+t.key+'</span></div>'+
+  '<h2>Что вставлять в проект и в GitHub</h2>'+
+  '<p>Ключ и структура, таблица токенов, сообщения коммитов, описание PR, README с ограничениями и текст сценария приёмки. Всё подставлено под твою тему.</p></div></div>'+
+  sec("1","Ключ и структура хранилища","Версия в имени ключа, читаемый JSON в значении",codeBox(tplStore(),"script.js · ключи и запись","tpl-store"))+
+  sec("2","Токены двух тем","Те же имена, другие значения",codeBox(tplTokens(),"style.css · светлая и тёмная","tpl-tokens"))+
+  sec("3","Сообщения коммитов","Семь формулировок под шаги спринта",'<div class="grid">'+cm+'</div>')+
+  sec("4","Описание Pull Request","Три блока, в проверке — приватное окно и испорченная строка",codeBox(tplPR(),"шаблон pr","tpl-pr"))+
+  sec("5","README с известными ограничениями","Честность входит в критерии оценки",codeBox(tplReadme(),"readme.md · после спринта 3","tpl-readme"))+
+  sec("6","Сценарий приёмки","Восемь действий по публичной ссылке в приватном окне",codeBox(tplAccept(),"приёмка mvp","tpl-accept"));
+ observe();
+}
+
+/* ---------- вкладка GitHub ---------- */
+function renderGitHub(){
+ var blocks=[
+  {t:"Создать ветку feature/mvp",url:dynLink("branches"),
+   s:["Убедиться, что main открывается по публичной ссылке","Переключатель веток → ввести feature/mvp","Create branch from main","Проверить, что переключатель показывает новую ветку"],
+   how:"Вкладка Branches показывает main и feature/mvp."},
+  {t:"Поправить script.js",url:dynLink("repo"),
+   s:["Открыть файл в ветке feature/mvp","Карандаш Edit this file","Вставить код сохранения и чтения","Commit changes с сообщением из шаблона К1"],
+   how:"В истории коммит с понятным сообщением."},
+  {t:"Поправить style.css",url:dynLink("repo"),
+   s:["Добавить второй набор токенов для тёмной темы","Добавить три микроанимации","В конце файла блок prefers-reduced-motion","Commit changes отдельным коммитом"],
+   how:"Имена токенов в обоих наборах совпадают,transition в базовом правиле."},
+  {t:"Обновить README",url:dynLink("repo"),
+   s:["Открыть README.md карандашом","Добавить блок «Известные ограничения»","Назвать честно: данные не переносятся между устройствами","Commit changes по шаблону К7"],
+   how:"На главной странице репозитория виден блок ограничений."},
+  {t:"Создать Pull Request",url:dynLink("compare"),
+   s:["Баннер Compare & pull request или Pull requests → New","base: main, compare: feature/mvp","Заголовок и описание из шаблона PR","Create pull request"],
+   how:"PR открыт, описание в три блока, в Files changed виден диф."},
+  {t:"Слить и удалить ветку",url:dynLink("pulls"),
+   s:["Merge pull request","Confirm merge","Delete branch","Переключиться на main и убедиться, что файлы на месте"],
+   how:"В main новая логика, ветки feature/mvp в списке нет."},
+  {t:"Дождаться публикации",url:dynLink("actions"),
+   s:["Вкладка Actions","Последний запуск — зелёная галочка","Открыть публичную ссылку","Обновить с Ctrl+F5, если видишь старую версию"],
+   how:"На опубликованной странице запись переживает перезагрузку."},
+  {t:"Приёмка в приватном окне",url:dynLink("site"),
+   s:["Ctrl+Shift+N — приватное окно","Открыть публичную ссылку","Пройти восемь шагов сценария","Отметить их во вкладке «Чек-лист»"],
+   how:"Пункт 23 открылся: все восемь шагов отмечены."},
+  {t:"Диагностика, если что-то не доехало",url:"",
+   s:["F12 → Console: красная строка называет тип и номер строки","F12 → Application: посмотри значение ключа глазами","Сотри скобку и обнови: проверка защитного чтения","Поправь, закоммить, дождись Actions, обнови с Ctrl+F5"],
+   how:"В консоли ноль ошибок, испорченные данные не роняют страницу."}
+ ];
+ var html="",i,j,b,li;
+ for(i=0;i<blocks.length;i++){b=blocks[i];li="";
+  for(j=0;j<b.s.length;j++)li+="<li>"+esc(b.s[j])+"</li>";
+  html+='<div class="card"><div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">'+
+   '<span class="step-n">'+(i+1)+'</span><b style="flex:1;min-width:180px;font-size:15px">'+esc(b.t)+'</b>'+
+   (b.url?linkBtn("Открыть",b.url):"")+'</div>'+
+   '<ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+li+'</ol>'+
+   '<div class="note ok" style="margin-top:10px;padding:9px 12px;font-size:13px"><b>Как проверить:</b> '+esc(b.how)+'</div></div>';}
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">GH</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ВСЁ В БРАУЗЕРЕ</span><span class="pcode">БЕЗ ПРОГРАММЫ GIT</span></div>'+
+  '<h2>GitHub: девять действий кнопками</h2>'+
+  '<p>Ветка, правки, коммиты, PR, слияние и публикация делаются на сайте. Проверки памяти и первого визита — в DevTools того же браузера.</p></div></div>'+
+  '<div class="links" style="margin-bottom:16px">'+linkBtn("github.com","https://github.com/")+linkBtn("Мой репозиторий",dynLink("repo"))+
+  linkBtn("Создать PR",dynLink("compare"))+linkBtn("Actions",dynLink("actions"))+'</div>'+
+  '<div class="grid g2">'+html+'</div>'+
+  '<div class="note warn" style="margin-top:14px"><b>Три частые поломки этого спринта.</b> Массив записан без stringify — данные портятся тихо. Сохранение стоит только в обработчике добавления — удаление не запоминается. Тема применяется после отрисовки — при перезагрузке светлая вспышка.</div>';
+ observe();
+}
+
+/* ---------- вкладка Чек-лист ---------- */
+function checkRowHTML(c){
+ var on=!!state.checks[c.n],locked=c.gated&&!acceptAll();
+ return '<div class="ci'+(on?' on':'')+(c.base?' base':'')+(c.main?' main':'')+(locked?' locked':'')+'" data-check="'+c.n+'" role="checkbox" aria-checked="'+on+'" tabindex="0">'+
+  '<span class="cnum">'+c.n+'</span><span class="cbox"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span>'+
+  '<span class="ctb"><span class="ct">'+esc(fill(c.t))+(c.base?'<span class="btag">БАЗОВЫЙ</span>':'')+(c.main?'<span class="mtag">ПРИЁМКА</span>':'')+'</span>'+
+  '<span class="ch"><b>Как проверить:</b> '+esc(fill(c.how))+(locked?' <b>Сейчас закрыт: пройдено '+acceptDone()+' из 8 шагов.</b>':'')+'</span></span></div>';
+}
+function filteredChecks(){
+ var a=[],i,c;
+ for(i=0;i<CHECKS.length;i++){c=CHECKS[i];
+  if(state.filter==="base"&&!c.base)continue;
+  if(state.filter==="todo"&&state.checks[c.n])continue;
+  a.push(c);}
+ return a;
+}
+function verdictHTML(){
+ var cnt=checkedCount(),i,b,miss,need;
+ if(passed()){
+  return '<div class="verdict pass"><h3>MVP достигнут</h3><p>Все шесть базовых пунктов отмечены и набрано '+cnt+' из 23. Продукт работает целиком: память, тема, анимации, приёмка. Контрольная точка модуля 9 закрыта.</p>'+
+   '<ul><li>Покажи ссылку педагогу и открой её при нём в приватном окне.</li><li>Испорт строку в Application при педагоге — страница должна открыться.</li><li>Объясни одну строку, которую написала модель.</li><li>Переведи задачу на доске в «Сделано».</li></ul></div>';
+ }
+ b=baseList();miss="";
+ for(i=0;i<b.length;i++){if(!state.checks[b[i].n])miss+="<li>Не закрыт базовый пункт №"+b[i].n+" — "+esc(fill(b[i].t))+"</li>";}
+ if(!miss)miss="<li>Базовый блок закрыт целиком — осталось набрать пункты</li>";
+ need=Math.max(0,17-cnt);
+ if(need>0)miss+="<li>Не хватает ещё "+need+" пункт"+(need===1?"а":(need<5?"ов":""))+"</li>";
+ if(!acceptAll())miss+="<li>Сценарий приёмки: пройдено "+acceptDone()+" из 8 — пункт 23 закрыт</li>";
+ return '<div class="verdict fail"><h3>MVP ещё не закрыт</h3><p>Отмечено '+cnt+' из 23, базовый блок '+baseDone()+' из 6. Зачёт: все шесть базовых и не меньше 17 из 23.</p><ul>'+miss+'</ul>'+
+  '<p style="margin-top:10px"><b>Если не успеваешь:</b> вычеркни вторую часть списка задач, упрости обязательное до минимума, несделанное запиши в «известные ограничения» README. Сокращаем, а не догоняем.</p></div>';
+}
+function renderCheck(){
+ var cnt=checkedCount(),pct=Math.round(cnt/23*100),C=2*Math.PI*38;
+ var list=filteredChecks(),rows="",i,e,on,bd="",b=baseList(),o,filters="",fs,f,ac="";
+ for(i=0;i<list.length;i++)rows+=checkRowHTML(list[i]);
+ if(!rows)rows='<div class="note">В этом фильтре пунктов нет.</div>';
+ for(i=0;i<SCENARIO.length;i++){
+  var s=SCENARIO[i],so=!!state.accept[s.id];
+  ac+='<div class="ai'+(so?' on':'')+'" data-accept="'+s.id+'" role="checkbox" aria-checked="'+so+'" tabindex="0">'+
+   '<span class="n">'+(i+1)+'</span><span class="t"><b>'+esc(s.t)+'</b><span>'+esc(s.d)+'</span></span></div>';
+ }
+ var ex="";
+ for(i=0;i<EXTRAS.length;i++){e=EXTRAS[i];on=!!state.extras[e.id];
+  ex+='<div class="ci'+(on?' on':'')+'" data-extra="'+e.id+'" role="checkbox" aria-checked="'+on+'" tabindex="0">'+
+   '<span class="cbox"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span>'+
+   '<span class="ctb"><span class="ct">'+esc(e.t)+'</span><span class="ch"><b>Как проверить:</b> '+esc(e.how)+'</span></span></div>';}
+ for(i=0;i<b.length;i++){o=!!state.checks[b[i].n];bd+='<span class="bdot'+(o?' on':'')+'">№'+b[i].n+' '+(o?"✓":"—")+'</span>';}
+ fs=[["all","Все 23"],["base","Базовый блок"],["todo","Не отмечено"]];
+ for(f=0;f<fs.length;f++)filters+='<button class="fchip'+(state.filter===fs[f][0]?' on':'')+'" type="button" data-filter="'+fs[f][0]+'">'+fs[f][1]+'</button>';
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">23</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ЧЕК-ЛИСТ СПРИНТА 3</span><span class="pcode">'+cnt+' / 23</span><span class="pcode">БАЗА '+baseDone()+' / 6</span><span class="pcode">ПРИЁМКА '+acceptDone()+' / 8</span></div>'+
+  '<h2>Отметь то, что реально работает</h2>'+
+  '<p>Рядом с каждым пунктом написано, что нажать и что должно произойти. Чек-лист сам проект не проверяет — отметки ставишь ты. Пункт 23 открывается только после всех восьми шагов сценария приёмки.</p></div></div>'+
+  '<div class="ring" data-reveal><div class="rwrap"><svg class="rsvg" viewBox="0 0 88 88" aria-hidden="true">'+
+  '<circle class="bgc" cx="44" cy="44" r="38"/><circle class="fgc" cx="44" cy="44" r="38" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C-C*pct/100)+'"/></svg>'+
+  '<div class="rnum">'+pct+'%</div></div>'+
+  '<div class="rinfo"><b>Готовность спринта: '+cnt+' из 23</b><span>Зачёт: базовые 1, 2, 6, 7, 10, 23 и не меньше 17 пунктов. Дополнительно отмечено '+extrasDone()+' из 6.</span>'+
+  '<div class="basebar">'+bd+'</div></div>'+
+  '<div class="tbtns no-print"><button class="btn btn-p btn-sm" type="button" data-action="verify">Проверить MVP</button>'+
+  '<button class="btn btn-s btn-sm" type="button" data-action="copy-report">Скопировать отчёт</button>'+
+  '<button class="btn btn-g btn-sm" type="button" data-action="reset">Сбросить</button></div></div>'+
+  sec("8","Сценарий приёмки","Восемь отдельных отметок. Только по публичной ссылке и только в приватном окне",
+   '<div class="note acc" style="margin-bottom:12px"><b>Частичного прохождения нет.</b> Пункт 23 закрывается, когда отмечены все восемь шагов. Пройдено '+acceptDone()+' из 8.</div>'+
+   '<div class="accept">'+ac+'</div>')+
+  '<div class="filters no-print" style="margin-top:18px">'+filters+'</div>'+
+  '<div class="clist" id="clist">'+rows+'</div>'+
+  sec("+","Если останется время","Не влияет на закрытие спринта и на MVP",'<div class="clist">'+ex+'</div>')+
+  sec("✓","Вердикт","Обновляется после нажатия «Проверить MVP»",'<div id="verdictSlot">'+verdictHTML()+'</div>')+
+  sec("→","Отчёт для педагога","Печатается только эта вкладка",
+   '<div class="note"><b>В отчёт попадёт:</b> тема «'+esc(T().name)+'», ключ '+esc(T().key)+', репозиторий '+(hasGH()?esc(owner()+"/"+repo()):"не указан")+
+   ', ссылка '+(state.link?esc(state.link):"не указана")+', отметки по 23 пунктам, восемь шагов приёмки, базовый блок и вердикт.</div>'+
+   '<div class="links" style="margin-top:12px"><button class="btn btn-p btn-sm" type="button" data-action="print">Сохранить PDF</button>'+
+   (state.link?linkBtn("Открыть мой сайт",state.link):"")+'</div>');
+ observe();
+}
+
+/* ---------- каркас ---------- */
+function renderTabs(){
+ var items=[
+  {id:"sprint",l:"Спринт",b:""},
+  {id:"route",l:"Маршрут",b:stepsDone()+"/12"},
+  {id:"prompts",l:"Промпты",b:"10"},
+  {id:"lab",l:"Лаборатория",b:""},
+  {id:"tpl",l:"Шаблоны",b:""},
+  {id:"github",l:"GitHub",b:""},
+  {id:"check",l:"Чек-лист",b:checkedCount()+"/23"}
+ ];
+ var h="",i,it,on;
+ for(i=0;i<items.length;i++){it=items[i];on=state.tab===it.id;
+  h+='<button class="tab'+(on?' on':'')+'" type="button" data-tab="'+it.id+'" aria-current="'+(on?"page":"false")+'"><i></i>'+esc(it.l)+
+   (it.b?'<span class="bdg">'+esc(it.b)+'</span>':'')+'</button>';}
+ tabsEl.innerHTML=h;
+}
+function updateChrome(){
+ var cnt=checkedCount(),ok=passed();
+ stchip.textContent=ok?"MVP закрыт ✓":cnt+" / 23";
+ if(ok)stchip.classList.add("ok");else stchip.classList.remove("ok");
+ abInfo.innerHTML=ok?"<b>MVP закрыт.</b> Покажи ссылку в приватном окне педагогу и переведи задачу на доске.":
+  "Тема: <b>"+esc(T().name)+"</b> · ключ <b>"+esc(T().key)+"</b> · отмечено <b>"+cnt+" из 23</b> · приёмка "+acceptDone()+" из 8";
+ renderTabs();
+}
+function renderView(){
+ setHue();
+ if(!state.started){renderStart();return;}
+ tabwrap.hidden=false;actionbar.hidden=false;
+ if(state.tab==="sprint")renderSprint();
+ else if(state.tab==="route")renderRoute();
+ else if(state.tab==="prompts")renderPrompts();
+ else if(state.tab==="lab")renderLab();
+ else if(state.tab==="tpl")renderTpl();
+ else if(state.tab==="github")renderGitHub();
+ else renderCheck();
+ updateChrome();updateRead();
+}
+function go(tab){state.tab=tab;save();renderView();window.scrollTo({top:0,behavior:"smooth"});}
+
+var io=null;
+function observe(){
+ if(io){io.disconnect();io=null;}
+ var els=view.querySelectorAll("[data-reveal]"),i;
+ if(!("IntersectionObserver" in window)){for(i=0;i<els.length;i++)els[i].classList.add("in");return;}
+ io=new IntersectionObserver(function(en){for(var k=0;k<en.length;k++){if(en[k].isIntersecting){en[k].target.classList.add("in");io.unobserve(en[k].target);}}},{rootMargin:"0px 0px -6% 0px",threshold:0.05});
+ for(i=0;i<els.length;i++){els[i].style.transitionDelay=Math.min(i,6)*40+"ms";io.observe(els[i]);}
+}
+function updateRead(){
+ var b=document.getElementById("readbar");if(!b)return;
+ var h=document.documentElement.scrollHeight-window.innerHeight;
+ b.style.width=(h>40?Math.min(100,Math.max(0,window.scrollY/h*100)):0)+"%";
+}
+window.addEventListener("scroll",updateRead,{passive:true});
+window.addEventListener("resize",updateRead);
+
+var tick=null;
+function stopTick(){if(tick){clearInterval(tick);tick=null;}}
+function startTick(){stopTick();tick=setInterval(timerTick,1000);}
+function timerTick(){
+ if(!state.timer.running)return;
+ var left=Math.max(0,Math.round((state.timer.endsAt-Date.now())/1000));
+ state.timer.left=left;
+ var d=document.getElementById("tdial");if(d)d.textContent=fmt(left);
+ var cp=curPhase(),p=document.getElementById("tphase");
+ if(p)p.innerHTML="<b>"+esc(cp.t)+"</b>"+esc(cp.d);
+ var el=3000-left,ph=document.querySelectorAll("[data-phase]"),i,x;
+ for(i=0;i<ph.length;i++){x=PHASES[i];
+  if(el>=x.from&&el<x.to)ph[i].classList.add("on");else ph[i].classList.remove("on");
+  if(el>=x.to)ph[i].classList.add("done");else ph[i].classList.remove("done");}
+ if(left<=0){state.timer.running=false;state.timer.endsAt=null;stopTick();
+  var btn=document.getElementById("tbtn");if(btn)btn.textContent="Старт";
+  if(d)d.classList.remove("run");
+  toast("Время спринта вышло. Пройди сценарий приёмки и открой ссылку с телефона.");}
+ save();
+}
+
+function fallbackCopy(text,done){
+ var ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
+ document.body.appendChild(ta);ta.select();
+ try{document.execCommand("copy");done();}catch(e){toast("Скопируй текст вручную из блока.");}
+ document.body.removeChild(ta);
+}
+function copyText(text,btn,msg){
+ if(!text){toast("Пусто: сначала собери данные в лаборатории.");return;}
+ var done=function(){if(btn){var o=btn.textContent;btn.textContent="✓ Скопировано";btn.classList.add("done");
+  setTimeout(function(){btn.textContent=o;btn.classList.remove("done");},1600);}
+  toast(msg||"Скопировано. Вставь в Qwen или в GitHub.");};
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallbackCopy(text,done);});}
+ else fallbackCopy(text,done);
+}
+function reportText(){
+ var t=T(),L=[],i;
+ L.push("Занятие 22 · Спринт 3: MVP");
+ L.push("Тема: "+t.id+" «"+t.name+"» — "+t.kind);
+ L.push("Ключ хранилища: "+t.key+" · массив: "+t.arr);
+ L.push("Репозиторий: "+(hasGH()?owner()+"/"+repo():"не указан"));
+ L.push("Ссылка: "+(state.link||"не указана"));
+ L.push("Отмечено: "+checkedCount()+" из 23, базовый блок "+baseDone()+" из 6");
+ L.push("Сценарий приёмки: "+acceptDone()+" из 8");
+ L.push("Вердикт: "+(passed()?"MVP достигнут":"MVP не закрыт"));
+ L.push("");
+ L.push("СЦЕНАРИЙ ПРИЁМКИ");
+ for(i=0;i<SCENARIO.length;i++)L.push((state.accept[SCENARIO[i].id]?"[x] ":"[ ] ")+(i+1)+". "+SCENARIO[i].t);
+ L.push("");
+ L.push("ЧЕК-ЛИСТ");
+ for(i=0;i<CHECKS.length;i++)L.push((state.checks[CHECKS[i].n]?"[x] ":"[ ] ")+CHECKS[i].n+". "+fill(CHECKS[i].t)+(CHECKS[i].base?" (базовый)":""));
+ L.push("");
+ L.push("Дополнительно: "+extrasDone()+" из 6");
+ for(i=0;i<EXTRAS.length;i++)L.push((state.extras[EXTRAS[i].id]?"[x] ":"[ ] ")+EXTRAS[i].t);
+ return L.join("\n");
+}
+function confetti(){
+ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+ if(!Element.prototype.animate)return;
+ var cols=["#6d28d9","#a855f7","#ec4899","#84cc16","#f59e0b","#14b8a6"],i,d,dx,dy,rot,an;
+ for(i=0;i<34;i++){
+  d=document.createElement("div");d.className="conf";d.style.background=cols[i%cols.length];
+  d.style.left=(50+(Math.random()*40-20))+"vw";d.style.top="46vh";document.body.appendChild(d);
+  dx=(Math.random()*2-1)*320;dy=-(180+Math.random()*260);rot=Math.random()*720-360;
+  an=d.animate([{transform:"translate(0,0) rotate(0deg)",opacity:1},
+   {transform:"translate("+dx+"px,"+dy+"px) rotate("+rot+"deg)",opacity:1,offset:.55},
+   {transform:"translate("+(dx*1.3)+"px,"+(dy+520)+"px) rotate("+(rot*1.6)+"deg)",opacity:0}],
+   {duration:1500+Math.random()*700,easing:"cubic-bezier(.2,.6,.4,1)"});
+  an.onfinish=(function(n){return function(){if(n.parentNode)n.parentNode.removeChild(n);};})(d);
+ }
+}
+function refreshDynamic(){
+ var dl=document.getElementById("dynLinks");if(dl)dl.innerHTML=dynLinksHTML();
+ var pres=document.querySelectorAll("[data-code]"),i,id,txt;
+ for(i=0;i<pres.length;i++){id=pres[i].getAttribute("data-code");txt=textFor(id);if(txt)pres[i].textContent=txt;}
+ var lh=document.getElementById("linkHint");if(lh)lh.textContent=linkHint();
+ updateChrome();
+}
+function refreshRing(){
+ var cnt=checkedCount(),pct=Math.round(cnt/23*100),C=2*Math.PI*38;
+ var fg=document.querySelector(".rsvg .fgc");if(fg)fg.setAttribute("stroke-dashoffset",String(C-C*pct/100));
+ var num=document.querySelector(".rnum");if(num)num.textContent=pct+"%";
+ var info=document.querySelector(".rinfo b");if(info)info.textContent="Готовность спринта: "+cnt+" из 23";
+ var sp=document.querySelector(".rinfo span");
+ if(sp)sp.textContent="Зачёт: базовые 1, 2, 6, 7, 10, 23 и не меньше 17 пунктов. Дополнительно отмечено "+extrasDone()+" из 6.";
+ var dots=document.querySelectorAll(".bdot"),b=baseList(),i,on;
+ for(i=0;i<dots.length;i++){on=!!state.checks[b[i].n];
+  if(on)dots[i].classList.add("on");else dots[i].classList.remove("on");
+  dots[i].textContent="№"+b[i].n+" "+(on?"✓":"—");}
+}
+function rebuildList(){
+ var box=document.getElementById("clist");if(!box)return;
+ var list=filteredChecks(),h="",i;
+ for(i=0;i<list.length;i++)h+=checkRowHTML(list[i]);
+ box.innerHTML=h||'<div class="note">В этом фильтре пунктов нет.</div>';
+}
+function refreshLab(){
+ if(state.tab!=="lab")return;
+ var y=window.scrollY;renderLab();updateChrome();window.scrollTo(0,y);
+}
+
+document.addEventListener("click",function(e){
+ var el=e.target;
+ if(!el||!el.closest)return;
+ var hit=el.closest("[data-action],[data-tab],[data-topic],[data-check],[data-extra],[data-accept],[data-steptoggle],[data-filter],[data-copy],[data-sw]");
+ if(!hit)return;
+
+ if(hit.hasAttribute("data-copy")){copyText(textFor(hit.getAttribute("data-copy")),hit);return;}
+ if(hit.hasAttribute("data-sw")){
+  var k=hit.getAttribute("data-sw"),L=state.lab;
+  if(k==="theme")L.theme=L.theme==="dark"?"light":"dark";
+  else L[k]=!L[k];
+  save();refreshLab();
+  if(k==="stringify"&&!L.stringify)toast("Без stringify данные портятся тихо — посмотри панель 1.");
+  if(k==="guard"&&!L.guard)toast("Защита снята: любой сбой теперь роняет страницу.");
+  return;
+ }
+ if(hit.hasAttribute("data-topic")){
+  state.topic=hit.getAttribute("data-topic");save();
+  var y=window.scrollY;renderView();window.scrollTo(0,y);
+  toast("Тема: «"+T().name+"». Ключ, токены и промпты обновлены.");return;
+ }
+ if(hit.hasAttribute("data-steptoggle")){
+  var sn=parseInt(hit.getAttribute("data-steptoggle"),10);
+  state.steps[sn]=!state.steps[sn];save();
+  var box=hit.closest(".step");
+  if(box){if(state.steps[sn])box.classList.add("done");else box.classList.remove("done");}
+  hit.setAttribute("aria-pressed",String(!!state.steps[sn]));updateChrome();return;
+ }
+ if(hit.hasAttribute("data-accept")){
+  var sid=hit.getAttribute("data-accept");
+  state.accept[sid]=!state.accept[sid];
+  if(!acceptAll())state.checks[23]=false;
+  save();
+  if(state.accept[sid])hit.classList.add("on");else hit.classList.remove("on");
+  hit.setAttribute("aria-checked",String(!!state.accept[sid]));
+  rebuildList();refreshRing();updateChrome();
+  var head=document.querySelector(".prow");
+  if(head){var chips=head.querySelectorAll(".pcode");if(chips.length>=4)chips[3].textContent="ПРИЁМКА "+acceptDone()+" / 8";}
+  if(acceptAll())toast("Все восемь шагов пройдены — пункт 23 открыт.");
+  return;
+ }
+ if(hit.hasAttribute("data-check")){
+  var cn=parseInt(hit.getAttribute("data-check"),10);
+  if(cn===23&&!acceptAll()){toast("Пункт 23 закрыт: сначала пройди все восемь шагов сценария ("+acceptDone()+" из 8).");return;}
+  state.checks[cn]=!state.checks[cn];save();
+  if(state.checks[cn])hit.classList.add("on");else hit.classList.remove("on");
+  hit.setAttribute("aria-checked",String(!!state.checks[cn]));
+  refreshRing();updateChrome();return;
+ }
+ if(hit.hasAttribute("data-extra")){
+  var eid=hit.getAttribute("data-extra");
+  state.extras[eid]=!state.extras[eid];save();
+  if(state.extras[eid])hit.classList.add("on");else hit.classList.remove("on");
+  hit.setAttribute("aria-checked",String(!!state.extras[eid]));refreshRing();return;
+ }
+ if(hit.hasAttribute("data-filter")){
+  state.filter=hit.getAttribute("data-filter");save();
+  var fs=document.querySelectorAll("[data-filter]"),i;
+  for(i=0;i<fs.length;i++){if(fs[i].getAttribute("data-filter")===state.filter)fs[i].classList.add("on");else fs[i].classList.remove("on");}
+  rebuildList();return;
+ }
+ if(hit.hasAttribute("data-tab")){go(hit.getAttribute("data-tab"));return;}
+
+ var a=hit.getAttribute("data-action");
+ if(a==="start"){state.started=true;save();view.classList.remove("nostart");renderView();window.scrollTo({top:0,behavior:"smooth"});
+  toast("Начни с вкладки «Спринт»: выбери тему и впиши логин GitHub.");}
+ else if(a==="go-sprint")go("sprint");
+ else if(a==="go-check")go("check");
+ else if(a==="go-github")go("github");
+ else if(a==="go-tpl")go("tpl");
+ else if(a==="go-lab")go("lab");
+ else if(a&&a.indexOf("go-p")===0){
+  var pid=a.replace("go-","");state.tab="prompts";save();renderView();
+  setTimeout(function(){var node=document.getElementById(pid);
+   if(node){node.scrollIntoView({behavior:"smooth",block:"start"});node.style.boxShadow="0 0 0 3px rgba(var(--rgb),.35)";
+    setTimeout(function(){node.style.boxShadow="";},1800);}},90);
+ }
+ else if(a==="lab-add"){state.lab.count=Math.min(6,state.lab.count+1);save();refreshLab();}
+ else if(a==="lab-del"){state.lab.count=Math.max(0,state.lab.count-1);save();refreshLab();}
+ else if(a==="lab-private"){state.lab.unavailable=true;state.lab.count=0;save();refreshLab();toast("Первый визит: хранилище пусто и недоступно.");}
+ else if(a==="lab-theme"){state.lab.theme=state.lab.theme==="dark"?"light":"dark";save();refreshLab();}
+ else if(a==="lab-reset"){state.lab={stringify:true,version:"v1",unavailable:false,broken:false,wrongShape:false,guard:true,theme:"light",duration:160,reduced:false,count:3};save();refreshLab();toast("Лаборатория сброшена.");}
+ else if(a==="timer"){
+  if(state.timer.running){timerTick();state.timer.running=false;state.timer.endsAt=null;stopTick();}
+  else{if(state.timer.left<=0)state.timer.left=3000;state.timer.endsAt=Date.now()+state.timer.left*1000;state.timer.running=true;startTick();}
+  var tb=document.getElementById("tbtn");if(tb)tb.textContent=state.timer.running?"Пауза":"Старт";
+  var td=document.getElementById("tdial");if(td){if(state.timer.running)td.classList.add("run");else td.classList.remove("run");}
+  save();
+ }
+ else if(a==="timer-reset"){
+  state.timer={left:3000,running:false,endsAt:null};stopTick();save();
+  var d2=document.getElementById("tdial");if(d2){d2.textContent=fmt(3000);d2.classList.remove("run");}
+  var b2=document.getElementById("tbtn");if(b2)b2.textContent="Старт";
+  var p2=document.getElementById("tphase");if(p2)p2.innerHTML="<b>"+esc(PHASES[0].t)+"</b>"+esc(PHASES[0].d);
+  var ph2=document.querySelectorAll("[data-phase]"),q;
+  for(q=0;q<ph2.length;q++){if(q===0)ph2[q].classList.add("on");else ph2[q].classList.remove("on");ph2[q].classList.remove("done");}
+  toast("Таймер сброшен на 50 минут.");
+ }
+ else if(a==="verify"){
+  var slot=document.getElementById("verdictSlot");
+  if(slot){slot.innerHTML=verdictHTML();slot.scrollIntoView({behavior:"smooth",block:"center"});}
+  if(passed()){confetti();toast("MVP достигнут. Сохрани отчёт в PDF и покажи ссылку педагогу.");}
+  else toast("MVP ещё не закрыт: смотри список в вердикте.");
+  updateChrome();
+ }
+ else if(a==="copy-report"){copyText(reportText(),hit,"Отчёт скопирован текстом — можно отправить педагогу.");}
+ else if(a==="reset"){
+  if(window.confirm("Сбросить отметки чек-листа, приёмки и шагов? Тема, логин и ссылка останутся.")){
+   state.checks={};state.extras={};state.steps={};state.accept={};state.filter="all";
+   save();renderView();toast("Отметки сброшены.");}
+ }
+ else if(a==="print"){
+  if(!state.started)return;
+  if(state.tab!=="check"){go("check");setTimeout(function(){window.print();},200);}
+  else window.print();
+ }
+});
+
+document.addEventListener("keydown",function(e){
+ var el=e.target;if(!el||!el.hasAttribute)return;
+ if(e.key===" "||e.key==="Enter"){
+  if(el.hasAttribute("data-check")||el.hasAttribute("data-extra")||el.hasAttribute("data-accept")||el.hasAttribute("data-steptoggle")){e.preventDefault();el.click();}
+ }
+});
+
+document.addEventListener("input",function(e){
+ var el=e.target;if(!el||!el.getAttribute)return;
+ var lk=el.getAttribute("data-lab");
+ if(lk){
+  state.lab[lk]=parseInt(el.value,10);save();
+  var lbl=document.getElementById(lk==="duration"?"labDurVal":"labCountVal");
+  if(lbl)lbl.textContent=el.value+(lk==="duration"?" мс":"");
+  refreshLab();return;
+ }
+ var v=el.getAttribute("data-var");if(!v)return;
+ state[v]=el.value;
+ if(String(el.value).trim())el.classList.add("filled");else el.classList.remove("filled");
+ save();
+ if(v==="q"){
+  var q=String(state.q||"").toLowerCase().trim(),blocks=document.querySelectorAll(".pblock"),i,j,pid,pr,hit;
+  for(i=0;i<blocks.length;i++){pid=blocks[i].id;pr=null;
+   for(j=0;j<PROMPTS.length;j++){if(PROMPTS[j].id===pid)pr=PROMPTS[j];}
+   if(!pr)continue;
+   hit=!q||(pr.n+" "+pr.t+" "+pr.s).toLowerCase().indexOf(q)!==-1;
+   blocks[i].style.display=hit?"":"none";}
+  return;
+ }
+ refreshDynamic();
+});
+
+document.addEventListener("change",function(e){
+ var el=e.target;if(!el||!el.getAttribute)return;
+ var lk=el.getAttribute("data-lab");
+ if(lk==="version"){state.lab.version=el.value;save();refreshLab();}
+});
+
+document.getElementById("themeBtn").addEventListener("click",function(){
+ state.dark=!state.dark;save();applyTheme();
+ toast(state.dark?"Тёмная тема включена — изменились только токены.":"Светлая тема включена.");
+});
+document.getElementById("printBtn").addEventListener("click",function(){
+ if(!state.started)return;
+ if(state.tab!=="check"){go("check");setTimeout(function(){window.print();},200);}
+ else window.print();
+});
+
+window.addEventListener("error",function(ev){
+ var box=document.getElementById("view");
+ if(box&&!box.innerHTML.trim()){box.className="nostart";
+  box.innerHTML='<div class="errbox">Ошибка скрипта: '+esc(ev.message)+'\nСтрока: '+esc(ev.lineno)+':'+esc(ev.colno)+'</div>';}
+});
+
+function boot(){
+ applyTheme();renderView();
+ if(state.timer.running){
+  if(state.timer.endsAt&&state.timer.endsAt>Date.now()){startTick();timerTick();}
+  else{state.timer.running=false;state.timer.endsAt=null;save();}
+ }
+}
+try{boot();}
+catch(err){view.className="nostart";view.innerHTML='<div class="errbox">Не удалось запустить страницу.\n'+esc(err&&err.message?err.message:String(err))+'</div>';}
+})();
+</script>
+</body>
+</html>
