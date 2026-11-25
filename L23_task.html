@@ -1,0 +1,2195 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Занятие 23 · QA, баг-репорт и репетиция защиты</title>
+<style>
+:root{
+--bg:#f7f5f2;--surface:#fff;--surface2:#f2efea;--surface3:#e6e1d8;
+--border:#e2dcd2;--border2:#c9c1b4;--ink:#12100c;--ink2:#4e483e;--ink3:#7d7568;
+--proj:#b45309;--proj2:#f59e0b;--rgb:180,83,9;
+--ok:#15803d;--okbg:#dcfce7;--okrgb:21,128,61;
+--warn:#b45309;--warnbg:#fef3c7;--warnrgb:180,83,9;
+--danger:#dc2626;--dangerbg:#fee2e2;--dangerrgb:220,38,38;
+--info:#2563eb;--infobg:#dbeafe;
+--mag:#db2777;--magbg:#fce7f3;
+--cbg:#100c07;--cink:#f0e6d8;--cdim:#8d8272;
+--sh1:0 1px 2px rgba(18,16,12,.05),0 2px 6px rgba(18,16,12,.05);
+--sh2:0 12px 34px -14px rgba(18,16,12,.28),0 2px 8px rgba(18,16,12,.06);
+--sh3:0 26px 60px -26px rgba(var(--rgb),.55);
+--r:14px;--rl:20px;--rx:26px;--top:56px;
+--font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html[data-theme=dark]{
+--bg:#0b0a08;--surface:#16130e;--surface2:#1e1a13;--surface3:#2a241a;
+--border:#332c20;--border2:#463c2c;--ink:#f6efe3;--ink2:#c3b8a4;--ink3:#8d8272;
+--ok:#4ade80;--okbg:#0d2c1b;--okrgb:74,222,128;
+--warn:#fbbf24;--warnbg:#33260b;--warnrgb:251,191,36;
+--danger:#f87171;--dangerbg:#3a1414;--dangerrgb:248,113,113;
+--info:#60a5fa;--infobg:#0e2140;--mag:#f472b6;--magbg:#3a1226;
+--cbg:#080604;--cink:#f2e8da;--cdim:#8a7f6d;
+--sh1:0 1px 2px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35);
+--sh2:0 16px 42px -18px rgba(0,0,0,.8),0 2px 10px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--proj)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--surface2)}
+::-webkit-scrollbar-thumb{background:rgba(var(--rgb),.45);border-radius:99px;border:3px solid var(--surface2)}
+::-webkit-scrollbar-thumb:hover{background:rgba(var(--rgb),.85)}
+*{scrollbar-color:rgba(var(--rgb),.55) var(--surface2);scrollbar-width:thin}
+.aura{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aura i{position:absolute;display:block;border-radius:50%;filter:blur(92px);opacity:.3;transition:background .7s}
+.aura i:nth-child(1){width:54vw;height:54vw;left:-16vw;top:-20vw;background:radial-gradient(circle at 30% 30%,rgba(var(--rgb),.95),transparent 68%);animation:d1 27s ease-in-out infinite}
+.aura i:nth-child(2){width:46vw;height:46vw;right:-14vw;top:4vh;background:radial-gradient(circle at 60% 40%,rgba(219,39,119,.4),transparent 70%);animation:d2 33s ease-in-out infinite}
+.aura i:nth-child(3){width:42vw;height:42vw;left:28vw;bottom:-22vw;background:radial-gradient(circle at 50% 50%,rgba(var(--rgb),.5),transparent 72%);animation:d1 39s ease-in-out infinite reverse}
+html[data-theme=dark] .aura i{opacity:.28}
+@keyframes d1{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(5vw,4vh,0) scale(1.12)}}
+@keyframes d2{0%,100%{transform:translate3d(0,0,0) scale(1.05)}50%{transform:translate3d(-6vw,6vh,0) scale(.9)}}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.32;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:40;height:var(--top);background:var(--surface);border-bottom:1px solid var(--border);opacity:.97;backdrop-filter:blur(14px)}
+.tb{max-width:1220px;margin:0 auto;height:100%;padding:0 16px;display:flex;align-items:center;gap:9px}
+.mark{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12.5px;background:linear-gradient(135deg,var(--proj),var(--proj2));box-shadow:0 4px 14px -4px rgba(var(--rgb),.75)}
+.brand{min-width:0;flex:1;display:flex;flex-direction:column;line-height:1.25}
+.brand b{font-size:13.5px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span{font-size:11.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stchip{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:99px;font-size:12.5px;font-weight:700;white-space:nowrap;background:var(--surface2);border:1px solid var(--border);color:var(--ink2)}
+.stchip.ok{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.ibtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center;transition:.16s;flex-shrink:0}
+.ibtn:hover{border-color:var(--proj);color:var(--proj);transform:translateY(-1px)}
+.ibtn:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.ibtn.off{color:var(--ink3);opacity:.6}
+.ibtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabwrap{position:fixed;top:var(--top);left:0;right:0;z-index:35;background:var(--bg);border-bottom:1px solid var(--border);opacity:.97;backdrop-filter:blur(12px)}
+.tabs{max-width:1220px;margin:0 auto;padding:8px 14px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{height:0}
+.tab{flex-shrink:0;min-height:40px;padding:0 13px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-size:13px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.16s;white-space:nowrap}
+.tab:hover{border-color:var(--border2);color:var(--ink);transform:translateY(-1px)}
+.tab:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.tab.on{background:linear-gradient(135deg,var(--proj),var(--proj2));border-color:transparent;color:#fff;box-shadow:0 8px 20px -10px rgba(var(--rgb),.9)}
+.tab i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
+.tab .bdg{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:99px;background:var(--surface2);color:var(--ink3)}
+.tab.on .bdg{background:rgba(255,255,255,.22);color:#fff}
+.readbar{height:2px}
+.readbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--proj),var(--proj2));transition:width .12s linear}
+main{position:relative;z-index:2;max-width:1220px;margin:0 auto;padding:calc(var(--top) + 74px) 16px 128px}
+main.nostart{padding-top:calc(var(--top) + 26px)}
+.hero{position:relative;border:1px solid var(--border);border-radius:var(--rx);padding:44px 32px;text-align:center;overflow:hidden;box-shadow:var(--sh2);background:radial-gradient(120% 120% at 8% 0%,rgba(var(--rgb),.16),transparent 55%),radial-gradient(100% 100% at 100% 100%,rgba(219,39,119,.14),transparent 60%),var(--surface)}
+.hero:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(var(--rgb),.05) 0 2px,transparent 2px 9px);opacity:.55;pointer-events:none}
+.badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:99px;font-size:12px;font-weight:700;background:rgba(var(--rgb),.12);color:var(--proj);border:1px solid rgba(var(--rgb),.25)}
+.hero h1{position:relative;font-size:clamp(29px,5.2vw,48px);line-height:1.06;letter-spacing:-.035em;margin:18px 0 12px;font-weight:800}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,var(--proj),#f59e0b 40%,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{position:relative;color:var(--ink2);max-width:710px;margin:0 auto 22px;font-size:16.5px}
+.meta{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:26px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--ink2)}
+.chip b{color:var(--ink)}
+.hgrid{position:relative;display:grid;gap:10px;grid-template-columns:repeat(2,1fr);margin-top:28px;text-align:left}
+@media(min-width:760px){.hgrid{grid-template-columns:repeat(3,1fr)}}
+.hg{border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;background:var(--surface);position:relative;overflow:hidden;transition:.18s}
+.hg:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c1)}
+.hg:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
+.hg em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--c1)}
+.hg b{display:block;font-size:13.5px;margin-top:2px}
+.hg span{display:block;font-size:11.5px;color:var(--ink3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 22px;border-radius:13px;border:1px solid transparent;font-size:15px;font-weight:700;cursor:pointer;transition:.16s;text-decoration:none}
+.btn:focus-visible{outline:3px solid rgba(var(--rgb),.4);outline-offset:2px}
+.btn-p{background:linear-gradient(135deg,var(--proj),var(--proj2));color:#fff;box-shadow:0 12px 26px -12px rgba(var(--rgb),.95)}
+.btn-p:hover{transform:translateY(-2px)}
+.btn-s{background:var(--surface);border-color:var(--border2);color:var(--ink)}
+.btn-s:hover{background:var(--surface2);transform:translateY(-1px)}
+.btn-g{background:transparent;color:var(--ink2)}
+.btn-g:hover{background:var(--surface2);color:var(--ink)}
+.btn-d{background:var(--danger);color:#fff}
+.btn-lg{min-height:54px;padding:0 30px;font-size:16px;border-radius:15px}
+.btn-sm{min-height:36px;padding:0 13px;font-size:12.5px;border-radius:10px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+.phead{position:relative;border-radius:var(--rx);padding:28px 26px;color:#fff;overflow:hidden;margin-bottom:20px;background:linear-gradient(135deg,var(--proj),var(--proj2));box-shadow:var(--sh3)}
+.phead:after{content:"";position:absolute;inset:0;background:radial-gradient(80% 120% at 100% 0%,rgba(255,255,255,.26),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 12px);pointer-events:none}
+.phead .wm{position:absolute;right:-6px;top:-40px;font-size:148px;font-weight:900;letter-spacing:-.06em;opacity:.14;line-height:1;pointer-events:none}
+.ph-in{position:relative;z-index:1}
+.prow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.pcode{font-family:var(--mono);font-size:11.5px;font-weight:700;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:8px;letter-spacing:.05em}
+.phead h2{margin:0 0 5px;font-size:clamp(24px,4vw,36px);letter-spacing:-.03em;font-weight:800;line-height:1.1}
+.phead p{margin:0;font-size:14.5px;opacity:.94;max-width:770px}
+.sec{margin:26px 0}
+.sec-h{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px}
+.sec-n{flex-shrink:0;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2))}
+.sec-t{font-size:19px;font-weight:750;letter-spacing:-.02em;margin:0}
+.sec-s{font-size:13.5px;color:var(--ink2);margin:2px 0 0}
+.sec-hb{flex:1;min-width:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh1);transition:.18s}
+.card:hover{border-color:rgba(var(--rgb),.4);box-shadow:var(--sh2);transform:translateY(-2px)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr}
+.g3{grid-template-columns:1fr}
+@media(min-width:760px){.g2{grid-template-columns:1fr 1fr}}
+@media(min-width:980px){.g3{grid-template-columns:repeat(3,1fr)}}
+.note{border-radius:var(--r);padding:14px 16px;font-size:14px;line-height:1.6;border:1px solid var(--border);background:var(--surface2);color:var(--ink2)}
+.note b{color:var(--ink)}
+.note.warn{background:var(--warnbg);border-color:rgba(var(--warnrgb),.35);color:var(--warn)}
+.note.warn b{color:var(--warn)}
+.note.ok{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.note.ok b{color:var(--ok)}
+.note.bad{background:var(--dangerbg);border-color:rgba(var(--dangerrgb),.35);color:var(--danger)}
+.note.bad b{color:var(--danger)}
+.note.acc{background:rgba(var(--rgb),.08);border-color:rgba(var(--rgb),.3);color:var(--ink)}
+.note ul,.note ol{margin:8px 0 0;padding-left:20px}
+.note li{margin-bottom:5px}
+code{font-family:var(--mono);font-size:12.5px;background:var(--surface3);padding:1px 6px;border-radius:5px;color:var(--ink)}
+.kv{display:grid;gap:8px}
+.kv-row{display:grid;grid-template-columns:1fr;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
+@media(min-width:640px){.kv-row{grid-template-columns:190px 1fr;gap:14px;align-items:start}}
+.kv-k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--proj)}
+.kv-v{font-size:13.8px;color:var(--ink2);line-height:1.55}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.flabel{display:block;font-size:12.5px;color:var(--ink2);margin-bottom:5px;font-weight:650}
+.inp{width:100%;min-height:44px;padding:10px 13px;border:1px solid var(--border);border-radius:11px;background:var(--surface);font-size:14px;transition:.15s}
+.inp:focus{outline:none;border-color:var(--proj);box-shadow:0 0 0 3px rgba(var(--rgb),.18)}
+.inp.filled{background:rgba(var(--rgb),.05);border-color:rgba(var(--rgb),.4)}
+textarea.inp{min-height:82px;resize:vertical;line-height:1.55}
+select.inp{cursor:pointer}
+.hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
+.hint.bad{color:var(--danger)}
+.topics{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:760px){.topics{grid-template-columns:repeat(3,1fr)}}
+.topic{text-align:left;border:1px solid var(--border);border-radius:12px;padding:11px 12px;background:var(--surface);cursor:pointer;transition:.16s;position:relative;overflow:hidden;min-height:64px}
+.topic:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c1)}
+.topic:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.topic:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.topic.on{border-color:var(--c1);box-shadow:0 0 0 2px rgba(var(--rgb),.18)}
+.topic em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--c1)}
+.topic b{display:block;font-size:13px;margin-top:2px}
+.topic span{display:block;font-size:11px;color:var(--ink3)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.lnk{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;background:var(--surface);border:1px solid var(--border);border-radius:11px;color:var(--proj);text-decoration:none;font-size:13px;font-weight:650;transition:.15s}
+.lnk:hover{border-color:var(--proj);background:rgba(var(--rgb),.08);transform:translateY(-1px)}
+.lnk.off{color:var(--ink3);pointer-events:none;opacity:.55}
+.lnk svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.timer{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh1)}
+.tdial{font-family:var(--mono);font-size:38px;font-weight:800;line-height:1;color:var(--proj);font-variant-numeric:tabular-nums;min-width:132px}
+.tdial.run{animation:tp 2s ease-in-out infinite}
+@keyframes tp{0%,100%{opacity:1}50%{opacity:.7}}
+.tphase{flex:1;min-width:200px;font-size:13.5px;color:var(--ink2)}
+.tphase b{display:block;color:var(--ink);font-size:14px}
+.tbtns{display:flex;gap:8px;flex-wrap:wrap}
+.phases{display:grid;gap:6px;margin-top:12px}
+.phase{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--ink2)}
+.phase.on{background:rgba(var(--rgb),.1);border-color:rgba(var(--rgb),.35);color:var(--ink);font-weight:650}
+.phase.done{opacity:.55}
+.phase em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink3);min-width:92px}
+.steps{display:grid;gap:10px}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1)}
+.step.done{border-color:rgba(var(--okrgb),.45)}
+.step-h{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;cursor:pointer}
+.step-h:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:-3px}
+.step-n{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2))}
+.step.done .step-n{background:var(--ok)}
+.step-tb{flex:1;min-width:0}
+.step-t{font-size:15px;font-weight:700;margin:0}
+.step-m{font-size:11.5px;color:var(--ink3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.where{font-size:10px;font-weight:800;letter-spacing:.05em;padding:2px 7px;border-radius:6px;text-transform:uppercase}
+.where.q{background:rgba(168,85,247,.18);color:#a855f7}
+.where.g{background:rgba(var(--okrgb),.16);color:var(--ok)}
+.where.b{background:var(--infobg);color:var(--info)}
+.where.p{background:var(--magbg);color:var(--mag)}
+.step-body{padding:0 16px 16px 58px;font-size:13.8px;color:var(--ink2);line-height:1.6}
+.step-body ol,.step-body ul{margin:6px 0 0;padding-left:20px}
+.step-body li{margin-bottom:5px}
+.step-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chk{flex-shrink:0;width:24px;height:24px;border-radius:7px;border:2px solid var(--border2);display:grid;place-items:center;transition:.15s;margin-top:3px}
+.step.done .chk{background:var(--ok);border-color:var(--ok)}
+.chk svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:.15s}
+.step.done .chk svg{opacity:1}
+.pblock{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh1);margin-bottom:14px}
+.pb-h{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap}
+.pb-n{flex-shrink:0;font-family:var(--mono);font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2));padding:4px 9px;border-radius:7px}
+.pb-tb{flex:1;min-width:160px}
+.pb-t{font-size:15px;font-weight:750;margin:0}
+.pb-s{font-size:12px;color:var(--ink3);margin-top:2px}
+.pb-body{padding:14px 16px}
+.code{position:relative;background:var(--cbg);border-radius:12px;border:1px solid rgba(var(--rgb),.3);overflow:hidden}
+.code-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.08)}
+.code-h span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cdim)}
+.code pre{margin:0;padding:14px;overflow:auto;font-family:var(--mono);font-size:12.2px;line-height:1.65;color:var(--cink);max-height:400px;white-space:pre-wrap;word-break:break-word}
+.copy{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#cbd5e1;border-radius:8px;padding:5px 11px;font-size:11.5px;font-weight:650;cursor:pointer;transition:.15s;white-space:nowrap}
+.copy:hover{background:rgba(255,255,255,.18);color:#fff}
+.copy.done{background:var(--ok);border-color:transparent;color:#fff}
+.checks{margin-top:12px;background:var(--okbg);border:1px solid rgba(var(--okrgb),.3);border-radius:12px;padding:11px 14px}
+.checks b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);margin-bottom:6px}
+.checks ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink2);line-height:1.5}
+.checks li{margin-bottom:4px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.fchip{min-height:36px;padding:0 13px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s}
+.fchip:hover{border-color:var(--border2);color:var(--ink)}
+.fchip.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.ring{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh1)}
+.rwrap{position:relative;width:88px;height:88px;flex-shrink:0}
+.rsvg{width:88px;height:88px;transform:rotate(-90deg)}
+.rsvg circle{fill:none;stroke-width:9;stroke-linecap:round}
+.rsvg .bgc{stroke:var(--surface3)}
+.rsvg .fgc{stroke:var(--proj);transition:stroke-dashoffset .7s cubic-bezier(.22,.61,.36,1)}
+.rnum{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:17px;font-weight:800}
+.rinfo{flex:1;min-width:210px}
+.rinfo b{display:block;font-size:15px}
+.rinfo span{font-size:13px;color:var(--ink2)}
+.clist{display:grid;gap:8px}
+.ci{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.16s}
+.ci:hover{border-color:rgba(var(--rgb),.45);transform:translateX(3px)}
+.ci:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.ci.on{background:var(--okbg);border-color:rgba(var(--okrgb),.45)}
+.ci.key{border-left:4px solid var(--danger)}
+.ci.key.on{border-left-color:var(--ok)}
+.cbox{flex-shrink:0;width:24px;height:24px;border-radius:7px;border:2px solid var(--border2);display:grid;place-items:center;transition:.15s;margin-top:2px}
+.ci.on .cbox{background:var(--ok);border-color:var(--ok)}
+.cbox svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:.15s}
+.ci.on .cbox svg{opacity:1}
+.cnum{flex-shrink:0;font-family:var(--mono);font-size:12px;font-weight:800;color:var(--ink3);min-width:22px;margin-top:3px}
+.ci.on .cnum{color:var(--ok)}
+.ctb{flex:1;min-width:0}
+.ct{font-size:14px;font-weight:650;line-height:1.45;display:block}
+.ch{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.5;display:block}
+.ch b{color:var(--ink3)}
+.btag{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--dangerbg);color:var(--danger);margin-left:6px}
+.ci.on .btag{background:rgba(var(--okrgb),.16);color:var(--ok)}
+.ghead{display:flex;align-items:center;gap:10px;margin:18px 0 9px}
+.ghead b{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--proj)}
+.ghead span{flex:1;height:1px;background:var(--border)}
+.ghead em{font-style:normal;font-size:11.5px;color:var(--ink3);font-family:var(--mono)}
+.rep{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh1);margin-bottom:14px}
+.rep-h{padding:13px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;gap:11px;align-items:flex-start;flex-wrap:wrap}
+.rep-n{flex-shrink:0;font-family:var(--mono);font-size:11px;font-weight:800;color:#fff;background:var(--danger);padding:4px 9px;border-radius:7px}
+.rep-tb{flex:1;min-width:170px}
+.rep-bad{font-size:14.5px;font-weight:700;color:var(--danger);margin:0}
+.rep-hint{font-size:12px;color:var(--ink2);margin-top:3px;line-height:1.45}
+.rep-st{font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;background:var(--surface3);color:var(--ink3);white-space:nowrap}
+.rep-st.ok{background:var(--okbg);color:var(--ok)}
+.rep-b{padding:14px 16px}
+.wchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.wchip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface3);color:var(--ink3);border:1px solid var(--border)}
+.wchip.on{background:var(--okbg);color:var(--ok);border-color:rgba(var(--okrgb),.35)}
+.probs{margin-top:10px;background:var(--dangerbg);border:1px solid rgba(var(--dangerrgb),.3);border-radius:11px;padding:10px 13px}
+.probs b{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--danger);margin-bottom:5px}
+.probs ul{margin:0;padding-left:18px;font-size:12.8px;color:var(--ink2);line-height:1.5}
+.probs li{margin-bottom:3px}
+.board{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:900px){.board{grid-template-columns:repeat(4,1fr)}}
+.zone{background:var(--surface);border:2px dashed var(--border2);border-radius:var(--rl);padding:12px;min-height:190px;transition:.16s}
+.zone.hot{border-color:var(--proj);background:rgba(var(--rgb),.07)}
+.zone.sel{border-style:solid;border-color:var(--proj);box-shadow:0 0 0 3px rgba(var(--rgb),.18)}
+.zone h4{margin:0 0 4px;font-size:13px;display:flex;align-items:center;gap:7px}
+.zone h4 i{width:9px;height:9px;border-radius:50%;font-style:normal}
+.zone p{margin:0 0 10px;font-size:11.5px;color:var(--ink3);line-height:1.4}
+.zone.z-block h4{color:var(--danger)}
+.zone.z-major h4{color:var(--warn)}
+.zone.z-cosm h4{color:var(--info)}
+.dcard{background:var(--surface2);border:1px solid var(--border2);border-radius:11px;padding:10px 12px;margin-bottom:8px;cursor:grab;transition:.15s;font-size:12.8px;line-height:1.45;position:relative}
+.dcard:hover{border-color:var(--proj);transform:translateY(-1px)}
+.dcard:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.dcard.picked{border-color:var(--proj);box-shadow:0 0 0 3px rgba(var(--rgb),.22);background:rgba(var(--rgb),.08)}
+.dcard.ok{border-color:var(--ok);background:var(--okbg)}
+.dcard.bad{border-color:var(--danger);background:var(--dangerbg)}
+.dcard em{font-style:normal;display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-bottom:3px}
+.dcard .verdict{display:block;font-size:11px;font-weight:700;margin-top:5px}
+.speech{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:1000px){.speech{grid-template-columns:320px 1fr;align-items:start}}
+.ctrl{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px;box-shadow:var(--sh1)}
+@media(min-width:1000px){.ctrl{position:sticky;top:calc(var(--top) + 66px);max-height:calc(100vh - var(--top) - 100px);overflow:auto}}
+.ctrl h4{margin:0 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3)}
+.ctrl hr{border:none;border-top:1px solid var(--border);margin:14px 0}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:42px;padding:6px 0;background:none;border:none;cursor:pointer;text-align:left}
+.sw:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px;border-radius:8px}
+.sw span{font-size:13.2px;color:var(--ink2);flex:1;line-height:1.35}
+.sw i{flex-shrink:0;width:42px;height:24px;border-radius:99px;background:var(--surface3);border:1px solid var(--border2);position:relative;transition:.18s}
+.sw i:after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:var(--surface);box-shadow:var(--sh1);transition:.18s}
+.sw[aria-checked=true] i{background:linear-gradient(135deg,var(--proj),var(--proj2));border-color:transparent}
+.sw[aria-checked=true] i:after{left:20px;background:#fff}
+.sw[aria-checked=true] span{color:var(--ink);font-weight:650}
+.rng{width:100%;height:26px;-webkit-appearance:none;appearance:none;background:none;cursor:pointer}
+.rng::-webkit-slider-runnable-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--proj),var(--proj2))}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--surface);border:2px solid var(--proj);margin-top:-7px;box-shadow:var(--sh1)}
+.rng::-moz-range-track{height:6px;border-radius:99px;background:linear-gradient(90deg,var(--proj),var(--proj2))}
+.rng::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--surface);border:2px solid var(--proj)}
+.rng:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:4px;border-radius:99px}
+.spdial{font-family:var(--mono);font-size:44px;font-weight:800;line-height:1;color:var(--proj);font-variant-numeric:tabular-nums;text-align:center;margin:6px 0}
+.spdial.run{animation:tp 2s ease-in-out infinite}
+.spbar{height:8px;border-radius:99px;background:var(--surface3);overflow:hidden;margin:8px 0}
+.spbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--proj),var(--proj2));transition:width .3s linear}
+.sppart{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:15px 17px;box-shadow:var(--sh1);margin-bottom:12px;transition:.2s}
+.sppart.on{border-color:var(--proj);box-shadow:0 0 0 3px rgba(var(--rgb),.16)}
+.sppart-h{display:flex;gap:11px;align-items:flex-start;margin-bottom:9px;flex-wrap:wrap}
+.sppart-n{flex-shrink:0;width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:12.5px;font-weight:800;background:var(--surface3);color:var(--ink2)}
+.sppart.on .sppart-n{background:linear-gradient(135deg,var(--proj),var(--proj2));color:#fff}
+.sppart-t{flex:1;min-width:150px}
+.sppart-t b{display:block;font-size:14.5px}
+.sppart-t span{display:block;font-size:12px;color:var(--ink2);margin-top:2px;line-height:1.45}
+.wcount{font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface3);color:var(--ink3);white-space:nowrap}
+.wcount.ok{background:var(--okbg);color:var(--ok)}
+.wcount.over{background:var(--warnbg);color:var(--warn)}
+.verdict{border-radius:var(--rl);padding:18px;border:1px solid var(--border);background:var(--surface2)}
+.verdict.pass{background:var(--okbg);border-color:rgba(var(--okrgb),.45);animation:pop .5s cubic-bezier(.22,.61,.36,1)}
+.verdict.fail{background:var(--warnbg);border-color:rgba(var(--warnrgb),.4)}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.015)}100%{transform:scale(1)}}
+.verdict h3{margin:0 0 6px;font-size:18px}
+.verdict p{margin:0;font-size:14px;line-height:1.6;color:var(--ink2)}
+.verdict ul{margin:8px 0 0;padding-left:20px;font-size:13.5px;color:var(--ink2)}
+.gates{display:grid;gap:8px;margin-bottom:16px}
+.gate{display:flex;gap:11px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
+.gate.on{background:var(--okbg);border-color:rgba(var(--okrgb),.4)}
+.gate i{flex-shrink:0;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-size:13px;font-weight:800;background:var(--surface3);color:var(--ink3)}
+.gate.on i{background:var(--ok);color:#fff}
+.gate b{flex:1;font-size:13.5px;font-weight:650}
+.gate span{font-size:12px;color:var(--ink2);font-family:var(--mono)}
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);box-shadow:var(--sh1)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+th{text-align:left;padding:11px 14px;background:var(--surface2);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;color:var(--ink2)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(var(--rgb),.05)}
+td b{color:var(--ink)}
+.actions{position:fixed;left:0;right:0;bottom:0;z-index:38;border-top:1px solid var(--border);background:var(--surface);opacity:.97;backdrop-filter:blur(14px);padding:9px 16px}
+.ab{max-width:1220px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ab-i{font-size:12.5px;color:var(--ink3);min-width:0;flex:1}
+.ab-i b{color:var(--ink)}
+.ab-b{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:76px;transform:translate(-50%,20px);z-index:60;opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:650;box-shadow:var(--sh2);transition:.28s cubic-bezier(.22,.61,.36,1);max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.conf{position:fixed;z-index:70;width:9px;height:14px;border-radius:2px;pointer-events:none}
+.errbox{border:2px solid var(--danger);background:var(--dangerbg);color:var(--danger);border-radius:var(--r);padding:18px;font-family:var(--mono);font-size:13px;white-space:pre-wrap}
+[data-reveal]{opacity:0;transform:translateY(16px);transition:opacity .55s cubic-bezier(.22,.61,.36,1),transform .55s cubic-bezier(.22,.61,.36,1)}
+[data-reveal].in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}[data-reveal]{opacity:1;transform:none}}
+@media(max-width:560px){
+:root{--top:52px}
+.tb{padding:0 10px;gap:6px}
+.brand span{display:none}
+.stchip{font-size:11.5px;padding:0 9px}
+main{padding:calc(var(--top) + 70px) 11px 136px}
+.hero{padding:28px 17px}
+.phead{padding:22px 17px}
+.phead .wm{font-size:92px;top:-16px}
+.sec-t{font-size:17px}
+.step-body{padding-left:16px}
+.ab-i{display:none}
+.ab-b{width:100%}
+.ab-b .btn{flex:1}
+.tdial{font-size:32px;min-width:112px}
+.spdial{font-size:36px}
+}
+@media print{
+@page{size:A4;margin:14mm}
+.aura,.grain,.topbar,.tabwrap,.actions,.toast,.copy,.filters,.no-print{display:none!important}
+body{background:#fff}
+main{padding:0;max-width:100%}
+.code,.code pre{background:#f1f5f9!important;color:#0f172a!important;border-color:#cbd5e1;max-height:none}
+.code-h span{color:#475569!important}
+.card,.step,.pblock,.ci,.tw,.rep,.gate,.sppart{break-inside:avoid;box-shadow:none}
+[data-reveal]{opacity:1!important;transform:none!important}
+.ci.on,.gate.on{background:#dcfce7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.phead{color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="aura" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="tb">
+    <div class="mark">23</div>
+    <div class="brand">
+      <b>Занятие 23 · Тестирование и финальный деплой</b>
+      <span>Масликов М. М. · модуль 9 · последнее рабочее занятие</span>
+    </div>
+    <span class="stchip" id="stchip">0 / 6</span>
+    <button class="ibtn" id="soundBtn" type="button" aria-label="Звук таймера" title="Звук таймера">
+      <svg viewBox="0 0 24 24" id="soundIcon"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>
+    </button>
+    <button class="ibtn" id="themeBtn" type="button" aria-label="Тёмная тема" title="Тёмная тема">
+      <svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="ibtn" id="printBtn" type="button" aria-label="Отчёт в PDF" title="Отчёт в PDF">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="tabwrap" id="tabwrap" hidden>
+  <nav class="tabs" id="tabs" aria-label="Вкладки занятия"></nav>
+  <div class="readbar"><i id="readbar"></i></div>
+</div>
+
+<main id="view" class="nostart"></main>
+
+<div class="actions" id="actionbar" hidden>
+  <div class="ab">
+    <div class="ab-i" id="abInfo"></div>
+    <div class="ab-b">
+      <button class="btn btn-s btn-sm" type="button" data-action="go-report">Отчёт и вердикт</button>
+      <button class="btn btn-p btn-sm" type="button" data-action="print">Отчёт в PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+var TOPICS=[
+ {id:"P01",name:"Ритм 21",kind:"Трекер привычек",c1:"#0f766e",repo:"ritm-21",arr:"habits",act:"отметка «сегодня»"},
+ {id:"P02",name:"Дедлайн-доска",kind:"Менеджер задач",c1:"#b45309",repo:"dedline-doska",arr:"tasks",act:"смена статуса задачи"},
+ {id:"P03",name:"Диванный зал",kind:"Кинопоиск",c1:"#9d174d",repo:"divannyi-zal",arr:"watchlist",act:"добавление в «Посмотрим»"},
+ {id:"P04",name:"Пиксельный штаб",kind:"Панель геймера",c1:"#4c1d95",repo:"pixelnyi-shtab",arr:"games",act:"удаление игры"},
+ {id:"P05",name:"Классный штаб",kind:"Школьная панель",c1:"#1d4ed8",repo:"klassnyi-shtab",arr:"notices",act:"назначение дежурного"},
+ {id:"P06",name:"Банк добрых дел",kind:"Волонтёрская панель",c1:"#be123c",repo:"bank-dobryh-del",arr:"events",act:"запись на акцию"}
+];
+
+var QA=[
+ {n:1,g:1,t:"Открыть в приватном окне по публичной ссылке",how:"Ctrl+Shift+N, вставить адрес. Страница открылась, пустое состояние объясняет, что делать."},
+ {n:2,g:1,t:"Понятность без объяснений за десять секунд",how:"Дать напарнику ссылку и молчать 10 секунд. Он сказал, что это и что делать, — пункт закрыт."},
+ {n:3,g:1,t:"Открыть с настоящего телефона",how:"Текст читается, кнопки нажимаются пальцем, горизонтальной прокрутки нет."},
+ {n:4,g:2,t:"Отправить пустую форму",how:"Под полем сообщение, которое говорит, что сделать. Запись не добавилась."},
+ {n:5,g:2,t:"Ввести три пробела и отправить",how:"Поведение ровно то же, что у пустого поля. Запись из пробелов не появилась."},
+ {n:6,g:2,t:"Нажать Enter в поле, а не кнопку",how:"Страница не перезагрузилась, адрес не изменился, запись добавилась."},
+ {n:7,g:3,t:"Перезагрузить страницу после добавления",how:"F5. Записи на месте — сохранение и восстановление работают."},
+ {n:8,g:3,t:"Добавить десять записей подряд",how:"Список не ломается, счётчики верны, прокрутка работает, последняя запись видна."},
+ {n:9,g:3,t:"Ввести название из 300 символов",how:"Карточка не разъезжается, текст не вылезает за край и не перекрывает соседей.",key:true},
+ {n:10,g:4,t:"Network → Offline и обновить",how:"Свои записи на месте, внешний блок — запасные данные с честной пометкой."},
+ {n:11,g:4,t:"Переключить тему и перезагрузить",how:"Тема осталась, светлой вспышки при загрузке нет."},
+ {n:12,g:4,t:"Посмотреть консоль за весь проход",how:"F12 → Console: ноль красных строк за все предыдущие пункты."},
+ {n:13,g:5,t:"Пройти всю страницу клавишей Tab",how:"Фокус виден на каждом управлении, порядок разумный, ловушек нет.",key:true},
+ {n:14,g:5,t:"Сузить окно до 320 px",how:"Горизонтальной прокрутки нет, всё в столбик, текст читается."},
+ {n:15,g:5,t:"Удалить все записи и посмотреть",how:"Пустое состояние объясняет, что делать, а не показывает пустое место.",key:true}
+];
+var QAG=[
+ {id:1,t:"Первое знакомство"},
+ {id:2,t:"Форма"},
+ {id:3,t:"Данные"},
+ {id:4,t:"Состояния и сеть"},
+ {id:5,t:"Доступность и вёрстка"}
+];
+
+var REPORTS=[
+ {id:"r1",bad:"«Форма не работает»",hint:"Ни одной из четырёх частей. Начни с шагов: что открыл, что нажал. Потом — что увидел дословно.",
+  pre:{title:"",steps:"",expected:"",actual:"",where:""}},
+ {id:"r2",bad:"«Ты не подумал о телефонах»",hint:"Это оценка человека, а не дефект. Переведи в факт: что именно не помещается, на какой ширине, что при этом нельзя сделать.",
+  pre:{title:"",steps:"1. Открыл страницу на телефоне\n2. ",expected:"",actual:"",where:"Телефон, "}},
+ {id:"r3",bad:"«Должно работать правильно»",hint:"Шаги и результат есть, ожидание неконкретное. Напиши, что должно было произойти вместо этого, и добавь условия.",
+  pre:{title:"Пустое название сохраняется в список",steps:"1. Открыл страницу\n2. Оставил поле названия пустым\n3. Нажал «Добавить»",expected:"",actual:"В списке появилась карточка без названия",where:""}},
+ {id:"r4",bad:"«После перезагрузки всё пропало»",hint:"Есть ожидание, нет шагов и дословного результата. Допиши, что ты видел на экране и при каких условиях.",
+  pre:{title:"Записи пропадают после перезагрузки страницы",steps:"",expected:"Записи остаются в списке после перезагрузки",actual:"",where:"Ноутбук, Chrome, "}},
+ {id:"r5",bad:"«Кнопка некрасивая»",hint:"Косметика тоже требует места и факта: какая кнопка, что именно не так, при каких условиях это видно.",
+  pre:{title:"",steps:"1. Открыл страницу\n2. ",expected:"",actual:"",where:""}}
+];
+
+var DEFECTS=[
+ {id:"d1",t:"Форма не отправляется: страница перезагружается, запись не появляется",z:"block",fix:"Одна строка preventDefault — и всё равно блокирующий"},
+ {id:"d2",t:"На телефоне клавиатура перекрывает кнопку «Добавить», до неё не добраться",z:"block",fix:"Пользователь не может сделать то, ради чего пришёл"},
+ {id:"d3",t:"После перезагрузки пропадают все записи",z:"block",fix:"Чинится добавлением save() — приоритет от этого не падает"},
+ {id:"d4",t:"При названии в 300 символов текст вылезает за карточку и перекрывает соседний",z:"major",fix:"Добавить можно, но читать список неудобно"},
+ {id:"d5",t:"При Offline показаны запасные данные без пометки, что они из копии",z:"major",fix:"Сценарий работает, но человек получает неверную картину"},
+ {id:"d6",t:"Тень у карточки на два пикселя темнее, чем в макете",z:"cosm",fix:"Пользователь работает так же удобно"},
+ {id:"d7",t:"В подвале опечатка: «буфетт» вместо «буфет»",z:"cosm",fix:"Заметно, но ничего не мешает сделать"}
+];
+var ZONES=[
+ {id:"pool",t:"Ещё не разложено",d:"Кликни карточку, потом зону. Или перетащи.",c:"var(--ink3)"},
+ {id:"block",t:"Блокирующие",d:"Пользователь не может сделать то, ради чего пришёл",c:"var(--danger)"},
+ {id:"major",t:"Важные",d:"Может, но сценарий сломан или неудобно",c:"var(--warn)"},
+ {id:"cosm",t:"Косметические",d:"Может и удобно, дефект только виден",c:"var(--info)"}
+];
+
+var SPEECH=[
+ {id:"s1",t:"Проблема",d:"Про человека и его задачу. Без техники, без слов «панель», «массив», «localStorage».",
+  ph:"Кто и с чем мучился. Что он делал раньше и почему это неудобно. Одно-два предложения."},
+ {id:"s2",t:"Демонстрация",d:"Показываю, а не рассказываю. Заранее выбранный сценарий на 30–40 секунд.",
+  ph:"Что нажимаю по шагам и что при этом видно. Пиши действия, а не описание интерфейса."},
+ {id:"s3",t:"Фрагмент кода",d:"Один фрагмент, который выбрал сам и можешь объяснить построчно.",
+  ph:"Имя функции и что она делает. Почему выбрал именно её. Что спросит зал и что отвечу."},
+ {id:"s4",t:"Роль ИИ",d:"Что просил, что проверил, что переписал сам. Без «ИИ помог с кодом».",
+  ph:"Конкретный запрос. Как проверял ответ. Что нашёл неверного и исправил."},
+ {id:"s5",t:"Что доработал бы",d:"Из раздела «известные ограничения» README. Честно и по приоритету.",
+  ph:"Что не работает, при каких условиях, почему не исправлено и что сделаю первым."}
+];
+
+var RDB=[
+ {k:"title",t:"1 · Название и одна фраза",ph:"Северный пирог — панель учёта домашних заготовок"},
+ {k:"link",t:"2 · Ссылка на опубликованную версию",ph:"https://логин.github.io/проект/"},
+ {k:"stack",t:"3 · Стек",ph:"HTML, CSS, JavaScript. Без фреймворков и сборщиков."},
+ {k:"features",t:"4 · Что умеет",ph:"По строке на возможность, начиная с глагола"},
+ {k:"ai",t:"5 · Что сделано с помощью ИИ",ph:"Конкретно: что просил, что проверил, что переписал сам"},
+ {k:"limits",t:"6 · Известные ограничения",ph:"Что не работает · при каких условиях · почему не исправлено"}
+];
+
+var DEPLOY=[
+ {id:"p1",t:"Actions: последний запуск с зелёной галочкой",how:"Вкладка Actions в репозитории. Красный крест — публикация не прошла, ссылку показывать нельзя."},
+ {id:"p2",t:"Ссылка открывается с настоящего телефона",how:"Не в эмуляторе DevTools. Текст читается, кнопки нажимаются."},
+ {id:"p3",t:"Ссылка открывается в приватном окне",how:"Ctrl+Shift+N. Первый визит работает, пустое состояние объясняет."},
+ {id:"p4",t:"README из шести блоков опубликован",how:"На главной странице репозитория виден блок «Известные ограничения»."},
+ {id:"p5",t:"Код заморожен: после деплоя правок не было",how:"Правка «на одну строчку» накануне защиты — самый частый способ сломать работающий проект."}
+];
+
+var STEPS=[
+ {n:1,min:"2 мин",where:"p",title:"Обменяйтесь ссылками с напарником",
+  body:"<p>Автор знает правильный путь и машинально обходит неудобные места. Поэтому тестирует тот, кто проект не писал.</p><ol><li>Отдай напарнику публичную ссылку, не репозиторий.</li><li>Возьми его ссылку.</li><li>Ничего не объясняй: понятность — это пункт 2 чек-листа.</li></ol>",
+  act:[{t:"QA-чек-лист",a:"go-qa"}]},
+ {n:2,min:"12 мин",where:"b",title:"Пройди чек-лист по чужому проекту",
+  body:"<p>Пятнадцать пунктов, пять групп. Проходи целиком, даже если дефект нашёлся в третьем.</p><ol><li>Открой чужую ссылку в приватном окне.</li><li>Иди по группам сверху вниз.</li><li>Пункты 9, 13 и 15 — те, о которых авторы не думают вовсе.</li><li>Отмечай у себя, что проверил, и записывай находки.</li></ol>",
+  act:[{t:"Открыть чек-лист",a:"go-qa"}]},
+ {n:3,min:"12 мин",where:"b",title:"Оформи пять баг-репортов",
+  body:"<p>Четыре части: что делал, что ожидал, что получилось, где. Пишется так, чтобы автор починил без единого уточняющего вопроса.</p><ol><li>Заметил странное — остановись и запиши последние действия.</li><li>Обнови и повтори: воспроизвелось — записывай.</li><li>Заголовок одной строкой, шаги пронумерованы, первый — «открыл».</li><li>Результат дословно, а не «работает неправильно».</li></ol>",
+  act:[{t:"Лаборатория отчётов",a:"go-bugs"},{t:"Промпт проверки",a:"go-p1"}]},
+ {n:4,min:"4 мин",where:"p",title:"Обменяйтесь отчётами и проверьте полноту",
+  body:"<p>Отчёт без шагов и без поля «Где» возвращается автору отчёта, а не автору кода.</p><ol><li>Отдай отчёты автору проекта.</li><li>Прочитай его отчёты о своём проекте.</li><li>На каждый неясный — один вопрос: чего не хватает из четырёх частей.</li></ol>",
+  act:[{t:"Промпт П1",a:"go-p1"}]},
+ {n:5,min:"5 мин",where:"b",title:"Расставь приоритеты по последствиям",
+  body:"<p>Вопрос один: что пользователь не сможет сделать из-за этого? Простота починки на приоритет не влияет.</p><ul><li>ничего не сможет → блокирующий</li><li>сможет, но неудобно → важный</li><li>сможет и удобно → косметический</li></ul>",
+  act:[{t:"Доска приоритетов",a:"go-prio"}]},
+ {n:6,min:"10 мин",where:"g",title:"Почини блокирующие в отдельной ветке",
+  body:"<ol><li>Ветка fix/qa-blockers от main.</li><li>Один дефект — один коммит с сообщением по правилу.</li><li>После каждой починки повтори шаги из отчёта: дефект больше не воспроизводится.</li><li>PR с описанием в три блока, в «Как проверить» — шаги из отчётов.</li></ol>",
+  act:[{t:"Шаблоны и деплой",a:"go-deploy"},{t:"Промпт П9",a:"go-p9"}]},
+ {n:7,min:"5 мин",where:"g",title:"Важные: чиним или честно записываем",
+  body:"<p>Неисправленный дефект переносится в «известные ограничения» README, а не замалчивается.</p><ol><li>Что успел — починил и закоммитил.</li><li>Что не успел — три строки: что не работает, при каких условиях, почему не исправлено.</li><li>Косметические — в ограничения, без извинений.</li></ol>",
+  act:[{t:"Конструктор README",a:"go-deploy"}]},
+ {n:8,min:"5 мин",where:"q",title:"README: шесть блоков и честные ограничения",
+  body:"<p>Шестой блок — новый. Без «к сожалению» и «возможны недочёты»: ноль информации плюс заранее заготовленное оправдание.</p><ol><li>Собери шесть блоков в конструкторе.</li><li>Проверь ограничения валидатором.</li><li>Закоммить README отдельным коммитом.</li></ol>",
+  act:[{t:"Конструктор README",a:"go-deploy"},{t:"Промпт П5",a:"go-p5"}]},
+ {n:9,min:"3 мин",where:"g",title:"Финальный деплой",
+  body:"<ol><li>Merge PR → Delete branch.</li><li>Actions: дождись зелёной галочки.</li><li>Обнови ссылку с Ctrl+F5.</li></ol>",
+  act:[{t:"Чек-лист деплоя",a:"go-deploy"}]},
+ {n:10,min:"2 мин",where:"b",title:"Проверь ссылку с телефона и в приватном окне",
+  body:"<p>Последняя проверка перед заморозкой. Если что-то не работает — это уже известное ограничение, а не повод править код ночью.</p>",
+  act:[{t:"Чек-лист деплоя",a:"go-deploy"}]},
+ {n:11,min:"3 мин",where:"p",title:"Произнеси речь вслух с секундомером",
+  body:"<p>Про себя выступление всегда укладывается в три минуты. Вслух выясняется обратное.</p><ol><li>Напиши пять частей своими словами. Моделью речь не генерируют.</li><li>Включи секундомер и произнеси вслух напарнику.</li><li>Смотри, какая часть вылезает за 40 секунд, и сократи её.</li></ol>",
+  act:[{t:"Репетиция защиты",a:"go-speech"}]},
+ {n:12,min:"2 мин",where:"g",title:"Заморозь код и обнови доску",
+  body:"<p>После сегодняшнего код больше не меняется. Задача на доске переезжает в «Сделано», несделанное — в ограничения.</p>",
+  act:[{t:"Отчёт и вердикт",a:"go-report"}]}
+];
+
+var PHASES=[
+ {from:0,to:240,t:"Обмен ссылками",d:"Шаг 1"},
+ {from:240,to:960,t:"Чек-лист по чужому проекту",d:"Шаг 2"},
+ {from:960,to:1680,t:"Пять баг-репортов",d:"Шаг 3"},
+ {from:1680,to:1980,t:"Обмен и приоритеты",d:"Шаги 4–5"},
+ {from:1980,to:2880,t:"Починка блокирующих",d:"Шаги 6–7"},
+ {from:2880,to:3180,t:"README и финальный деплой",d:"Шаги 8–10"},
+ {from:3180,to:3600,t:"Речь вслух и заморозка",d:"Шаги 11–12"}
+];
+
+var KEY="wdc-l23-qa-v1";
+var state={started:false,tab:"sprint",topic:"P01",owner:"",repo:"",link:"",dark:false,sound:true,
+ steps:{},qa:{},deploy:{},prio:{},picked:null,prioChecked:false,
+ reports:{},readme:{},rdChecked:false,
+ speech:{texts:{},part:36,wps:2.6,auto:true,hints:true,left:180,running:false,endsAt:null,done:false,spoken:false},
+ timer:{left:3600,running:false,endsAt:null},q:""};
+
+try{
+ var raw=localStorage.getItem(KEY);
+ if(raw){var pj=JSON.parse(raw);if(pj&&typeof pj==="object"){for(var kk in pj){if(Object.prototype.hasOwnProperty.call(pj,kk))state[kk]=pj[kk];}}}
+}catch(e){}
+if(!state.steps)state.steps={};
+if(!state.qa)state.qa={};
+if(!state.deploy)state.deploy={};
+if(!state.prio)state.prio={};
+if(!state.reports)state.reports={};
+if(!state.readme)state.readme={};
+if(!state.speech)state.speech={texts:{},part:36,wps:2.6,auto:true,hints:true,left:180,running:false,endsAt:null,done:false,spoken:false};
+if(!state.speech.texts)state.speech.texts={};
+if(!state.timer||typeof state.timer.left!=="number")state.timer={left:3600,running:false,endsAt:null};
+var i,j;
+for(i=0;i<REPORTS.length;i++){
+ if(!state.reports[REPORTS[i].id]){
+  var p=REPORTS[i].pre;
+  state.reports[REPORTS[i].id]={title:p.title,steps:p.steps,expected:p.expected,actual:p.actual,where:p.where,checked:false};
+ }
+}
+for(i=0;i<RDB.length;i++){if(typeof state.readme[RDB[i].k]!=="string")state.readme[RDB[i].k]="";}
+for(i=0;i<SPEECH.length;i++){if(typeof state.speech.texts[SPEECH[i].id]!=="string")state.speech.texts[SPEECH[i].id]="";}
+var tFound=false;
+for(i=0;i<TOPICS.length;i++){if(TOPICS[i].id===state.topic)tFound=true;}
+if(!tFound)state.topic="P01";
+state.speech.running=false;state.speech.endsAt=null;
+state.timer.running=false;state.timer.endsAt=null;
+
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function T(){for(var k=0;k<TOPICS.length;k++){if(TOPICS[k].id===state.topic)return TOPICS[k];}return TOPICS[0];}
+function esc(s){if(s===null||s===undefined)return "";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");}
+function slug(s){return String(s||"").trim().toLowerCase().replace(/[^a-z0-9-]/g,"");}
+function owner(){return slug(state.owner);}
+function repo(){return slug(state.repo)||T().repo;}
+function hasGH(){return owner().length>0&&repo().length>0;}
+function ghURL(p){return hasGH()?"https://github.com/"+owner()+"/"+repo()+(p||""):"";}
+function pagesURL(){return owner()?"https://"+owner()+".github.io/"+repo()+"/":"";}
+function dynLink(k){
+ if(k==="repo")return ghURL("");
+ if(k==="actions")return ghURL("/actions");
+ if(k==="branches")return ghURL("/branches");
+ if(k==="compare")return ghURL("/compare/main...fix/qa-blockers");
+ if(k==="pulls")return ghURL("/pulls");
+ if(k==="site")return pagesURL();
+ return "";
+}
+
+var view=document.getElementById("view");
+var tabsEl=document.getElementById("tabs");
+var tabwrap=document.getElementById("tabwrap");
+var actionbar=document.getElementById("actionbar");
+var stchip=document.getElementById("stchip");
+var abInfo=document.getElementById("abInfo");
+var toastEl=document.getElementById("toast");
+var toastT=null;
+function toast(m){toastEl.textContent=m;toastEl.classList.add("on");if(toastT)clearTimeout(toastT);toastT=setTimeout(function(){toastEl.classList.remove("on");},2800);}
+
+var HUES={
+ sprint:["#b45309","#f59e0b","180,83,9"],
+ route:["#2563eb","#60a5fa","37,99,235"],
+ prompts:["#7e22ce","#c026d3","126,34,206"],
+ qa:["#c2410c","#fb923c","194,65,12"],
+ bugs:["#dc2626","#f87171","220,38,38"],
+ prio:["#9a3412","#f97316","154,52,18"],
+ speech:["#db2777","#f472b6","219,39,119"],
+ deploy:["#15803d","#84cc16","21,128,61"],
+ report:["#0f766e","#14b8a6","15,118,110"]
+};
+function setHue(){var h=HUES[state.tab]||HUES.sprint,r=document.documentElement;r.style.setProperty("--proj",h[0]);r.style.setProperty("--proj2",h[1]);r.style.setProperty("--rgb",h[2]);}
+function applyTheme(){
+ document.documentElement.setAttribute("data-theme",state.dark?"dark":"light");
+ var ic=document.getElementById("themeIcon");
+ if(ic)ic.innerHTML=state.dark?'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>':'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+}
+function applySound(){
+ var b=document.getElementById("soundBtn"),ic=document.getElementById("soundIcon");
+ if(b){if(state.sound)b.classList.remove("off");else b.classList.add("off");b.title=state.sound?"Звук включён":"Звук выключен";}
+ if(ic)ic.innerHTML=state.sound?'<path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>':'<path d="M11 5 6 9H2v6h4l5 4z"/><line x1="16" y1="9" x2="22" y2="15"/><line x1="22" y1="9" x2="16" y2="15"/>';
+}
+var AC=null;
+function beep(freq,dur,vol){
+ if(!state.sound)return;
+ try{
+  if(!AC){var C=window.AudioContext||window.webkitAudioContext;if(!C)return;AC=new C();}
+  if(AC.state==="suspended")AC.resume();
+  var o=AC.createOscillator(),g=AC.createGain();
+  o.type="sine";o.frequency.value=freq;
+  g.gain.setValueAtTime(0,AC.currentTime);
+  g.gain.linearRampToValueAtTime(vol||0.09,AC.currentTime+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+dur);
+  o.connect(g);g.connect(AC.destination);
+  o.start();o.stop(AC.currentTime+dur+0.02);
+ }catch(e){}
+}
+
+/* ---------- промпты ---------- */
+function ctx(){
+ var t=T();
+ return [
+  "[КТО Я]",
+  "Я школьник, 10–11 класс. Мой учебный проект — «"+t.name+"», "+t.kind.toLowerCase()+".",
+  "Чистые HTML, CSS и JavaScript, без фреймворков и сборщиков. Проект опубликован по публичной ссылке.",
+  "Сегодня последнее рабочее занятие: взаимное тестирование, баг-репорты, финальный деплой и репетиция защиты.",
+  "",
+  "[ЧТО Я УЖЕ УМЕЮ]",
+  "Семантические теги, aria-атрибуты, Grid и Flexbox, Mobile First, CSS-переменные и тёмная тема,",
+  "массив объектов как источник истины, полная перерисовка, валидация форм, fetch и четыре состояния,",
+  "localStorage с защитным чтением, JSON.stringify и JSON.parse, Array.isArray.",
+  "",
+  "[ЧЕГО Я НЕ УМЕЮ — НЕ ИСПОЛЬЗУЙ]",
+  "reduce, регулярные выражения, деструктуризацию, optional chaining, классы, модули, библиотеки, сборщики.",
+  "",
+  "[ВАЖНО ПРО СЕГОДНЯ]",
+  "Ты проверяешь мою работу, а не делаешь её за меня. Баг-репорт и речь защиты я пишу сам."
+ ].join("\n");
+}
+function P1(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Проверь полноту моего баг-репорта. Не переписывай его и не додумывай факты.",
+  "",
+  "[ЧЕТЫРЕ ОБЯЗАТЕЛЬНЫЕ ЧАСТИ]",
+  "1. Что делал — пронумерованные шаги, первый начинается с «открыл».",
+  "2. Что ожидал — конкретное правильное поведение.",
+  "3. Что получилось — дословные факты, а не оценка.",
+  "4. Где — устройство или браузер, ширина экрана, состояние сети, состояние хранилища.",
+  "",
+  "Мой отчёт:",
+  "Заголовок: <<< вставь >>>",
+  "Шаги: <<< вставь >>>",
+  "Ожидал: <<< вставь >>>",
+  "Получилось: <<< вставь >>>",
+  "Где: <<< вставь >>>",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не придумывай шаги и условия, которых я не написал;",
+  "- не предлагай, как чинить код: сегодня проверяется форма отчёта;",
+  "- по каждой части verdict: есть / нет / неконкретно, и одна строка — чего именно не хватает;",
+  "- отдельно отметь, если «что получилось» повторяет «что ожидал»;",
+  "- отдельно отметь оценочные формулировки про человека вместо фактов;",
+  "- пиши по-русски.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Таблица из четырёх строк: часть — verdict — чего не хватает.",
+  "После таблицы одна строка: отчёт принят или возвращён на доработку.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Я могу дописать недостающее сам, не задавая тебе уточняющих вопросов."
+ ].join("\n");
+}
+function P2(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Помоги мне рассуждать о приоритете дефекта. Не расставляй приоритеты за меня.",
+  "",
+  "Мой дефект:",
+  "<<< опиши: что происходит и что при этом видно на экране >>>",
+  "",
+  "[ПРАВИЛО КУРСА]",
+  "Приоритет определяется одним вопросом: что пользователь не сможет сделать из-за этого?",
+  "ничего не сможет — блокирующий; сможет, но неудобно — важный; сможет и удобно — косметический.",
+  "Простота исправления на приоритет не влияет.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не называй готовый приоритет;",
+  "- задай мне не больше трёх вопросов, которые помогут ответить самому;",
+  "- не оценивай трудозатраты и не предлагай код;",
+  "- пиши по-русски короткими предложениями.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Три вопроса, каждый на отдельной строке. Без вступления и заключения.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Ответив на вопросы, я сам назову приоритет и объясню его последствиями, а не сложностью починки."
+ ].join("\n");
+}
+function P3(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Перечисли, что я мог пропустить при тестировании своей панели, и что должен увидеть человек в каждом случае.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- рассматривай только то, что видно на экране, а не в консоли;",
+  "- обязательно разбери: первый визит в приватном окне, длинный текст в 300 символов,",
+  "  проход клавишей Tab, пустое состояние после удаления всех записей, Offline;",
+  "- не предлагай библиотек и серверного кода;",
+  "- не переписывай мой код;",
+  "- не больше шести случаев;",
+  "- пиши по-русски.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Таблица из четырёх колонок: что случилось — что увидит человек без обработки —",
+  "что должен увидеть — какая проверка это ловит (одно действие).",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Все пять обязательных случаев разобраны; для каждого описано, что видно на экране."
+ ].join("\n");
+}
+function P4(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Проверь мой README на выдуманные возможности и на пустые формулировки.",
+  "",
+  "Что проект умеет на самом деле (это факты, больше ничего нет):",
+  "<<< вставь список из своего README, блок «что умеет» >>>",
+  "",
+  "Мой README целиком:",
+  "<<< вставь текст >>>",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- сверяй каждый пункт README со списком фактов выше;",
+  "- отметь всё, чего в списке фактов нет;",
+  "- отметь разделы про установку, сборку и зависимости — их в проекте нет;",
+  "- отметь слова «функционал», «реализовано», «современный»;",
+  "- не переписывай README, только укажи места;",
+  "- проверь, что ссылка идёт сразу после названия.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Список замечаний, каждое одной строкой: где — что не так — чем заменить.",
+  "Если нарушений нет — одна строка «нарушений не найдено».",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Посторонний человек, прочитав README за минуту, понимает, что это за проект и где на него посмотреть."
+ ].join("\n");
+}
+function P5(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Помоги сформулировать раздел «Известные ограничения» честно. Факты даю я, ты помогаешь только с формулировкой.",
+  "",
+  "Что не работает или работает не полностью (мои факты):",
+  "<<< перечисли: что именно, при каких условиях, почему не исправлено >>>",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- три части на каждый пункт: что не работает, при каких условиях, почему не исправлено;",
+  "- запрещены «к сожалению», «возможны недочёты», «небольшие недочёты», «в целом работает»;",
+  "- никаких извинений и заранее заготовленных оправданий;",
+  "- не придумывай ограничения, которых нет в моём списке;",
+  "- не смягчай формулировки: прямая констатация;",
+  "- по одной строке на часть, без воды.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Готовый блок Markdown для README: список пунктов, у каждого три строки.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Читатель понимает, чего именно не получит и в какой ситуации. Ни одной фразы, которую можно назвать отпиской."
+ ].join("\n");
+}
+function P6(){
+ return [
+  "Ты объясняешь готовый код построчно ученику 10–11 класса. Завтра он защищает проект и обязан объяснить любой фрагмент.",
+  "",
+  "[КОНТЕКСТ]",
+  "Панель на чистых HTML, CSS и JavaScript. Данные в массиве, интерфейс перерисовывается целиком,",
+  "состояние сохраняется в localStorage, внешний блок получает данные через fetch и имеет фолбэк.",
+  "",
+  "Фрагмент, который я выбрал для защиты:",
+  "<<< вставь свой фрагмент целиком >>>",
+  "",
+  "[ЗАДАЧА]",
+  "Разбери фрагмент построчно: что делает каждая строка и что сломается, если её убрать.",
+  "Потом задай мне три вопроса, которые мог бы задать зал на защите.",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не переписывай код и не предлагай улучшений;",
+  "- не используй термины, которых нет в моём коде, без объяснения тут же;",
+  "- не упоминай классы, модули, сборщики и библиотеки;",
+  "- вопросы должны быть по этому фрагменту, а не общие;",
+  "- пиши по-русски короткими предложениями.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Таблица: строка кода — что делает — что сломается без неё.",
+  "После таблицы три вопроса залу, каждый на отдельной строке.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Разобрана каждая строка. На все три вопроса я могу ответить, не открывая подсказок."
+ ].join("\n");
+}
+function P7(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Побудь залом на защите и задай мне неудобные вопросы по моему проекту.",
+  "",
+  "Что я собираюсь показать:",
+  "<<< три-четыре строки: сценарий демо и фрагмент кода >>>",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- не больше семи вопросов;",
+  "- вопросы про последствия и границы, а не про синтаксис;",
+  "- обязательно спроси про: пустые данные, сбой сети, длинный текст, первый визит,",
+  "  что сделано ИИ и как я это проверил;",
+  "- не давай ответов и подсказок;",
+  "- не предлагай переделать проект;",
+  "- пиши по-русски.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Нумерованный список вопросов. Без вступления и заключения.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "На каждый вопрос я отвечаю вслух за 20 секунд. Где не смог — это тема для разбора до защиты."
+ ].join("\n");
+}
+function P8(){
+ return ctx()+"\n\n"+[
+  "[ЗАДАЧА]",
+  "Проверь мой чек-лист тестирования на пропуски. Я прошёл пятнадцать пунктов, вот мои отметки и находки.",
+  "",
+  "Мои отметки:",
+  "<<< вставь: номер пункта — прошёл или нет — что нашёл >>>",
+  "",
+  "[ОГРАНИЧЕНИЯ]",
+  "- укажи, какие группы остались непроверенными;",
+  "- отдельно проверь пункты про длинный текст, проход Tab и пустое состояние — их пропускают чаще всего;",
+  "- не добавляй новые пункты сверх пятнадцати;",
+  "- не предлагай библиотек и инструментов автотестов;",
+  "- пиши по-русски.",
+  "",
+  "[ФОРМАТ ОТВЕТА]",
+  "Список: чего не хватает и какое одно действие это закроет. Не больше пяти строк.",
+  "",
+  "[КРИТЕРИИ ПРОВЕРКИ]",
+  "Каждое замечание я закрываю одним действием в браузере, без правки кода."
+ ].join("\n");
+}
+function P9(){
+ return [
+  "Контекст: я школьник, веду учебный проект на HTML, CSS и JavaScript в Git.",
+  "Сообщения коммитов пишу по-русски. Сегодня чиню дефекты, найденные напарником.",
+  "",
+  "Задача: сформулируй сообщение коммита для починки, описанной ниже.",
+  "",
+  "Что было и что стало:",
+  "<<< вставь: дефект из отчёта и что ты изменил >>>",
+  "",
+  "Ограничения:",
+  "- одно предложение, от 5 до 72 символов;",
+  "- описать, ЧТО изменилось в проекте, а не что делал разработчик;",
+  "- начать с имени файла, если правка в одном файле;",
+  "- запрещены слова: работа, правки, фикс, рефакторинг, оптимизация, улучшение;",
+  "- без точки в конце, без эмодзи, без союза «и» дважды;",
+  "- без английских слов, кроме имён файлов и функций.",
+  "",
+  "Формат ответа: три варианта сообщения, каждый на отдельной строке, без нумерации и пояснений.",
+  "",
+  "Критерии проверки: по сообщению понятно, что появилось в проекте, без открытия кода."
+ ].join("\n");
+}
+function P10(){
+ var t=T();
+ return [
+  "Ты помогаешь школьнику оформить Pull Request после взаимного тестирования.",
+  "",
+  "Контекст: проект «"+t.name+"», чистые HTML, CSS и JavaScript. Ветка fix/qa-blockers.",
+  "Напарник прошёл чек-лист из пятнадцати пунктов и прислал баг-репорты.",
+  "",
+  "Факты об изменении (ничего не добавляй от себя):",
+  "<<< по строке на починенный дефект: что было — что стало >>>",
+  "",
+  "Что осталось неисправленным:",
+  "<<< список: уйдёт в известные ограничения README >>>",
+  "",
+  "Задача: напиши заголовок и описание Pull Request.",
+  "",
+  "Ограничения:",
+  "- заголовок называет изменение, до 72 символов;",
+  "- описание из трёх блоков: Что сделано — по пункту на дефект;",
+  "  Как проверить — шаги из баг-репортов, пронумерованы, обязательно приватное окно и 320 px;",
+  "  Что осталось — честно, со ссылкой на раздел ограничений;",
+  "- не выдумывать возможности, которых нет в фактах;",
+  "- без слов работа, правки, фикс в заголовке.",
+  "",
+  "Формат ответа: строка заголовка, потом описание в Markdown.",
+  "",
+  "Критерии проверки: ревьюер повторяет шаги из отчётов и видит, что дефект больше не воспроизводится."
+ ].join("\n");
+}
+var PROMPTS=[
+ {id:"p1",n:"П1",t:"Проверка полноты баг-репорта",s:"Шаг 4 · модель проверяет форму, не пишет отчёт",make:P1,
+  checks:["Verdict по каждой из четырёх частей","Отмечено повторение ожидания в результате","Отмечены оценки вместо фактов","Модель не дописала факты за тебя","Недостающее можешь дописать сам"]},
+ {id:"p2",n:"П2",t:"Приоритет: вопросы вместо ответа",s:"Шаг 5 · рассуждаешь сам",make:P2,
+  checks:["Модель не назвала готовый приоритет","Вопросы про последствия, не про сложность","Ты назвал приоритет сам","Объяснил последствиями для пользователя"]},
+ {id:"p3",n:"П3",t:"Что я мог пропустить",s:"Шаг 2 · пять обязательных случаев",make:P3,
+  checks:["Первый визит, 300 символов, Tab, пустое состояние, Offline","Описано, что видно на экране","Нет советов про библиотеки","Каждый случай проверен руками"]},
+ {id:"p4",n:"П4",t:"README без выдуманных возможностей",s:"Шаг 8 · сверка с фактами",make:P4,
+  checks:["Каждый пункт сверен со списком фактов","Нет разделов про установку и сборку","Нет слов функционал, реализовано, современный","Ссылка сразу после названия"]},
+ {id:"p5",n:"П5",t:"Известные ограничения честно",s:"Шаг 8 · три части на пункт",make:P5,
+  checks:["Что не работает, при каких условиях, почему","Нет «к сожалению» и «возможны недочёты»","Нет извинений и оправданий","Ничего не придумано сверх фактов"]},
+ {id:"p6",n:"П6",t:"Объясни фрагмент для защиты",s:"Шаг 11 · подготовка к вопросу залу",make:P6,
+  checks:["Разобрана каждая строка","Три вопроса по этому фрагменту","Отвечаешь без подсказок","Код не переписан"]},
+ {id:"p7",n:"П7",t:"Неудобные вопросы залу",s:"Шаг 11 · репетиция ответов",make:P7,
+  checks:["Есть вопросы про границы и сбои","Есть вопрос про роль ИИ","Ответы вслух за 20 секунд","Слабые места выписаны до защиты"]},
+ {id:"p8",n:"П8",t:"Проверка чек-листа на пропуски",s:"Шаг 2 · что осталось непроверенным",make:P8,
+  checks:["Названы непроверенные группы","Отдельно пункты 9, 13, 15","Каждое замечание — одно действие","Новых пунктов не добавлено"]},
+ {id:"p9",n:"П9",t:"Сообщение коммита для починки",s:"Шаг 6 · что изменилось",make:P9,
+  checks:["От 5 до 72 символов","Нет запрещённых слов","Описано реальное изменение","Нет союза «и» дважды и точки"]},
+ {id:"p10",n:"П10",t:"PR после взаимного тестирования",s:"Шаг 6 · три блока",make:P10,
+  checks:["Заголовок называет изменение","В «Как проверить» шаги из отчётов","Есть приватное окно и 320 px","Что осталось — честно"]}
+];
+function textFor(id){
+ var k;
+ for(k=0;k<PROMPTS.length;k++){if(PROMPTS[k].id===id)return PROMPTS[k].make();}
+ if(id==="tpl-report")return tplReport();
+ if(id==="tpl-limit")return tplLimit();
+ if(id==="tpl-pr")return tplPR();
+ if(id==="tpl-readme")return buildReadme();
+ if(id==="tpl-speech")return buildSpeech();
+ return "";
+}
+
+/* ---------- валидаторы ---------- */
+function whereFlags(s){
+ var v=String(s||"");
+ return {
+  device:/телефон|ноутбук|компьютер|планшет|android|iphone|ios|chrome|safari|firefox|edge|браузер/i.test(v),
+  width:/\d{3,4}\s*(px|пикс)/i.test(v)||/ширин\w*\s*\d{3,4}/i.test(v),
+  network:/offline|online|офлайн|онлайн|сеть|сети|wifi|wi-fi|интернет|без сети/i.test(v),
+  storage:/приватн|хранилищ|localstorage|первый визит|заполнен|пустое хранилище|обычное окно/i.test(v)
+ };
+}
+function validateReport(r){
+ var probs=[],k;
+ var title=String(r.title||"").trim();
+ var steps=String(r.steps||"");
+ var exp=String(r.expected||"").trim();
+ var act=String(r.actual||"").trim();
+ var wh=String(r.where||"");
+ if(title.length<10)probs.push("Заголовок: минимум 10 символов, одной строкой, называет дефект");
+ if(title.indexOf("\n")!==-1)probs.push("Заголовок должен быть одной строкой");
+ if(/^(форма не работает|не работает|сломалось|баг|кнопка некрасивая)$/i.test(title))probs.push("Заголовок слишком общий: что именно не работает");
+ var lines=[],sl=steps.split("\n");
+ for(k=0;k<sl.length;k++){if(sl[k].trim())lines.push(sl[k].trim());}
+ if(lines.length<2)probs.push("Шаги: минимум две пронумерованные строки");
+ var numbered=0;
+ for(k=0;k<lines.length;k++){if(/^\d+[.)]/.test(lines[k]))numbered++;}
+ if(numbered<2)probs.push("Шаги пронумерованы: 1. 2. 3. — не меньше двух");
+ if(lines.length&&!/откр/i.test(lines[0]))probs.push("Первый шаг начинается с «открыл»: откуда начал");
+ if(exp.length<12)probs.push("Ожидание: конкретное правильное поведение, минимум 12 символов");
+ if(/должно работать правильно|нормально|как надо|корректно$/i.test(exp))probs.push("Ожидание неконкретное: напиши, что именно должно произойти");
+ if(act.length<12)probs.push("Результат: дословные факты, минимум 12 символов");
+ if(act&&exp&&act.toLowerCase()===exp.toLowerCase())probs.push("Результат повторяет ожидание — это разные части");
+ if(/ты не подумал|ты не подумала|невнимательн/i.test(act))probs.push("Результат — про код, а не про человека");
+ var f=whereFlags(wh);
+ if(!f.device)probs.push("Где: назови устройство или браузер");
+ if(!f.width)probs.push("Где: укажи ширину экрана числом, например 360 px");
+ if(!f.network)probs.push("Где: состояние сети — Online или Offline");
+ if(!f.storage)probs.push("Где: состояние хранилища — приватное окно, первый визит или заполненное");
+ return {ok:probs.length===0,probs:probs,flags:f};
+}
+function reportsOk(){var n=0,k;for(k=0;k<REPORTS.length;k++){var r=state.reports[REPORTS[k].id];if(r&&r.checked&&validateReport(r).ok)n++;}return n;}
+function reportsChecked(){var n=0,k;for(k=0;k<REPORTS.length;k++){if(state.reports[REPORTS[k].id]&&state.reports[REPORTS[k].id].checked)n++;}return n;}
+function qaCount(){var n=0,k;for(k=0;k<QA.length;k++){if(state.qa[QA[k].n])n++;}return n;}
+function prioPlaced(){var n=0,k;for(k=0;k<DEFECTS.length;k++){if(state.prio[DEFECTS[k].id]&&state.prio[DEFECTS[k].id]!=="pool")n++;}return n;}
+function prioScore(){var n=0,k;for(k=0;k<DEFECTS.length;k++){if(state.prio[DEFECTS[k].id]===DEFECTS[k].z)n++;}return n;}
+function deployCount(){var n=0,k;for(k=0;k<DEPLOY.length;k++){if(state.deploy[DEPLOY[k].id])n++;}return n;}
+function stepsDone(){var n=0,k;for(k=0;k<STEPS.length;k++){if(state.steps[STEPS[k].n])n++;}return n;}
+function limitsCheck(){
+ var v=String(state.readme.limits||"").trim(),probs=[];
+ if(v.length<60)probs.push("Слишком коротко: нужно минимум два пункта по три строки");
+ if(/к сожалению|возможны недочёты|небольшие недочёты|в целом работает/i.test(v))probs.push("Запрещённые формулировки: «к сожалению», «возможны недочёты»");
+ if(!/при |если |когда /i.test(v))probs.push("Нет условий: при каких именно обстоятельствах это видно");
+ if(!/потому что|так как|не успел|не успели|отложено|вынесено|ограничен|нет серверной/i.test(v))probs.push("Нет причины: почему не исправлено");
+ return {ok:probs.length===0,probs:probs};
+}
+function readmeOk(){
+ var l=String(state.readme.link||"").trim();
+ return limitsCheck().ok&&l.indexOf("https://")===0;
+}
+function speechWords(id){
+ var v=String(state.speech.texts[id]||"").trim();
+ if(!v)return 0;
+ return v.split(/\s+/).length;
+}
+function speechBudget(){return Math.round(state.speech.part*state.speech.wps);}
+function speechFilled(){var n=0,k;for(k=0;k<SPEECH.length;k++){if(speechWords(SPEECH[k].id)>=20)n++;}return n;}
+function gates(){
+ return [
+  {id:"qa",t:"Чек-лист тестирования пройден целиком",v:qaCount(),need:15,ok:qaCount()===15},
+  {id:"rep",t:"Баг-репорты приняты валидатором",v:reportsOk(),need:3,ok:reportsOk()>=3},
+  {id:"prio",t:"Приоритеты по последствиям",v:prioScore(),need:6,ok:state.prioChecked&&prioScore()>=6},
+  {id:"rd",t:"README: ссылка и честные ограничения",v:readmeOk()?1:0,need:1,ok:state.rdChecked&&readmeOk()},
+  {id:"dep",t:"Финальный деплой и заморозка кода",v:deployCount(),need:5,ok:deployCount()===5},
+  {id:"sp",t:"Речь произнесена вслух с секундомером",v:state.speech.spoken?1:0,need:1,ok:!!state.speech.spoken}
+ ];
+}
+function gatesDone(){var g=gates(),n=0,k;for(k=0;k<g.length;k++){if(g[k].ok)n++;}return n;}
+function passed(){return gatesDone()===6;}
+
+/* ---------- шаблоны ---------- */
+function tplReport(){
+ return [
+  "ЗАГОЛОВОК (одной строкой, называет дефект):",
+  "Пустое название сохраняется в список",
+  "",
+  "ЧТО ДЕЛАЛ (пронумерованные шаги, первый — «открыл»):",
+  "1. Открыл страницу по публичной ссылке в приватном окне",
+  "2. Оставил поле названия пустым",
+  "3. Нажал «Добавить»",
+  "",
+  "ЧТО ОЖИДАЛ (конкретное правильное поведение):",
+  "Под полем появляется сообщение «Введите название», запись не добавляется",
+  "",
+  "ЧТО ПОЛУЧИЛОСЬ (дословные факты):",
+  "В списке появилась карточка без названия, поле очистилось, сообщений нет",
+  "",
+  "ГДЕ (устройство, ширина, сеть, хранилище):",
+  "Ноутбук, Chrome, ширина 1280 px, Online, приватное окно — первый визит",
+  "",
+  "ПРИОРИТЕТ (по последствиям, не по сложности починки):",
+  "Блокирующий: в список попадают записи, которые потом нельзя найти"
+ ].join("\n");
+}
+function tplLimit(){
+ return [
+  "## Известные ограничения",
+  "",
+  "- Данные не переносятся между устройствами.",
+  "  При открытии ссылки на другом телефоне или в другом браузере список пуст.",
+  "  Причина: состояние хранится в localStorage браузера, серверной части в проекте нет.",
+  "",
+  "- В приватном режиме панель не запоминает записи.",
+  "  При закрытии приватного окна все записи пропадают.",
+  "  Причина: браузер очищает хранилище приватной сессии, обойти это из страницы нельзя.",
+  "",
+  "- Название длиннее 120 символов обрезается в карточке.",
+  "  При вводе 300 символов в карточке видны первые 120, остальное скрыто.",
+  "  Причина: перенос длинных слов не успел сделать, вынесено в доработку после защиты."
+ ].join("\n");
+}
+function tplPR(){
+ var t=T();
+ return [
+  "ЗАГОЛОВОК:",
+  "Починка блокирующих дефектов после взаимного тестирования",
+  "",
+  "ОПИСАНИЕ:",
+  "## Что сделано",
+  "- script.js: отправка формы больше не перезагружает страницу",
+  "- script.js: поле из пробелов не проходит проверку",
+  "- script.js: состояние сохраняется после каждого изменения",
+  "- style.css: длинное название переносится внутри карточки",
+  "- README.md: добавлен раздел «Известные ограничения»",
+  "",
+  "## Как проверить",
+  "1. Открыть публичную ссылку в приватном окне",
+  "2. Отправить пустую форму — сообщение под полем, запись не добавилась",
+  "3. Ввести три пробела — то же поведение",
+  "4. Нажать Enter в поле — страница не перезагрузилась",
+  "5. Добавить запись и перезагрузить — запись на месте",
+  "6. Ввести название из 300 символов — текст не вылезает за карточку",
+  "7. Сузить окно до 320 px — горизонтальной прокрутки нет",
+  "8. Пройти страницу клавишей Tab — фокус виден на каждом управлении",
+  "",
+  "## Что осталось",
+  "- данные не переносятся между устройствами: серверной части в проекте нет",
+  "- в приватном режиме записи не сохраняются после закрытия окна",
+  "- подробности в разделе «Известные ограничения» README",
+  "",
+  "Проект: «"+t.name+"». После слияния код заморожен до защиты."
+ ].join("\n");
+}
+function buildReadme(){
+ var r=state.readme,t=T(),L=[];
+ L.push("# "+(r.title||t.name+" — "+t.kind.toLowerCase()));
+ L.push("");
+ L.push("**Открыть:** "+(r.link||pagesURL()||"https://логин.github.io/"+t.repo+"/"));
+ L.push("");
+ L.push("## Стек");
+ L.push(r.stack||"HTML, CSS, JavaScript. Без фреймворков и сборщиков.");
+ L.push("");
+ L.push("## Что умеет");
+ L.push(r.features||"- добавление записи через форму с проверкой\n- "+t.act+"\n- записи переживают перезагрузку");
+ L.push("");
+ L.push("## Что сделано с помощью ИИ");
+ L.push(r.ai||"- каркас и логика написаны моделью Qwen по моим промптам\n- код разобран построчно и проверен вручную\n- две функции переписаны понятнее, поведение проверено");
+ L.push("");
+ L.push("## Известные ограничения");
+ L.push(r.limits||"— что не работает\n  при каких условиях\n  почему не исправлено");
+ return L.join("\n");
+}
+function buildSpeech(){
+ var L=[],k;
+ L.push("РЕЧЬ ЗАЩИТЫ · «"+T().name+"» · пять частей по "+state.speech.part+" секунд");
+ L.push("");
+ for(k=0;k<SPEECH.length;k++){
+  L.push((k+1)+". "+SPEECH[k].t.toUpperCase()+" ("+state.speech.part+" с, ~"+speechBudget()+" слов)");
+  L.push(state.speech.texts[SPEECH[k].id]||"— не написано —");
+  L.push("");
+ }
+ L.push("Речь пишется самостоятельно. Моделью её не генерируют.");
+ return L.join("\n");
+}
+
+/* ---------- хелперы ---------- */
+function sec(n,t,s,inner){
+ return '<section class="sec" data-reveal><div class="sec-h"><div class="sec-n">'+esc(n)+'</div><div class="sec-hb">'+
+  '<h3 class="sec-t">'+esc(t)+'</h3>'+(s?'<p class="sec-s">'+esc(s)+'</p>':'')+'</div></div>'+inner+'</section>';
+}
+function codeBox(text,label,id){
+ return '<div class="code"><div class="code-h"><span>'+esc(label)+'</span>'+
+  '<button class="copy" type="button" data-copy="'+esc(id)+'">Копировать</button></div>'+
+  '<pre data-code="'+esc(id)+'">'+esc(text)+'</pre></div>';
+}
+function linkBtn(label,url){
+ var off=!url;
+ return '<a class="lnk'+(off?' off':'')+'" href="'+(off?'#':esc(url))+'"'+(off?'':' target="_blank" rel="noopener"')+'>'+
+  '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'+esc(label)+'</a>';
+}
+function dynLinksHTML(){
+ return linkBtn("Репозиторий",dynLink("repo"))+linkBtn("Actions",dynLink("actions"))+
+  linkBtn("Ветки",dynLink("branches"))+linkBtn("Создать PR",dynLink("compare"))+
+  linkBtn("Опубликованный сайт",dynLink("site"));
+}
+function fmt(s){s=Math.max(0,Math.floor(s));var m=Math.floor(s/60),x=s%60;return (m<10?"0":"")+m+":"+(x<10?"0":"")+x;}
+function curPhase(){var el=3600-state.timer.left,k;for(k=0;k<PHASES.length;k++){if(el<PHASES[k].to)return PHASES[k];}return PHASES[PHASES.length-1];}
+function linkHint(){
+ var v=String(state.link||"").trim();
+ if(!v)return "Публичная ссылка проекта. Её отдаёшь напарнику для тестирования.";
+ if(v.indexOf("https://")!==0)return "Ссылка должна начинаться с https://";
+ if(v.indexOf(".")===-1)return "Адрес не похож на публичный сайт.";
+ return "Готово. Отдай эту ссылку напарнику, не репозиторий.";
+}
+function sw(id,label,on){
+ return '<button class="sw" type="button" role="switch" aria-checked="'+(on?"true":"false")+'" data-sw="'+id+'"><span>'+esc(label)+'</span><i></i></button>';
+}
+
+/* ---------- вкладка Спринт ---------- */
+function renderStart(){
+ var cards="",k,t;
+ for(k=0;k<TOPICS.length;k++){t=TOPICS[k];cards+='<div class="hg" style="--c1:'+t.c1+'"><em>'+t.id+'</em><b>«'+esc(t.name)+'»</b><span>'+esc(t.kind)+'</span></div>';}
+ view.className="nostart";
+ view.innerHTML='<section class="hero" data-reveal><span class="badge">● Занятие 23 из 24 · модуль 9 · последнее рабочее занятие</span>'+
+  '<h1>Чужие глаза<br><em>и последний деплой</em></h1>'+
+  '<p>Автор проверил один сценарий — свой. Он знает правильный путь, у него заполненное хранилище и широкий экран. Сегодня проект смотрит тот, кто его не писал: пятнадцать пунктов, пять баг-репортов, приоритеты по последствиям, честные ограничения и речь вслух. Новых возможностей не добавляем.</p>'+
+  '<div class="meta"><span class="chip">🔎 <b>15 пунктов</b> чек-листа</span><span class="chip">🐞 <b>5 отчётов</b> с валидатором</span><span class="chip">🎚 <b>7 дефектов</b> по приоритету</span><span class="chip">🎤 <b>3 минуты</b> вслух</span><span class="chip">⏱ 60 минут</span></div>'+
+  '<button class="btn btn-p btn-lg" type="button" data-action="start">Начать занятие'+
+  '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>'+
+  '<div class="hgrid">'+cards+'</div></section>';
+ observe();
+}
+function varsBlock(){
+ var t=T(),topics="",k,x;
+ for(k=0;k<TOPICS.length;k++){x=TOPICS[k];topics+='<button type="button" class="topic'+(x.id===state.topic?' on':'')+'" style="--c1:'+x.c1+'" data-topic="'+x.id+'"><em>'+x.id+'</em><b>«'+esc(x.name)+'»</b><span>'+esc(x.kind)+'</span></button>';}
+ var ob=state.owner&&!owner(),rb=state.repo&&!slug(state.repo);
+ return '<div class="grid g2">'+
+  '<div class="card"><div class="kv-k" style="margin-bottom:8px">Твоя тема</div><div class="topics">'+topics+'</div>'+
+  '<div class="hint" style="margin-top:8px">От темы зависят формулировки промптов, шаблоны отчёта и README.</div></div>'+
+  '<div class="card">'+
+   '<div class="field"><label class="flabel" for="fOwner">Логин GitHub</label>'+
+   '<input class="inp'+(owner()?' filled':'')+'" id="fOwner" data-var="owner" type="text" autocomplete="off" placeholder="например, ivanov-ivan" value="'+esc(state.owner)+'">'+
+   '<div class="hint'+(ob?' bad':'')+'">'+(ob?'Только латиница, цифры и дефис.':'Латиница, строчные, без пробелов.')+'</div></div>'+
+   '<div class="field"><label class="flabel" for="fRepo">Имя репозитория</label>'+
+   '<input class="inp filled" id="fRepo" data-var="repo" type="text" autocomplete="off" placeholder="'+esc(t.repo)+'" value="'+esc(state.repo)+'">'+
+   '<div class="hint'+(rb?' bad':'')+'">'+(rb?'Только латиница, цифры и дефис.':'Пусто — подставим «'+esc(t.repo)+'».')+'</div></div>'+
+   '<div class="field"><label class="flabel" for="fLink">Публичная ссылка — её отдаёшь напарнику</label>'+
+   '<input class="inp'+(state.link?' filled':'')+'" id="fLink" data-var="link" type="url" autocomplete="off" placeholder="'+esc(pagesURL()||"https://логин.github.io/проект/")+'" value="'+esc(state.link)+'">'+
+   '<div class="hint" id="linkHint">'+esc(linkHint())+'</div></div>'+
+  '</div></div>'+
+  '<div class="links" id="dynLinks" style="margin-top:12px">'+dynLinksHTML()+'</div>';
+}
+function renderSprint(){
+ var ph="",k,p,on,done,el=3600-state.timer.left;
+ for(k=0;k<PHASES.length;k++){p=PHASES[k];on=el>=p.from&&el<p.to;done=el>=p.to;
+  ph+='<div class="phase'+(on?' on':'')+(done?' done':'')+'" data-phase="'+k+'"><em>'+fmt(p.from)+'–'+fmt(p.to)+'</em><span><b>'+esc(p.t)+'</b> · '+esc(p.d)+'</span></div>';}
+ var cp=curPhase();
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">QA</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ЗАНЯТИЕ 23</span><span class="pcode">60 МИНУТ ПРАКТИКИ</span><span class="pcode">6 ВОРОТ ЗАЧЁТА</span></div>'+
+  '<h2>Тестирование и финальный деплой</h2>'+
+  '<p>Ты видишь замысел, а не результат. Поэтому сегодня проект смотрит напарник, дефекты описываются так, чтобы автор починил без вопросов, а неисправленное честно попадает в README. После сегодняшнего код больше не меняется.</p></div></div>'+
+  sec("1","Твоя тема и ссылка для напарника","Отдаёшь ссылку, а не репозиторий",varsBlock())+
+  sec("2","Таймер занятия","Шестьдесят минут практики, семь отрезков",
+   '<div class="timer"><div class="tdial'+(state.timer.running?' run':'')+'" id="tdial">'+fmt(state.timer.left)+'</div>'+
+   '<div class="tphase" id="tphase"><b>'+esc(cp.t)+'</b>'+esc(cp.d)+'</div>'+
+   '<div class="tbtns"><button class="btn btn-p btn-sm" type="button" data-action="timer" id="tbtn">'+(state.timer.running?"Пауза":"Старт")+'</button>'+
+   '<button class="btn btn-s btn-sm" type="button" data-action="timer-reset">Сброс</button></div></div>'+
+   '<div class="phases" id="phases">'+ph+'</div>')+
+  sec("3","Что делаем и чего не делаем","Граница последнего рабочего занятия",
+   '<div class="grid g2">'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px;color:var(--ok)">Делаем сегодня</div><ul style="margin:0;padding-left:18px;font-size:13.8px;color:var(--ink2);line-height:1.6">'+
+   '<li>чек-лист по чужому проекту, 15 пунктов</li><li>пять баг-репортов из четырёх частей</li>'+
+   '<li>обмен отчётами и приоритеты</li><li>починка блокирующих в отдельной ветке</li>'+
+   '<li>README из шести блоков с ограничениями</li><li>финальный деплой и проверка ссылки</li>'+
+   '<li>речь вслух с секундомером</li></ul></div>'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px;color:var(--danger)">Не делаем сегодня</div><ul style="margin:0;padding-left:18px;font-size:13.8px;color:var(--ink2);line-height:1.6">'+
+   '<li>новые возможности и функции</li><li>«улучшения» кода без дефекта</li>'+
+   '<li>правку «на одну строчку» после деплоя</li><li>речь, сгенерированную моделью</li>'+
+   '<li>баг-репорт, написанный моделью за тебя</li><li>оценки человека вместо фактов</li>'+
+   '<li>«возможны небольшие недочёты» в README</li></ul></div></div>'+
+   '<div class="note bad" style="margin-top:12px"><b>После сегодняшнего код больше не меняется.</b> Правка «на одну строчку» накануне защиты — самый частый способ сломать работающий проект. Неисправленный дефект переносится в «известные ограничения», а не замалчивается.</div>')+
+  sec("4","Роль ИИ сегодня","Проверяет форму, а не делает работу",
+   '<div class="kv">'+
+   '<div class="kv-row"><span class="kv-k">Баг-репорт</span><span class="kv-v">Модель проверяет полноту четырёх частей. Сгенерированный текст без шагов и поля «Где» не засчитывается.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">Приоритет</span><span class="kv-v">Модель задаёт вопросы про последствия. Готовый приоритет называешь ты.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">README</span><span class="kv-v">Модель сверяет текст со списком фактов и ловит выдуманные возможности.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">Речь защиты</span><span class="kv-v">Пишется самостоятельно. Моделью её не генерируют — на защите спрашивают твоими словами.</span></div>'+
+   '<div class="kv-row"><span class="kv-k">Объяснимость</span><span class="kv-v">Любой фрагмент кода, включая написанный моделью, объясняешь вслух. Непонимаемый код в зачёт не идёт.</span></div>'+
+   '</div><div class="links" style="margin-top:12px">'+linkBtn("Открыть Qwen","https://chat.qwen.ai/")+'<button class="btn btn-s btn-sm" type="button" data-action="go-prompts">Все промпты</button></div>');
+ observe();
+}
+
+/* ---------- вкладка Маршрут ---------- */
+function renderRoute(){
+ var items="",k,q,s,a,acts,wh,done;
+ for(k=0;k<STEPS.length;k++){
+  s=STEPS[k];done=!!state.steps[s.n];acts="";
+  for(q=0;q<s.act.length;q++){a=s.act[q];
+   if(a.href)acts+=linkBtn(a.t,a.href);
+   else acts+='<button class="btn btn-s btn-sm" type="button" data-action="'+a.a+'">'+esc(a.t)+'</button>';}
+  wh=s.where==="q"?'<span class="where q">Qwen</span>':(s.where==="g"?'<span class="where g">GitHub</span>':(s.where==="p"?'<span class="where p">Пара</span>':'<span class="where b">Браузер</span>'));
+  items+='<div class="step'+(done?' done':'')+'"><div class="step-h" data-steptoggle="'+s.n+'" role="button" tabindex="0" aria-pressed="'+done+'">'+
+   '<span class="step-n">'+s.n+'</span><span class="step-tb"><span class="step-t">'+esc(s.title)+'</span>'+
+   '<span class="step-m">'+wh+'<span>'+esc(s.min)+'</span></span></span>'+
+   '<span class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span></div>'+
+   '<div class="step-body">'+s.body+'<div class="step-act">'+acts+'</div></div></div>';
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">12</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">МАРШРУТ</span><span class="pcode">'+stepsDone()+' / 12 ШАГОВ</span></div>'+
+  '<h2>От чужих глаз до замороженного кода</h2>'+
+  '<p>Идёшь сверху вниз. Отмечай шаг, когда он реально сделан. Каждый шаг ведёт к нужному инструменту: чек-листу, лаборатории отчётов, доске приоритетов или репетиции.</p></div></div>'+
+  sec("→","Шаги занятия","Нажми на строку, чтобы отметить шаг пройденным",'<div class="steps">'+items+'</div>')+
+  sec("✓","Шесть ворот зачёта","Что должно быть закрыто к концу занятия",
+   '<div class="gates">'+gatesHTML()+'</div>'+
+   '<div style="margin-top:12px"><button class="btn btn-p btn-sm" type="button" data-action="go-report">Открыть отчёт и вердикт</button></div>');
+ observe();
+}
+function gatesHTML(){
+ var g=gates(),h="",k;
+ for(k=0;k<g.length;k++){
+  h+='<div class="gate'+(g[k].ok?' on':'')+'"><i>'+(g[k].ok?"✓":(k+1))+'</i><b>'+esc(g[k].t)+'</b><span>'+g[k].v+' / '+g[k].need+'</span></div>';
+ }
+ return h;
+}
+
+/* ---------- вкладка Промпты ---------- */
+function renderPrompts(){
+ var q=String(state.q||"").toLowerCase().trim(),blocks="",shown=0,k,j,p,hit,ch;
+ for(k=0;k<PROMPTS.length;k++){
+  p=PROMPTS[k];hit=!q||(p.n+" "+p.t+" "+p.s).toLowerCase().indexOf(q)!==-1;
+  if(!hit)continue;shown++;ch="";
+  for(j=0;j<p.checks.length;j++)ch+="<li>"+esc(p.checks[j])+"</li>";
+  blocks+='<div class="pblock" id="'+p.id+'" data-reveal><div class="pb-h"><span class="pb-n">'+p.n+'</span>'+
+   '<span class="pb-tb"><span class="pb-t">'+esc(p.t)+'</span><span class="pb-s">'+esc(p.s)+'</span></span>'+
+   '<button class="btn btn-p btn-sm no-print" type="button" data-copy="'+p.id+'">Копировать</button></div>'+
+   '<div class="pb-body">'+codeBox(p.make(),"промпт для qwen · тема "+T().id,p.id)+
+   '<div class="checks"><b>Проверить ответ руками</b><ul>'+ch+'</ul></div></div></div>';
+ }
+ if(!shown)blocks='<div class="note">Под этот поиск промптов нет. Очисти строку поиска.</div>';
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">AI</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">10 ПРОМПТОВ</span><span class="pcode">ТЕМА: '+T().id+'</span></div>'+
+  '<h2>Модель проверяет — работу делаешь ты</h2>'+
+  '<p>Сегодня ИИ не пишет баг-репорт и не пишет речь. Он проверяет полноту четырёх частей, ловит выдуманные возможности в README и задаёт неудобные вопросы перед защитой.</p></div></div>'+
+  '<div class="filters no-print"><input class="inp" data-var="q" type="search" placeholder="Поиск промпта: отчёт, приоритет, README, защита…" value="'+esc(state.q)+'" style="max-width:340px">'+
+  linkBtn("Открыть Qwen","https://chat.qwen.ai/")+'<button class="btn btn-s btn-sm" type="button" data-action="go-sprint">Сменить тему</button></div>'+blocks;
+ observe();
+}
+
+/* ---------- вкладка QA ---------- */
+function renderQA(){
+ var cnt=qaCount(),pct=Math.round(cnt/15*100),C=2*Math.PI*38,h="",k,g,q,items,on;
+ for(k=0;k<QAG.length;k++){
+  g=QAG[k];items="";
+  var gn=0,gt=0;
+  for(q=0;q<QA.length;q++){
+   if(QA[q].g!==g.id)continue;
+   gt++;if(state.qa[QA[q].n])gn++;
+   on=!!state.qa[QA[q].n];
+   items+='<div class="ci'+(on?' on':'')+(QA[q].key?' key':'')+'" data-qa="'+QA[q].n+'" role="checkbox" aria-checked="'+on+'" tabindex="0">'+
+    '<span class="cnum">'+QA[q].n+'</span><span class="cbox"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span>'+
+    '<span class="ctb"><span class="ct">'+esc(QA[q].t)+(QA[q].key?'<span class="btag">ПРОПУСКАЮТ</span>':'')+'</span>'+
+    '<span class="ch"><b>Как проверить:</b> '+esc(QA[q].how)+'</span></span></div>';
+  }
+  h+='<div class="ghead"><b>'+esc(g.t)+'</b><span></span><em>'+gn+' / '+gt+'</em></div><div class="clist">'+items+'</div>';
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">15</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ЧЕК-ЛИСТ ТЕСТИРОВАНИЯ</span><span class="pcode">'+cnt+' / 15</span></div>'+
+  '<h2>Пятнадцать пунктов, пять групп</h2>'+
+  '<p>Одинаковые для всех проектов. Проходится целиком, даже если дефект нашёлся в третьем пункте. Свой проект ты проходишь здесь, чужой — в паре по этому же списку: лист чужую ссылку не откроет и не проверит.</p></div></div>'+
+  '<div class="ring" data-reveal><div class="rwrap"><svg class="rsvg" viewBox="0 0 88 88" aria-hidden="true">'+
+  '<circle class="bgc" cx="44" cy="44" r="38"/><circle class="fgc" cx="44" cy="44" r="38" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C-C*pct/100)+'"/></svg>'+
+  '<div class="rnum">'+pct+'%</div></div>'+
+  '<div class="rinfo"><b>Пройдено '+cnt+' из 15</b><span>Ворота зачёта: все пятнадцать. Пункты 9, 13 и 15 находят то, о чём авторы не думают вовсе.</span></div>'+
+  '<div class="tbtns no-print"><button class="btn btn-s btn-sm" type="button" data-action="qa-reset">Сбросить отметки</button>'+
+  '<button class="btn btn-p btn-sm" type="button" data-action="go-bugs">Оформить находки</button></div></div>'+
+  '<div class="note warn" style="margin-top:14px"><b>Отмечай после реального действия.</b> «На глаз» этот чек-лист не проходится: у каждого пункта написано, что нажать и что должно произойти.</div>'+
+  h+
+  sec("→","Нашёл дефект — что дальше","Четыре части, чтобы автор починил без вопросов",
+   '<div class="grid g2">'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px">Воспроизводимость</div><ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+
+   '<li>Заметил странное — остановись</li><li>Запиши последние действия</li><li>Обнови и повтори</li>'+
+   '<li>Воспроизвелось — записывай отчёт</li></ol></div>'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px">Четыре части отчёта</div><ul style="margin:0;padding-left:18px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+
+   '<li>что делал — пронумерованные шаги</li><li>что ожидал — конкретное поведение</li>'+
+   '<li>что получилось — дословные факты</li><li>где — устройство, ширина, сеть, хранилище</li></ul></div></div>');
+ observe();
+}
+
+/* ---------- вкладка Баг-репорты ---------- */
+function renderBugs(){
+ var h="",k,q,r,v,f,probs,fields,fl;
+ var FLD=[{k:"title",t:"Заголовок",one:true},{k:"steps",t:"Что делал — шаги"},{k:"expected",t:"Что ожидал"},{k:"actual",t:"Что получилось"},{k:"where",t:"Где — условия"}];
+ for(k=0;k<REPORTS.length;k++){
+  r=state.reports[REPORTS[k].id];v=validateReport(r);f=v.flags;
+  fields="";
+  for(q=0;q<FLD.length;q++){
+   fl=FLD[q];
+   fields+='<div class="field"><label class="flabel" for="f-'+REPORTS[k].id+'-'+fl.k+'">'+esc(fl.t)+'</label>'+
+    (fl.one?'<input class="inp'+(r[fl.k]?' filled':'')+'" id="f-'+REPORTS[k].id+'-'+fl.k+'" data-rep="'+REPORTS[k].id+'" data-fld="'+fl.k+'" type="text" autocomplete="off" value="'+esc(r[fl.k])+'">'
+     :'<textarea class="inp'+(r[fl.k]?' filled':'')+'" id="f-'+REPORTS[k].id+'-'+fl.k+'" data-rep="'+REPORTS[k].id+'" data-fld="'+fl.k+'">'+esc(r[fl.k])+'</textarea>')+
+    (fl.k==="where"?'<div class="wchips"><span class="wchip'+(f.device?' on':'')+'">устройство</span><span class="wchip'+(f.width?' on':'')+'">ширина</span><span class="wchip'+(f.network?' on':'')+'">сеть</span><span class="wchip'+(f.storage?' on':'')+'">хранилище</span></div>':'')+
+    '</div>';
+  }
+  probs="";
+  if(r.checked&&!v.ok){
+   probs='<div class="probs"><b>Чего не хватает</b><ul>';
+   for(q=0;q<v.probs.length;q++)probs+='<li>'+esc(v.probs[q])+'</li>';
+   probs+='</ul></div>';
+  }
+  if(r.checked&&v.ok)probs='<div class="note ok" style="margin-top:10px"><b>Отчёт принят.</b> Все четыре части на месте, условия полные. Автор починит без уточняющих вопросов.</div>';
+  h+='<div class="rep" data-reveal><div class="rep-h"><span class="rep-n">ОТЧЁТ '+(k+1)+'</span>'+
+   '<span class="rep-tb"><p class="rep-bad">'+esc(REPORTS[k].bad)+'</p><div class="rep-hint">'+esc(REPORTS[k].hint)+'</div></span>'+
+   '<span class="rep-st'+(r.checked&&v.ok?' ok':'')+'">'+(r.checked?(v.ok?"принят":"доработать"):"не проверен")+'</span></div>'+
+   '<div class="rep-b">'+fields+
+   '<div class="links no-print" style="margin-top:10px"><button class="btn btn-p btn-sm" type="button" data-checkrep="'+REPORTS[k].id+'">Проверить отчёт</button>'+
+   '<button class="btn btn-s btn-sm" type="button" data-fill="'+REPORTS[k].id+'">Подставить образец</button></div>'+
+   probs+'</div></div>';
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">4</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ЛАБОРАТОРИЯ БАГ-РЕПОРТА</span><span class="pcode">ПРИНЯТО '+reportsOk()+' / 5</span><span class="pcode">ПОРОГ 3</span></div>'+
+  '<h2>Пять плохих описаний — допиши недостающее</h2>'+
+  '<p>Валидатор проверяет форму, а не существование дефекта вживую. Часть текста уже извлечена из плохого описания, остальное допиши сам. Четыре зелёные метки под полем «Где» — это условие приёмки.</p></div></div>'+
+  '<div class="note acc" style="margin-bottom:14px"><b>Ничего никуда не отправляется.</b> Обмен отчётами с напарником идёт на бумаге или в чате группы. Здесь ты тренируешь форму, чтобы твои живые отчёты принимали с первого раза.</div>'+
+  h+
+  sec("→","Шаблон хорошего отчёта","Один дефект, четыре части, приоритет по последствиям",codeBox(tplReport(),"шаблон баг-репорта","tpl-report"))+
+  sec("!","Так нельзя","Три уточняющих сообщения и потерянный день",
+   '<div class="grid g2">'+
+   '<div class="note bad"><b>«Форма не работает»</b><br>Что чинить? На каком экране? При каких данных? Автор задаст три вопроса и потеряет день.</div>'+
+   '<div class="note bad"><b>«Ты не подумал о телефонах»</b><br>Оценка человека вместо факта. Обсуждаем код, а не автора.</div>'+
+   '<div class="note ok"><b>«На 320 px кнопка выезжает за край»</b><br>Место и факт. Можно проверить и починить без вопросов.</div>'+
+   '<div class="note ok"><b>«Страница перезагрузилась, поле очистилось, в адресе появилось ?title=…»</b><br>Дословный результат — автор сразу видит причину.</div></div>');
+ observe();
+}
+
+/* ---------- вкладка Приоритеты ---------- */
+function renderPrio(){
+ var h="",k,q,z,d,zone,cards,score=prioScore();
+ for(k=0;k<ZONES.length;k++){
+  z=ZONES[k];cards="";
+  for(q=0;q<DEFECTS.length;q++){
+   d=DEFECTS[q];
+   zone=state.prio[d.id]||"pool";
+   if(zone!==z.id)continue;
+   var cls="dcard";
+   if(state.picked===d.id)cls+=" picked";
+   if(state.prioChecked&&z.id!=="pool")cls+=(zone===d.z?" ok":" bad");
+   cards+='<div class="'+cls+'" data-def="'+d.id+'" draggable="true" tabindex="0" role="button" aria-pressed="'+(state.picked===d.id)+'">'+
+    '<em>ДЕФЕКТ '+(q+1)+'</em>'+esc(d.t)+
+    (state.prioChecked&&z.id!=="pool"?'<span class="verdict" style="color:'+(zone===d.z?"var(--ok)":"var(--danger)")+'">'+(zone===d.z?"✓ верно":"верно: "+zoneName(d.z))+'</span>':'')+
+    '</div>';
+  }
+  if(!cards)cards='<div class="hint" style="padding:8px 0">Пусто</div>';
+  h+='<div class="zone'+(z.id==="block"?" z-block":z.id==="major"?" z-major":z.id==="cosm"?" z-cosm":"")+(state.picked?" sel":"")+'" data-zone="'+z.id+'">'+
+   '<h4><i style="background:'+z.c+'"></i>'+esc(z.t)+'</h4><p>'+esc(z.d)+'</p>'+cards+'</div>';
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">7</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ПРИОРИТЕТЫ</span><span class="pcode">РАЗЛОЖЕНО '+prioPlaced()+' / 7</span>'+(state.prioChecked?'<span class="pcode">ВЕРНО '+score+' / 7</span>':'')+'</div>'+
+  '<h2>Что пользователь не сможет сделать?</h2>'+
+  '<p>Один вопрос, три зоны. Простота починки на приоритет не влияет: дефекты 1 и 3 чинятся одной строкой и всё равно блокирующие. Кликни карточку, потом зону — или перетащи.</p></div></div>'+
+  '<div class="board">'+h+'</div>'+
+  '<div class="links no-print" style="margin-top:14px"><button class="btn btn-p btn-sm" type="button" data-action="prio-check"'+(prioPlaced()<7?" disabled":"")+'>Проверить приоритеты</button>'+
+  '<button class="btn btn-s btn-sm" type="button" data-action="prio-reset">Сбросить</button>'+
+  '<button class="btn btn-s btn-sm" type="button" data-action="go-p2">Промпт: вопросы вместо ответа</button></div>'+
+  (state.prioChecked?'<div class="note '+(score>=6?"ok":"warn")+'" style="margin-top:12px"><b>Верно '+score+' из 7.</b> Порог зачёта — 6. '+(score>=6?"Приоритеты названы по последствиям.":"Смотри подписи на карточках: приоритет определяется тем, что пользователь не сможет сделать, а не тем, сколько строк чинить.")+'</div>':'')+
+  sec("→","Разбор по последствиям","Почему именно так",
+   '<div class="tw"><table><thead><tr><th>Дефект</th><th>Приоритет</th><th>Что не сможет пользователь</th></tr></thead><tbody>'+prioTable()+'</tbody></table></div>');
+ observe();
+}
+function zoneName(id){var k;for(k=0;k<ZONES.length;k++){if(ZONES[k].id===id)return ZONES[k].t;}return id;}
+function prioTable(){
+ var h="",k;
+ for(k=0;k<DEFECTS.length;k++){
+  h+='<tr><td><b>'+(k+1)+'.</b> '+esc(DEFECTS[k].t)+'</td><td>'+esc(zoneName(DEFECTS[k].z))+'</td><td>'+esc(DEFECTS[k].fix)+'</td></tr>';
+ }
+ return h;
+}
+
+/* ---------- вкладка Защита ---------- */
+function renderSpeech(){
+ var total=state.speech.part*5,left=state.speech.left,el=total-left;
+ var idx=Math.min(4,Math.floor(el/state.speech.part));
+ if(left<=0)idx=4;
+ var pct=Math.round(el/total*100),budget=speechBudget(),h="",k,w,cls,p;
+ for(k=0;k<SPEECH.length;k++){
+  p=SPEECH[k];w=speechWords(p.id);
+  cls="wcount";
+  if(w>=Math.round(budget*0.7)&&w<=budget)cls+=" ok";
+  else if(w>budget)cls+=" over";
+  h+='<div class="sppart'+(k===idx&&state.speech.running?" on":"")+'" data-sppart="'+k+'">'+
+   '<div class="sppart-h"><span class="sppart-n">'+(k+1)+'</span>'+
+   '<span class="sppart-t"><b>'+esc(p.t)+'</b>'+(state.speech.hints?'<span>'+esc(p.d)+'</span>':'')+'</span>'+
+   '<span class="'+cls+'">'+w+' / ~'+budget+' слов</span></div>'+
+   '<textarea class="inp'+(state.speech.texts[p.id]?" filled":"")+'" data-speech="'+p.id+'" placeholder="'+esc(p.ph)+'">'+esc(state.speech.texts[p.id])+'</textarea>'+
+   '</div>';
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">3:00</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">РЕПЕТИЦИЯ ЗАЩИТЫ</span><span class="pcode">5 ЧАСТЕЙ</span><span class="pcode">'+state.speech.part+' С НА ЧАСТЬ</span></div>'+
+  '<h2>Про себя всегда укладываешься</h2>'+
+  '<p>Вслух выясняется обратное. Напиши пять частей своими словами, включи секундомер и произнеси вслух напарнику. Речь пишется самостоятельно: моделью её не генерируют.</p></div></div>'+
+  '<div class="speech">'+
+   '<div class="ctrl no-print">'+
+    '<h4>Секундомер</h4>'+
+    '<div class="spdial'+(state.speech.running?" run":"")+'" id="spdial">'+fmt(left)+'</div>'+
+    '<div class="spbar"><i id="spbar" style="width:'+pct+'%"></i></div>'+
+    '<div class="hint" style="text-align:center;margin-bottom:10px">Часть '+(idx+1)+' из 5 · '+esc(SPEECH[idx].t)+'</div>'+
+    '<div class="tbtns" style="justify-content:center">'+
+    '<button class="btn btn-p btn-sm" type="button" data-action="sp-run" id="spbtn">'+(state.speech.running?"Пауза":"Старт")+'</button>'+
+    '<button class="btn btn-s btn-sm" type="button" data-action="sp-next">Дальше</button>'+
+    '<button class="btn btn-s btn-sm" type="button" data-action="sp-reset">Сброс</button></div>'+
+    '<hr><h4>Параметры речи</h4>'+
+    '<div class="field"><label class="flabel" for="spPart">Длительность части: <b id="spPartVal">'+state.speech.part+' с</b></label>'+
+    '<input class="rng" id="spPart" data-sp="part" type="range" min="30" max="40" step="1" value="'+state.speech.part+'">'+
+    '<div class="hint">Норма курса — 30–40 секунд на часть, всего три минуты.</div></div>'+
+    '<div class="field"><label class="flabel" for="spWps">Темп речи: <b id="spWpsVal">'+state.speech.wps.toFixed(1)+' слов/с</b></label>'+
+    '<input class="rng" id="spWps" data-sp="wps" type="range" min="20" max="35" step="1" value="'+Math.round(state.speech.wps*10)+'">'+
+    '<div class="hint">Бюджет части: около '+budget+' слов. Спокойная речь — 2,4–2,8.</div></div>'+
+    sw("auto","Автопереход между частями",state.speech.auto)+
+    sw("hints","Подсказки к частям",state.speech.hints)+
+    sw("sound","Звук на смене части",state.sound)+
+    '<hr><h4>Фиксация</h4>'+
+    '<div class="hint" style="margin-bottom:8px">Отметка откроется, когда секундомер дойдёт до нуля хотя бы один раз.</div>'+
+    '<button class="btn '+(state.speech.done?"btn-p":"btn-s")+' btn-sm" type="button" data-action="sp-spoken"'+(state.speech.done?"":" disabled")+'>'+(state.speech.spoken?"✓ Произнёс вслух":"Отметить: произнёс вслух")+'</button>'+
+    '<div class="links" style="margin-top:10px"><button class="btn btn-s btn-sm" type="button" data-copy="tpl-speech">Копировать речь</button></div>'+
+   '</div>'+
+   '<div>'+
+    '<div class="note acc" style="margin-bottom:14px"><b>Заполнено частей: '+speechFilled()+' из 5.</b> Каждая часть — 30–40 секунд, это примерно '+budget+' слов. Пиши то, что скажешь вслух, а не тезисы для себя.</div>'+
+    h+
+    '<div class="note warn" style="margin-top:12px"><b>Главный вопрос защиты:</b> «объясните, что делает этот фрагмент кода». Выбери фрагмент заранее и прогони его через промпт П6 — до защиты, а не на ней.</div>'+
+    '<div class="links no-print" style="margin-top:12px"><button class="btn btn-s btn-sm" type="button" data-action="go-p6">Промпт П6: объясни фрагмент</button>'+
+    '<button class="btn btn-s btn-sm" type="button" data-action="go-p7">Промпт П7: вопросы залу</button></div>'+
+   '</div>'+
+  '</div>';
+ observe();
+}
+
+/* ---------- вкладка Деплой ---------- */
+function renderDeploy(){
+ var h="",k,on,lc=limitsCheck(),rd=buildReadme();
+ for(k=0;k<DEPLOY.length;k++){
+  on=!!state.deploy[DEPLOY[k].id];
+  h+='<div class="ci'+(on?' on':'')+'" data-dep="'+DEPLOY[k].id+'" role="checkbox" aria-checked="'+on+'" tabindex="0">'+
+   '<span class="cnum">'+(k+1)+'</span><span class="cbox"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span>'+
+   '<span class="ctb"><span class="ct">'+esc(DEPLOY[k].t)+'</span><span class="ch"><b>Как проверить:</b> '+esc(DEPLOY[k].how)+'</span></span></div>';
+ }
+ var fields="",f;
+ for(k=0;k<RDB.length;k++){
+  f=RDB[k];
+  fields+='<div class="field"><label class="flabel" for="rd-'+f.k+'">'+esc(f.t)+'</label>'+
+   (f.k==="link"?'<input class="inp'+(state.readme[f.k]?" filled":"")+'" id="rd-'+f.k+'" data-rd="'+f.k+'" type="text" autocomplete="off" value="'+esc(state.readme[f.k])+'" placeholder="'+esc(f.ph)+'">'
+    :'<textarea class="inp'+(state.readme[f.k]?" filled":"")+'" id="rd-'+f.k+'" data-rd="'+f.k+'" placeholder="'+esc(f.ph)+'">'+esc(state.readme[f.k])+'</textarea>')+
+   '</div>';
+ }
+ var probs="";
+ if(state.rdChecked){
+  if(readmeOk())probs='<div class="note ok" style="margin-top:10px"><b>README принят.</b> Ссылка на месте, ограничения названы честно: что, при каких условиях, почему.</div>';
+  else{
+   probs='<div class="probs"><b>Чего не хватает</b><ul>';
+   if(String(state.readme.link||"").indexOf("https://")!==0)probs+='<li>Блок 2: ссылка должна начинаться с https://</li>';
+   for(k=0;k<lc.probs.length;k++)probs+='<li>'+esc(lc.probs[k])+'</li>';
+   probs+='</ul></div>';
+  }
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">6</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">README И ФИНАЛЬНЫЙ ДЕПЛОЙ</span><span class="pcode">ДЕПЛОЙ '+deployCount()+' / 5</span></div>'+
+  '<h2>Шестой блок — известные ограничения</h2>'+
+  '<p>Что не работает, при каких условиях, почему не исправлено. Без «к сожалению» и «возможны недочёты»: ноль информации плюс заранее заготовленное оправдание. Когда дефект найдут, эта фраза сработает против автора.</p></div></div>'+
+  sec("1","Конструктор README","Шесть блоков, ссылка сразу после названия",
+   '<div class="grid g2"><div>'+fields+
+   '<div class="links no-print" style="margin-top:10px"><button class="btn btn-p btn-sm" type="button" data-action="rd-check">Проверить README</button>'+
+   '<button class="btn btn-s btn-sm" type="button" data-action="go-p5">Промпт П5</button></div>'+probs+'</div>'+
+   '<div>'+codeBox(rd,"readme.md · собирается из полей","tpl-readme")+'</div></div>')+
+  sec("2","Шаблон ограничения","Три строки на пункт, без извинений",codeBox(tplLimit(),"блок «известные ограничения»","tpl-limit"))+
+  sec("3","Финальный деплой","Пять отметок. После них код не меняется",
+   '<div class="clist">'+h+'</div>'+
+   '<div class="links" style="margin-top:12px">'+dynLinksHTML()+'</div>')+
+  sec("4","Починка дефектов: ветка, коммиты, PR","Один дефект — один коммит",
+   '<div class="grid g2">'+
+   '<div class="card"><div class="kv-k" style="margin-bottom:8px">Порядок на GitHub</div><ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+
+   '<li>Переключатель веток → fix/qa-blockers → Create branch from main</li>'+
+   '<li>Открыть файл → карандаш → правка → Commit changes</li>'+
+   '<li>Сообщение коммита по правилу: что изменилось, 5–72 символа</li>'+
+   '<li>Compare &amp; pull request → описание в три блока</li>'+
+   '<li>Merge → Confirm → Delete branch</li>'+
+   '<li>Actions: зелёная галочка → Ctrl+F5 на ссылке</li></ol></div>'+
+   '<div>'+codeBox(tplPR(),"шаблон pr после тестирования","tpl-pr")+'</div></div>')+
+  sec("!","Так нельзя накануне защиты","Одна строчка ломает работающий проект",
+   '<div class="note bad"><b>«Я только одну строчку поправлю».</b> После финального деплоя код заморожен. Найденное сегодня — в известные ограничения, а не в ночную правку без тестирования.</div>');
+ observe();
+}
+
+/* ---------- вкладка Отчёт ---------- */
+function renderReport(){
+ var g=gates(),ok=passed(),h="",k,q,rows="",v,r;
+ h=gatesHTML();
+ var qaRows="";
+ for(k=0;k<QA.length;k++){
+  qaRows+='<tr><td>'+QA[k].n+'</td><td>'+esc(QA[k].t)+'</td><td style="font-weight:700;color:'+(state.qa[QA[k].n]?"var(--ok)":"var(--ink3)")+'">'+(state.qa[QA[k].n]?"пройден":"—")+'</td></tr>';
+ }
+ var repRows="";
+ for(k=0;k<REPORTS.length;k++){
+  r=state.reports[REPORTS[k].id];v=validateReport(r);
+  repRows+='<tr><td>'+(k+1)+'</td><td>'+esc(REPORTS[k].bad)+'</td><td>'+esc(r.title||"—")+'</td>'+
+   '<td style="font-weight:700;color:'+(r.checked&&v.ok?"var(--ok)":"var(--danger)")+'">'+(r.checked?(v.ok?"принят":v.probs.length+" замечаний"):"не проверен")+'</td></tr>';
+ }
+ var prRows="";
+ for(k=0;k<DEFECTS.length;k++){
+  var z=state.prio[DEFECTS[k].id]||"pool";
+  prRows+='<tr><td>'+(k+1)+'</td><td>'+esc(DEFECTS[k].t)+'</td><td>'+esc(zoneName(z))+'</td><td>'+esc(zoneName(DEFECTS[k].z))+'</td>'+
+   '<td style="font-weight:700;color:'+(z===DEFECTS[k].z?"var(--ok)":"var(--danger)")+'">'+(z===DEFECTS[k].z?"✓":"✗")+'</td></tr>';
+ }
+ var spRows="";
+ for(k=0;k<SPEECH.length;k++){
+  spRows+='<tr><td>'+(k+1)+'</td><td>'+esc(SPEECH[k].t)+'</td><td>'+speechWords(SPEECH[k].id)+'</td><td>~'+speechBudget()+'</td></tr>';
+ }
+ var depRows="";
+ for(k=0;k<DEPLOY.length;k++){
+  depRows+='<tr><td>'+esc(DEPLOY[k].t)+'</td><td style="font-weight:700;color:'+(state.deploy[DEPLOY[k].id]?"var(--ok)":"var(--ink3)")+'">'+(state.deploy[DEPLOY[k].id]?"✓":"—")+'</td></tr>';
+ }
+ var verdict;
+ if(ok){
+  verdict='<div class="verdict pass"><h3>Занятие закрыто. Код заморожен</h3><p>Все шесть ворот пройдены. Проект протестирован чужими глазами, дефекты описаны и разложены по последствиям, ограничения названы честно, ссылка проверена, речь произнесена вслух.</p>'+
+   '<ul><li>Отправь педагогу PDF и публичную ссылку.</li><li>Завтра — только защита: новых правок в коде нет.</li><li>Держи под рукой фрагмент кода, который выбрал для вопроса залу.</li></ul></div>';
+ }else{
+  verdict='<div class="verdict fail"><h3>Ещё не закрыто: '+gatesDone()+' из 6 ворот</h3><p>Смотри список выше — там написано, чего именно не хватает.</p><ul>'+
+   '<li>Чек-лист проходится целиком, даже если дефект нашёлся в третьем пункте.</li>'+
+   '<li>Отчёт принимается только с четырьмя частями и полными условиями.</li>'+
+   '<li>Приоритет — по последствиям, не по простоте починки.</li>'+
+   '<li>Речь отмечается только после полного прогона секундомера.</li></ul></div>';
+ }
+ view.className="";
+ view.innerHTML='<div class="phead" data-reveal><div class="wm">23</div><div class="ph-in">'+
+  '<div class="prow"><span class="pcode">ОТЧЁТ ДЛЯ ПЕДАГОГА</span><span class="pcode">ВОРОТА '+gatesDone()+' / 6</span></div>'+
+  '<h2>Отчёт по занятию 23</h2>'+
+  '<p>Всё собрано автоматически. Печатается только эта вкладка. Отправь PDF вместе с публичной ссылкой на проект.</p></div></div>'+
+  '<div class="gates">'+h+'</div>'+
+  '<div class="links no-print" style="margin-bottom:16px"><button class="btn btn-p btn-sm" type="button" data-action="print">Сохранить PDF</button>'+
+  '<button class="btn btn-s btn-sm" type="button" data-action="copy-report">Скопировать отчёт текстом</button>'+
+  '<button class="btn btn-g btn-sm" type="button" data-action="reset-all">Сбросить всё</button></div>'+
+  verdict+
+  sec("1","Чек-лист тестирования","Пройдено "+qaCount()+" из 15",
+   '<div class="tw"><table><thead><tr><th>№</th><th>Пункт</th><th>Отметка</th></tr></thead><tbody>'+qaRows+'</tbody></table></div>')+
+  sec("2","Баг-репорты","Принято "+reportsOk()+" из 5, порог 3",
+   '<div class="tw"><table><thead><tr><th>№</th><th>Было</th><th>Заголовок</th><th>Вердикт</th></tr></thead><tbody>'+repRows+'</tbody></table></div>')+
+  sec("3","Приоритеты","Верно "+prioScore()+" из 7, порог 6",
+   '<div class="tw"><table><thead><tr><th>№</th><th>Дефект</th><th>Твой ответ</th><th>Верно</th><th></th></tr></thead><tbody>'+prRows+'</tbody></table></div>')+
+  sec("4","README и деплой","Шесть блоков и пять отметок",
+   '<div class="tw"><table><thead><tr><th>Пункт деплоя</th><th>Отметка</th></tr></thead><tbody>'+depRows+'</tbody></table></div>'+
+   '<div class="note '+(readmeOk()?"ok":"warn")+'" style="margin-top:12px"><b>README:</b> '+(readmeOk()?"ссылка и честные ограничения на месте.":"ссылка или ограничения не прошли проверку — вернись во вкладку «Деплой».")+'</div>')+
+  sec("5","Речь защиты","Произнесена вслух: "+(state.speech.spoken?"да":"нет"),
+   '<div class="tw"><table><thead><tr><th>№</th><th>Часть</th><th>Слов</th><th>Бюджет</th></tr></thead><tbody>'+spRows+'</tbody></table></div>'+
+   codeBox(buildSpeech(),"моя речь · пять частей","tpl-speech"))+
+  sec("→","Ссылка на проект","Её открывает педагог и зал",
+   '<div class="note"><b>Публичная ссылка:</b> '+(state.link?esc(state.link):"не указана")+
+   '<br><b>Репозиторий:</b> '+(hasGH()?esc(owner()+"/"+repo()):"не указан")+'<br><b>Тема:</b> '+esc(T().id+" «"+T().name+"»")+'</div>');
+ observe();
+}
+
+/* ---------- каркас ---------- */
+function renderTabs(){
+ var items=[
+  {id:"sprint",l:"Занятие",b:""},
+  {id:"route",l:"Маршрут",b:stepsDone()+"/12"},
+  {id:"prompts",l:"Промпты",b:"10"},
+  {id:"qa",l:"QA-чек-лист",b:qaCount()+"/15"},
+  {id:"bugs",l:"Баг-репорты",b:reportsOk()+"/5"},
+  {id:"prio",l:"Приоритеты",b:prioPlaced()+"/7"},
+  {id:"speech",l:"Защита",b:speechFilled()+"/5"},
+  {id:"deploy",l:"Деплой",b:deployCount()+"/5"},
+  {id:"report",l:"Отчёт",b:gatesDone()+"/6"}
+ ];
+ var h="",k,it,on;
+ for(k=0;k<items.length;k++){it=items[k];on=state.tab===it.id;
+  h+='<button class="tab'+(on?' on':'')+'" type="button" data-tab="'+it.id+'" aria-current="'+(on?"page":"false")+'"><i></i>'+esc(it.l)+
+   (it.b?'<span class="bdg">'+esc(it.b)+'</span>':'')+'</button>';}
+ tabsEl.innerHTML=h;
+ var a=tabsEl.querySelector(".tab.on");
+ if(a&&a.scrollIntoView)try{a.scrollIntoView({block:"nearest",inline:"center"});}catch(e){}
+}
+function updateChrome(){
+ var n=gatesDone(),ok=passed();
+ stchip.textContent=ok?"Занятие закрыто ✓":n+" / 6";
+ if(ok)stchip.classList.add("ok");else stchip.classList.remove("ok");
+ abInfo.innerHTML=ok?"<b>Код заморожен.</b> Отправь PDF и ссылку педагогу. Завтра — только защита.":
+  "Тема: <b>"+esc(T().name)+"</b> · ворота <b>"+n+" из 6</b> · QA "+qaCount()+"/15 · отчёты "+reportsOk()+"/5 · приоритеты "+prioScore()+"/7";
+ renderTabs();
+}
+function renderView(){
+ setHue();
+ if(!state.started){renderStart();return;}
+ tabwrap.hidden=false;actionbar.hidden=false;
+ if(state.tab==="sprint")renderSprint();
+ else if(state.tab==="route")renderRoute();
+ else if(state.tab==="prompts")renderPrompts();
+ else if(state.tab==="qa")renderQA();
+ else if(state.tab==="bugs")renderBugs();
+ else if(state.tab==="prio")renderPrio();
+ else if(state.tab==="speech")renderSpeech();
+ else if(state.tab==="deploy")renderDeploy();
+ else renderReport();
+ updateChrome();updateRead();
+}
+function go(tab){state.tab=tab;save();renderView();window.scrollTo({top:0,behavior:"smooth"});}
+function rerenderKeep(){var y=window.scrollY;renderView();window.scrollTo(0,y);}
+
+var io=null;
+function observe(){
+ if(io){io.disconnect();io=null;}
+ var els=view.querySelectorAll("[data-reveal]"),k;
+ if(!("IntersectionObserver" in window)){for(k=0;k<els.length;k++)els[k].classList.add("in");return;}
+ io=new IntersectionObserver(function(en){for(var q=0;q<en.length;q++){if(en[q].isIntersecting){en[q].target.classList.add("in");io.unobserve(en[q].target);}}},{rootMargin:"0px 0px -6% 0px",threshold:0.05});
+ for(k=0;k<els.length;k++){els[k].style.transitionDelay=Math.min(k,6)*40+"ms";io.observe(els[k]);}
+}
+function updateRead(){
+ var b=document.getElementById("readbar");if(!b)return;
+ var h=document.documentElement.scrollHeight-window.innerHeight;
+ b.style.width=(h>40?Math.min(100,Math.max(0,window.scrollY/h*100)):0)+"%";
+}
+window.addEventListener("scroll",updateRead,{passive:true});
+window.addEventListener("resize",updateRead);
+
+/* ---------- таймеры ---------- */
+var tick=null,spTick=null;
+function stopTick(){if(tick){clearInterval(tick);tick=null;}}
+function startTick(){stopTick();tick=setInterval(timerTick,1000);}
+function timerTick(){
+ if(!state.timer.running)return;
+ var left=Math.max(0,Math.round((state.timer.endsAt-Date.now())/1000));
+ var prev=state.timer.left;state.timer.left=left;
+ var d=document.getElementById("tdial");if(d)d.textContent=fmt(left);
+ var cp=curPhase(),p=document.getElementById("tphase");
+ if(p)p.innerHTML="<b>"+esc(cp.t)+"</b>"+esc(cp.d);
+ var el=3600-left,ph=document.querySelectorAll("[data-phase]"),k,x;
+ for(k=0;k<ph.length;k++){x=PHASES[k];
+  if(el>=x.from&&el<x.to)ph[k].classList.add("on");else ph[k].classList.remove("on");
+  if(el>=x.to)ph[k].classList.add("done");else ph[k].classList.remove("done");}
+ var pi=Math.floor(el/1),prevPhase=null,curP=null;
+ for(k=0;k<PHASES.length;k++){if(3600-prev>=PHASES[k].from&&3600-prev<PHASES[k].to)prevPhase=k;if(el>=PHASES[k].from&&el<PHASES[k].to)curP=k;}
+ if(prevPhase!==null&&curP!==null&&curP!==prevPhase)beep(660,0.16,0.07);
+ if(left<=0){state.timer.running=false;state.timer.endsAt=null;stopTick();
+  var b=document.getElementById("tbtn");if(b)b.textContent="Старт";
+  if(d)d.classList.remove("run");beep(880,0.4,0.09);
+  toast("Время занятия вышло. Проверь шесть ворот и заморозь код.");}
+ save();
+}
+function spTotal(){return state.speech.part*5;}
+function stopSp(){if(spTick){clearInterval(spTick);spTick=null;}}
+function startSp(){stopSp();spTick=setInterval(spTickFn,200);}
+function spTickFn(){
+ if(!state.speech.running)return;
+ var total=spTotal();
+ var left=Math.max(0,(state.speech.endsAt-Date.now())/1000);
+ var prev=state.speech.left;
+ state.speech.left=left;
+ var d=document.getElementById("spdial");if(d)d.textContent=fmt(left);
+ var bar=document.getElementById("spbar");
+ if(bar)bar.style.width=Math.round((total-left)/total*100)+"%";
+ var pi=Math.floor((total-prev)/state.speech.part),ci=Math.floor((total-left)/state.speech.part);
+ if(ci>pi&&ci<5){
+  beep(720,0.18,0.08);
+  var parts=document.querySelectorAll("[data-sppart]"),k;
+  for(k=0;k<parts.length;k++){if(k===ci)parts[k].classList.add("on");else parts[k].classList.remove("on");}
+  if(!state.speech.auto){
+   state.speech.running=false;state.speech.endsAt=null;stopSp();
+   var b=document.getElementById("spbtn");if(b)b.textContent="Старт";
+   if(d)d.classList.remove("run");
+   toast("Часть "+ci+" закончена. Нажми «Дальше», когда начнёшь следующую.");
+   save();return;
+  }
+  toast("Часть "+(ci+1)+": "+SPEECH[ci].t);
+ }
+ if(left<=0){
+  state.speech.running=false;state.speech.endsAt=null;state.speech.left=0;state.speech.done=true;stopSp();
+  var b2=document.getElementById("spbtn");if(b2)b2.textContent="Старт";
+  if(d)d.classList.remove("run");
+  beep(880,0.3,0.09);setTimeout(function(){beep(1180,0.35,0.08);},220);
+  save();rerenderKeep();
+  toast("Три минуты прошли. Отметь «произнёс вслух» и сократи части, которые вылезли.");
+  return;
+ }
+ save();
+}
+
+/* ---------- копирование ---------- */
+function fallbackCopy(text,done){
+ var ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";
+ document.body.appendChild(ta);ta.select();
+ try{document.execCommand("copy");done();}catch(e){toast("Скопируй текст вручную из блока.");}
+ document.body.removeChild(ta);
+}
+function copyText(text,btn,msg){
+ if(!text){toast("Пусто: сначала заполни поля.");return;}
+ var done=function(){if(btn){var o=btn.textContent;btn.textContent="✓ Скопировано";btn.classList.add("done");
+  setTimeout(function(){btn.textContent=o;btn.classList.remove("done");},1600);}
+  toast(msg||"Скопировано.");};
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,function(){fallbackCopy(text,done);});}
+ else fallbackCopy(text,done);
+}
+function reportText(){
+ var t=T(),L=[],k,q,r,v;
+ L.push("Занятие 23 · Тестирование и финальный деплой");
+ L.push("Тема: "+t.id+" «"+t.name+"»");
+ L.push("Репозиторий: "+(hasGH()?owner()+"/"+repo():"не указан"));
+ L.push("Ссылка: "+(state.link||"не указана"));
+ L.push("Ворота: "+gatesDone()+" из 6 · вердикт: "+(passed()?"занятие закрыто":"не закрыто"));
+ L.push("");
+ L.push("ЧЕК-ЛИСТ ("+qaCount()+"/15)");
+ for(k=0;k<QA.length;k++)L.push((state.qa[QA[k].n]?"[x] ":"[ ] ")+QA[k].n+". "+QA[k].t);
+ L.push("");
+ L.push("БАГ-РЕПОРТЫ (принято "+reportsOk()+"/5)");
+ for(k=0;k<REPORTS.length;k++){
+  r=state.reports[REPORTS[k].id];v=validateReport(r);
+  L.push((k+1)+". "+(r.title||REPORTS[k].bad)+" — "+(r.checked?(v.ok?"принят":"доработать"):"не проверен"));
+  if(r.checked&&v.ok){L.push("   Шаги: "+r.steps.replace(/\n/g," | "));L.push("   Ожидал: "+r.expected);L.push("   Получилось: "+r.actual);L.push("   Где: "+r.where);}
+ }
+ L.push("");
+ L.push("ПРИОРИТЕТЫ (верно "+prioScore()+"/7)");
+ for(k=0;k<DEFECTS.length;k++)L.push((k+1)+". "+zoneName(state.prio[DEFECTS[k].id]||"pool")+" (верно: "+zoneName(DEFECTS[k].z)+") — "+DEFECTS[k].t);
+ L.push("");
+ L.push("ДЕПЛОЙ ("+deployCount()+"/5)");
+ for(k=0;k<DEPLOY.length;k++)L.push((state.deploy[DEPLOY[k].id]?"[x] ":"[ ] ")+DEPLOY[k].t);
+ L.push("");
+ L.push("README: "+(readmeOk()?"принят":"не принят"));
+ L.push("РЕЧЬ: произнесена вслух — "+(state.speech.spoken?"да":"нет")+", частей написано "+speechFilled()+"/5");
+ return L.join("\n");
+}
+function confetti(){
+ if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+ if(!Element.prototype.animate)return;
+ var cols=["#b45309","#f59e0b","#dc2626","#65a30d","#2563eb","#db2777"],k,d,dx,dy,rot,an;
+ for(k=0;k<34;k++){
+  d=document.createElement("div");d.className="conf";d.style.background=cols[k%cols.length];
+  d.style.left=(50+(Math.random()*40-20))+"vw";d.style.top="46vh";document.body.appendChild(d);
+  dx=(Math.random()*2-1)*320;dy=-(180+Math.random()*260);rot=Math.random()*720-360;
+  an=d.animate([{transform:"translate(0,0) rotate(0deg)",opacity:1},
+   {transform:"translate("+dx+"px,"+dy+"px) rotate("+rot+"deg)",opacity:1,offset:.55},
+   {transform:"translate("+(dx*1.3)+"px,"+(dy+520)+"px) rotate("+(rot*1.6)+"deg)",opacity:0}],
+   {duration:1500+Math.random()*700,easing:"cubic-bezier(.2,.6,.4,1)"});
+  an.onfinish=(function(n){return function(){if(n.parentNode)n.parentNode.removeChild(n);};})(d);
+ }
+}
+function fillSample(id){
+ var S={
+  r1:{title:"Пустое название сохраняется в список",steps:"1. Открыл страницу по ссылке в приватном окне\n2. Оставил поле названия пустым\n3. Нажал «Добавить»",expected:"Под полем сообщение «Введите название», запись не добавляется",actual:"В списке появилась карточка без названия, поле очистилось, сообщений нет",where:"Ноутбук, Chrome, 1280 px, Online, приватное окно — первый визит"},
+  r2:{title:"Кнопка «Добавить» уходит за правый край на узком экране",steps:"1. Открыл страницу на телефоне\n2. Сузил окно до 320 px\n3. Посмотрел на кнопку под формой",expected:"Кнопка целиком помещается в ширину экрана и нажимается пальцем",actual:"Правая часть кнопки обрезана, надпись «Добавить» видна наполовину, нажать нельзя",where:"Телефон Android, Chrome, 320 px, Online, хранилище заполнено"},
+  r3:{title:"Пустое название сохраняется в список",steps:"1. Открыл страницу\n2. Оставил поле названия пустым\n3. Нажал «Добавить»",expected:"Под полем сообщение «Введите название», запись не добавляется",actual:"В списке появилась карточка без названия",where:"Ноутбук, Chrome, 1280 px, Online, приватное окно"},
+  r4:{title:"Записи пропадают после перезагрузки страницы",steps:"1. Открыл страницу в обычном окне\n2. Добавил запись «Тестовая»\n3. Нажал F5",expected:"Записи остаются в списке после перезагрузки",actual:"Список пуст, показано приглашение добавить первую запись",where:"Ноутбук, Chrome, 1280 px, Online, обычное окно с заполненным хранилищем"},
+  r5:{title:"Тень карточки темнее остального интерфейса",steps:"1. Открыл страницу\n2. Посмотрел на карточки списка при светлой теме",expected:"Тень карточек одинаковая по всему списку",actual:"У первой карточки тень заметно темнее, чем у остальных",where:"Ноутбук, Chrome, 1280 px, Online, хранилище заполнено, светлая тема"}
+ };
+ var s=S[id],k;
+ if(!s)return;
+ for(k in s){if(Object.prototype.hasOwnProperty.call(s,k))state.reports[id][k]=s[k];}
+ state.reports[id].checked=false;
+ save();rerenderKeep();
+ toast("Образец подставлен. Прочитай его и перепиши под свой дефект.");
+}
+function refreshDynamic(){
+ var dl=document.getElementById("dynLinks");if(dl)dl.innerHTML=dynLinksHTML();
+ var pres=document.querySelectorAll("[data-code]"),k,id,txt;
+ for(k=0;k<pres.length;k++){id=pres[k].getAttribute("data-code");txt=textFor(id);if(txt)pres[k].textContent=txt;}
+ var lh=document.getElementById("linkHint");if(lh)lh.textContent=linkHint();
+ updateChrome();
+}
+
+/* ---------- события ---------- */
+document.addEventListener("click",function(e){
+ var el=e.target;
+ if(!el||!el.closest)return;
+ var hit=el.closest("[data-action],[data-tab],[data-topic],[data-qa],[data-dep],[data-steptoggle],[data-copy],[data-checkrep],[data-fill],[data-def],[data-zone],[data-sw]");
+ if(!hit)return;
+
+ if(hit.hasAttribute("data-copy")){copyText(textFor(hit.getAttribute("data-copy")),hit);return;}
+ if(hit.hasAttribute("data-fill")){fillSample(hit.getAttribute("data-fill"));return;}
+ if(hit.hasAttribute("data-checkrep")){
+  var rid=hit.getAttribute("data-checkrep");
+  state.reports[rid].checked=true;save();
+  var v=validateReport(state.reports[rid]);
+  rerenderKeep();
+  if(v.ok){beep(880,0.18,0.07);toast("Отчёт принят: четыре части и полные условия.");}
+  else toast("Не хватает "+v.probs.length+" пункт"+(v.probs.length===1?"а":"ов")+". Смотри список под формой.");
+  return;
+ }
+ if(hit.hasAttribute("data-sw")){
+  var sk=hit.getAttribute("data-sw");
+  if(sk==="sound"){state.sound=!state.sound;applySound();if(state.sound)beep(760,0.14,0.07);}
+  else if(sk==="auto")state.speech.auto=!state.speech.auto;
+  else if(sk==="hints")state.speech.hints=!state.speech.hints;
+  save();rerenderKeep();return;
+ }
+ if(hit.hasAttribute("data-topic")){
+  state.topic=hit.getAttribute("data-topic");save();rerenderKeep();
+  toast("Тема: «"+T().name+"». Промпты и шаблоны обновлены.");return;
+ }
+ if(hit.hasAttribute("data-steptoggle")){
+  var sn=parseInt(hit.getAttribute("data-steptoggle"),10);
+  state.steps[sn]=!state.steps[sn];save();
+  var box=hit.closest(".step");
+  if(box){if(state.steps[sn])box.classList.add("done");else box.classList.remove("done");}
+  hit.setAttribute("aria-pressed",String(!!state.steps[sn]));updateChrome();return;
+ }
+ if(hit.hasAttribute("data-qa")){
+  var qn=parseInt(hit.getAttribute("data-qa"),10);
+  state.qa[qn]=!state.qa[qn];save();
+  if(state.qa[qn])hit.classList.add("on");else hit.classList.remove("on");
+  hit.setAttribute("aria-checked",String(!!state.qa[qn]));
+  var pct=Math.round(qaCount()/15*100),C=2*Math.PI*38;
+  var fg=document.querySelector(".rsvg .fgc");if(fg)fg.setAttribute("stroke-dashoffset",String(C-C*pct/100));
+  var num=document.querySelector(".rnum");if(num)num.textContent=pct+"%";
+  var inf=document.querySelector(".rinfo b");if(inf)inf.textContent="Пройдено "+qaCount()+" из 15";
+  var gh=document.querySelectorAll(".ghead em"),gi=0,k2;
+  for(k2=0;k2<QAG.length;k2++){var gn=0,gt=0,q2;
+   for(q2=0;q2<QA.length;q2++){if(QA[q2].g!==QAG[k2].id)continue;gt++;if(state.qa[QA[q2].n])gn++;}
+   if(gh[gi])gh[gi].textContent=gn+" / "+gt;gi++;}
+  if(qaCount()===15){beep(920,0.25,0.08);toast("Чек-лист пройден целиком. Оформляй находки в отчёты.");}
+  updateChrome();return;
+ }
+ if(hit.hasAttribute("data-dep")){
+  var did=hit.getAttribute("data-dep");
+  state.deploy[did]=!state.deploy[did];save();
+  if(state.deploy[did])hit.classList.add("on");else hit.classList.remove("on");
+  hit.setAttribute("aria-checked",String(!!state.deploy[did]));
+  if(deployCount()===5){beep(920,0.25,0.08);toast("Деплой закрыт. Код заморожен до защиты.");}
+  updateChrome();return;
+ }
+ if(hit.hasAttribute("data-def")){
+  var def=hit.getAttribute("data-def");
+  state.picked=(state.picked===def)?null:def;
+  save();rerenderKeep();return;
+ }
+ if(hit.hasAttribute("data-zone")){
+  if(!state.picked)return;
+  var zid=hit.getAttribute("data-zone");
+  state.prio[state.picked]=zid;state.picked=null;state.prioChecked=false;
+  save();rerenderKeep();
+  if(prioPlaced()===7)toast("Все семь разложены. Нажми «Проверить приоритеты».");
+  return;
+ }
+ if(hit.hasAttribute("data-tab")){go(hit.getAttribute("data-tab"));return;}
+
+ var a=hit.getAttribute("data-action");
+ if(a==="start"){state.started=true;save();view.classList.remove("nostart");renderView();window.scrollTo({top:0,behavior:"smooth"});
+  toast("Начни с вкладки «Занятие»: выбери тему и впиши ссылку для напарника.");}
+ else if(a==="go-sprint")go("sprint");
+ else if(a==="go-qa")go("qa");
+ else if(a==="go-bugs")go("bugs");
+ else if(a==="go-prio")go("prio");
+ else if(a==="go-speech")go("speech");
+ else if(a==="go-deploy")go("deploy");
+ else if(a==="go-report")go("report");
+ else if(a==="go-prompts")go("prompts");
+ else if(a&&a.indexOf("go-p")===0){
+  var pid=a.replace("go-","");state.tab="prompts";save();renderView();
+  setTimeout(function(){var node=document.getElementById(pid);
+   if(node){node.scrollIntoView({behavior:"smooth",block:"start"});node.style.boxShadow="0 0 0 3px rgba(var(--rgb),.35)";
+    setTimeout(function(){node.style.boxShadow="";},1800);}},90);
+ }
+ else if(a==="qa-reset"){if(window.confirm("Сбросить отметки чек-листа?")){state.qa={};save();rerenderKeep();toast("Отметки чек-листа сброшены.");}}
+ else if(a==="prio-check"){
+  if(prioPlaced()<7){toast("Разложи все семь дефектов.");return;}
+  state.prioChecked=true;save();rerenderKeep();
+  var sc=prioScore();
+  if(sc>=6){beep(900,0.22,0.08);toast("Верно "+sc+" из 7. Приоритеты названы по последствиям.");}
+  else toast("Верно "+sc+" из 7. Смотри подписи: приоритет — про последствия.");
+ }
+ else if(a==="prio-reset"){state.prio={};state.picked=null;state.prioChecked=false;save();rerenderKeep();toast("Доска приоритетов очищена.");}
+ else if(a==="rd-check"){
+  state.rdChecked=true;save();rerenderKeep();
+  if(readmeOk()){beep(900,0.22,0.08);toast("README принят: ссылка и честные ограничения на месте.");}
+  else toast("README не принят. Смотри список под полями.");
+ }
+ else if(a==="timer"){
+  if(state.timer.running){timerTick();state.timer.running=false;state.timer.endsAt=null;stopTick();}
+  else{if(state.timer.left<=0)state.timer.left=3600;state.timer.endsAt=Date.now()+state.timer.left*1000;state.timer.running=true;startTick();beep(600,0.12,0.06);}
+  var tb=document.getElementById("tbtn");if(tb)tb.textContent=state.timer.running?"Пауза":"Старт";
+  var td=document.getElementById("tdial");if(td){if(state.timer.running)td.classList.add("run");else td.classList.remove("run");}
+  save();
+ }
+ else if(a==="timer-reset"){
+  state.timer={left:3600,running:false,endsAt:null};stopTick();save();
+  var d2=document.getElementById("tdial");if(d2){d2.textContent=fmt(3600);d2.classList.remove("run");}
+  var b2=document.getElementById("tbtn");if(b2)b2.textContent="Старт";
+  var p2=document.getElementById("tphase");if(p2)p2.innerHTML="<b>"+esc(PHASES[0].t)+"</b>"+esc(PHASES[0].d);
+  var ph2=document.querySelectorAll("[data-phase]"),q3;
+  for(q3=0;q3<ph2.length;q3++){if(q3===0)ph2[q3].classList.add("on");else ph2[q3].classList.remove("on");ph2[q3].classList.remove("done");}
+  toast("Таймер сброшен на 60 минут.");
+ }
+ else if(a==="sp-run"){
+  if(state.speech.running){spTickFn();state.speech.running=false;state.speech.endsAt=null;stopSp();}
+  else{
+   if(state.speech.left<=0)state.speech.left=spTotal();
+   state.speech.endsAt=Date.now()+state.speech.left*1000;state.speech.running=true;startSp();beep(620,0.14,0.07);
+   toast("Секундомер пошёл. Произноси вслух, а не про себя.");
+  }
+  var sb=document.getElementById("spbtn");if(sb)sb.textContent=state.speech.running?"Пауза":"Старт";
+  var sd=document.getElementById("spdial");if(sd){if(state.speech.running)sd.classList.add("run");else sd.classList.remove("run");}
+  save();
+ }
+ else if(a==="sp-next"){
+  var total=spTotal(),cur=Math.floor((total-state.speech.left)/state.speech.part);
+  var nextLeft=Math.max(0,total-(cur+1)*state.speech.part);
+  state.speech.left=nextLeft;
+  if(nextLeft<=0){state.speech.done=true;state.speech.running=false;state.speech.endsAt=null;stopSp();beep(880,0.3,0.09);}
+  else if(state.speech.running){state.speech.endsAt=Date.now()+nextLeft*1000;}
+  save();rerenderKeep();
+  if(nextLeft>0)toast("Часть "+(cur+2)+": "+SPEECH[Math.min(4,cur+1)].t);
+ }
+ else if(a==="sp-reset"){
+  state.speech.left=spTotal();state.speech.running=false;state.speech.endsAt=null;state.speech.done=false;stopSp();save();rerenderKeep();
+  toast("Секундомер сброшен.");
+ }
+ else if(a==="sp-spoken"){
+  if(!state.speech.done){toast("Сначала прогони секундомер до нуля.");return;}
+  state.speech.spoken=!state.speech.spoken;save();rerenderKeep();
+  if(state.speech.spoken){beep(940,0.24,0.08);toast("Речь зафиксирована. Ворота защиты закрыты.");}
+ }
+ else if(a==="copy-report"){copyText(reportText(),hit,"Отчёт скопирован текстом — можно отправить педагогу.");}
+ else if(a==="reset-all"){
+  if(window.confirm("Сбросить все отметки, отчёты, приоритеты, README и речь? Тема и ссылка останутся.")){
+   state.steps={};state.qa={};state.deploy={};state.prio={};state.picked=null;state.prioChecked=false;state.rdChecked=false;
+   var k4;
+   for(k4=0;k4<REPORTS.length;k4++){var pp=REPORTS[k4].pre;state.reports[REPORTS[k4].id]={title:pp.title,steps:pp.steps,expected:pp.expected,actual:pp.actual,where:pp.where,checked:false};}
+   for(k4=0;k4<RDB.length;k4++)state.readme[RDB[k4].k]="";
+   for(k4=0;k4<SPEECH.length;k4++)state.speech.texts[SPEECH[k4].id]="";
+   state.speech.left=spTotal();state.speech.running=false;state.speech.endsAt=null;state.speech.done=false;state.speech.spoken=false;
+   stopSp();save();renderView();toast("Всё сброшено.");
+  }
+ }
+ else if(a==="print"){
+  if(!state.started)return;
+  if(state.tab!=="report"){go("report");setTimeout(function(){window.print();},220);}
+  else window.print();
+ }
+});
+
+document.addEventListener("keydown",function(e){
+ var el=e.target;
+ if(!el||!el.hasAttribute)return;
+ if(e.key===" "||e.key==="Enter"){
+  if(el.hasAttribute("data-qa")||el.hasAttribute("data-dep")||el.hasAttribute("data-steptoggle")||el.hasAttribute("data-def")){e.preventDefault();el.click();}
+ }
+});
+
+document.addEventListener("input",function(e){
+ var el=e.target;
+ if(!el||!el.getAttribute)return;
+ var sp=el.getAttribute("data-sp");
+ if(sp){
+  if(sp==="part"){state.speech.part=parseInt(el.value,10);
+   var lv=document.getElementById("spPartVal");if(lv)lv.textContent=state.speech.part+" с";
+   if(!state.speech.running){state.speech.left=spTotal();var dd=document.getElementById("spdial");if(dd)dd.textContent=fmt(state.speech.left);}
+   save();refreshDynamic();
+   var wc=document.querySelectorAll(".wcount"),k5,b=speechBudget();
+   for(k5=0;k5<wc.length;k5++){var w=speechWords(SPEECH[k5].id);wc[k5].textContent=w+" / ~"+b+" слов";
+    wc[k5].className="wcount"+(w>=Math.round(b*0.7)&&w<=b?" ok":(w>b?" over":""));}
+   return;
+  }
+  if(sp==="wps"){state.speech.wps=parseInt(el.value,10)/10;
+   var lv2=document.getElementById("spWpsVal");if(lv2)lv2.textContent=state.speech.wps.toFixed(1)+" слов/с";
+   save();
+   var wc2=document.querySelectorAll(".wcount"),k6,b2=speechBudget();
+   for(k6=0;k6<wc2.length;k6++){var w2=speechWords(SPEECH[k6].id);wc2[k6].textContent=w2+" / ~"+b2+" слов";
+    wc2[k6].className="wcount"+(w2>=Math.round(b2*0.7)&&w2<=b2?" ok":(w2>b2?" over":""));}
+   return;
+  }
+ }
+ var spk=el.getAttribute("data-speech");
+ if(spk){
+  state.speech.texts[spk]=el.value;
+  if(el.value.trim())el.classList.add("filled");else el.classList.remove("filled");
+  save();
+  var idx=-1,k7;
+  for(k7=0;k7<SPEECH.length;k7++){if(SPEECH[k7].id===spk)idx=k7;}
+  if(idx>=0){
+   var part=el.closest(".sppart"),badge=part?part.querySelector(".wcount"):null;
+   var w3=speechWords(spk),b3=speechBudget();
+   if(badge){badge.textContent=w3+" / ~"+b3+" слов";badge.className="wcount"+(w3>=Math.round(b3*0.7)&&w3<=b3?" ok":(w3>b3?" over":""));}
+  }
+  updateChrome();refreshDynamic();return;
+ }
+ var rk=el.getAttribute("data-rep");
+ if(rk){
+  var fld=el.getAttribute("data-fld");
+  state.reports[rk][fld]=el.value;
+  if(el.value.trim())el.classList.add("filled");else el.classList.remove("filled");
+  save();
+  if(fld==="where"){
+   var f=whereFlags(el.value),chips=el.parentNode.querySelectorAll(".wchip");
+   if(chips.length===4){
+    var arr=[f.device,f.width,f.network,f.storage],k8;
+    for(k8=0;k8<4;k8++){if(arr[k8])chips[k8].classList.add("on");else chips[k8].classList.remove("on");}
+   }
+  }
+  return;
+ }
+ var rdk=el.getAttribute("data-rd");
+ if(rdk){
+  state.readme[rdk]=el.value;
+  if(el.value.trim())el.classList.add("filled");else el.classList.remove("filled");
+  save();refreshDynamic();return;
+ }
+ var v=el.getAttribute("data-var");
+ if(!v)return;
+ state[v]=el.value;
+ if(String(el.value).trim())el.classList.add("filled");else el.classList.remove("filled");
+ save();
+ if(v==="q"){
+  var q=String(state.q||"").toLowerCase().trim(),blocks=document.querySelectorAll(".pblock"),k9,j9,pid,pr,hit;
+  for(k9=0;k9<blocks.length;k9++){pid=blocks[k9].id;pr=null;
+   for(j9=0;j9<PROMPTS.length;j9++){if(PROMPTS[j9].id===pid)pr=PROMPTS[j9];}
+   if(!pr)continue;
+   hit=!q||(pr.n+" "+pr.t+" "+pr.s).toLowerCase().indexOf(q)!==-1;
+   blocks[k9].style.display=hit?"":"none";}
+  return;
+ }
+ refreshDynamic();
+});
+
+document.addEventListener("dragstart",function(e){
+ var el=e.target;
+ if(!el||!el.getAttribute)return;
+ var d=el.getAttribute("data-def");
+ if(!d)return;
+ try{e.dataTransfer.setData("text/plain",d);e.dataTransfer.effectAllowed="move";}catch(err){}
+});
+document.addEventListener("dragover",function(e){
+ var el=e.target;
+ if(!el||!el.closest)return;
+ var z=el.closest("[data-zone]");
+ if(!z)return;
+ e.preventDefault();
+ z.classList.add("hot");
+});
+document.addEventListener("dragleave",function(e){
+ var el=e.target;
+ if(!el||!el.closest)return;
+ var z=el.closest("[data-zone]");
+ if(z)z.classList.remove("hot");
+});
+document.addEventListener("drop",function(e){
+ var el=e.target;
+ if(!el||!el.closest)return;
+ var z=el.closest("[data-zone]");
+ if(!z)return;
+ e.preventDefault();z.classList.remove("hot");
+ var id="";
+ try{id=e.dataTransfer.getData("text/plain");}catch(err){}
+ if(!id)return;
+ var ok=false,k;
+ for(k=0;k<DEFECTS.length;k++){if(DEFECTS[k].id===id)ok=true;}
+ if(!ok)return;
+ state.prio[id]=z.getAttribute("data-zone");state.picked=null;state.prioChecked=false;
+ save();rerenderKeep();
+ if(prioPlaced()===7)toast("Все семь разложены. Нажми «Проверить приоритеты».");
+});
+
+document.getElementById("themeBtn").addEventListener("click",function(){
+ state.dark=!state.dark;save();applyTheme();
+ toast(state.dark?"Тёмная тема включена.":"Светлая тема включена.");
+});
+document.getElementById("soundBtn").addEventListener("click",function(){
+ state.sound=!state.sound;save();applySound();
+ if(state.sound)beep(760,0.14,0.07);
+ toast(state.sound?"Звук таймера включён.":"Звук выключен.");
+});
+document.getElementById("printBtn").addEventListener("click",function(){
+ if(!state.started)return;
+ if(state.tab!=="report"){go("report");setTimeout(function(){window.print();},220);}
+ else window.print();
+});
+
+window.addEventListener("error",function(ev){
+ var box=document.getElementById("view");
+ if(box&&!box.innerHTML.trim()){box.className="nostart";
+  box.innerHTML='<div class="errbox">Ошибка скрипта: '+esc(ev.message)+'\nСтрока: '+esc(ev.lineno)+':'+esc(ev.colno)+'</div>';}
+});
+window.addEventListener("beforeunload",function(){stopTick();stopSp();save();});
+
+function boot(){
+ applyTheme();applySound();renderView();
+}
+try{boot();}
+catch(err){view.className="nostart";view.innerHTML='<div class="errbox">Не удалось запустить страницу.\n'+esc(err&&err.message?err.message:String(err))+'</div>';}
+})();
+</script>
+</body>
+</html>
