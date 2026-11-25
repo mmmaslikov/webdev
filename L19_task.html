@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Занятие 19 · Планирование проекта · ТЗ и выбор темы</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --bg-2:#eef1f5; --surface:#ffffff; --surface-2:#f4f6f9; --surface-3:#e9edf3;
+    --border:#e2e7ee; --border-2:#cfd7e3;
+    --ink:#0b1017; --ink-2:#4a5566; --ink-3:#78859a;
+    --accent:#2563eb; --accent-2:#1d4ed8; --accent-rgb:37,99,235;
+    --ok:#15803d; --ok-soft:#dcfce7; --ok-rgb:21,128,61;
+    --warn:#b45309; --warn-soft:#fef3c7; --warn-rgb:180,83,9;
+    --danger:#be123c; --danger-soft:#ffe4e6;
+    --code-bg:#0d1420; --code-ink:#dbe6f5; --code-dim:#6b7f9c;
+    --proj:#2563eb; --proj-2:#7c3aed; --proj-rgb:37,99,235;
+    --shadow-1:0 1px 2px rgba(11,16,23,.05),0 2px 6px rgba(11,16,23,.05);
+    --shadow-2:0 10px 30px -12px rgba(11,16,23,.22),0 2px 8px rgba(11,16,23,.06);
+    --shadow-3:0 24px 60px -24px rgba(var(--proj-rgb),.45);
+    --r:14px; --r-lg:20px; --r-xl:26px;
+    --font:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    --top:58px;
+  }
+  html[data-theme="dark"]{
+    --bg:#080b11; --bg-2:#0c1119; --surface:#111823; --surface-2:#161f2c; --surface-3:#1d2836;
+    --border:#22303f; --border-2:#2f4055;
+    --ink:#eaf1fa; --ink-2:#a7b6c9; --ink-3:#7286a0;
+    --accent:#60a5fa; --accent-2:#93c5fd; --accent-rgb:96,165,250;
+    --ok:#4ade80; --ok-soft:#0f2e1c; --ok-rgb:74,222,128;
+    --warn:#fbbf24; --warn-soft:#33260a; --warn-rgb:251,191,36;
+    --danger:#fb7185; --danger-soft:#3a1220;
+    --code-bg:#060a11; --code-ink:#d7e5f7; --code-dim:#5f7characters;
+    --code-dim:#65799a;
+    --shadow-1:0 1px 2px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35);
+    --shadow-2:0 14px 40px -16px rgba(0,0,0,.75),0 2px 10px rgba(0,0,0,.4);
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font); background:var(--bg); color:var(--ink);
+    font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+  a{color:var(--accent)}
+
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-track{background:var(--surface-2)}
+  ::-webkit-scrollbar-thumb{background:rgba(var(--proj-rgb),.45);border-radius:99px;border:3px solid var(--surface-2)}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(var(--proj-rgb),.8)}
+  *{scrollbar-color:rgba(var(--proj-rgb),.55) var(--surface-2);scrollbar-width:thin}
+
+  /* ---------- фон ---------- */
+  .aura{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .aura i{position:absolute;display:block;border-radius:50%;filter:blur(90px);opacity:.30;transition:background .7s ease}
+  .aura i:nth-child(1){width:52vw;height:52vw;left:-14vw;top:-18vw;background:radial-gradient(circle at 30% 30%,rgba(var(--proj-rgb),.95),transparent 68%);animation:drift1 26s ease-in-out infinite}
+  .aura i:nth-child(2){width:44vw;height:44vw;right:-12vw;top:6vh;background:radial-gradient(circle at 60% 40%,rgba(var(--accent-rgb),.7),transparent 70%);animation:drift2 32s ease-in-out infinite}
+  .aura i:nth-child(3){width:40vw;height:40vw;left:26vw;bottom:-20vw;background:radial-gradient(circle at 50% 50%,rgba(var(--proj-rgb),.55),transparent 72%);animation:drift1 38s ease-in-out infinite reverse}
+  html[data-theme="dark"] .aura i{opacity:.24}
+  @keyframes drift1{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(5vw,4vh,0) scale(1.12)}}
+  @keyframes drift2{0%,100%{transform:translate3d(0,0,0) scale(1.05)}50%{transform:translate3d(-6vw,6vh,0) scale(.92)}}
+  .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.35;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+
+  /* ---------- шапка ---------- */
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:40;height:var(--top);
+    background:color-mix(in srgb,var(--surface) 82%,transparent);
+    backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);
+    border-bottom:1px solid var(--border)}
+  @supports not (background:color-mix(in srgb,red 50%,blue)){.topbar{background:var(--surface)}}
+  .tb{max-width:1180px;margin:0 auto;height:100%;padding:0 18px;display:flex;align-items:center;gap:12px}
+  .mark{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;
+    background:linear-gradient(135deg,var(--proj),var(--proj-2));box-shadow:0 4px 14px -4px rgba(var(--proj-rgb),.7);transition:background .5s}
+  .brand{min-width:0;flex:1;display:flex;flex-direction:column;line-height:1.25}
+  .brand b{font-size:13.5px;font-weight:750;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .brand span{font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sel-chip{display:none;align-items:center;gap:7px;height:32px;padding:0 12px;border-radius:99px;font-size:12.5px;font-weight:700;
+    background:rgba(var(--proj-rgb),.12);color:var(--proj);border:1px solid rgba(var(--proj-rgb),.3);white-space:nowrap;max-width:230px;overflow:hidden;text-overflow:ellipsis}
+  .sel-chip.on{display:inline-flex}
+  .iconbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center;transition:.16s;flex-shrink:0}
+  .iconbtn:hover{border-color:var(--proj);color:var(--proj);transform:translateY(-1px)}
+  .iconbtn:focus-visible{outline:3px solid rgba(var(--proj-rgb),.35);outline-offset:2px}
+  .iconbtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---------- вкладки ---------- */
+  .tabwrap{position:fixed;top:var(--top);left:0;right:0;z-index:35;background:color-mix(in srgb,var(--bg) 88%,transparent);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+  @supports not (background:color-mix(in srgb,red 50%,blue)){.tabwrap{background:var(--bg)}}
+  .tabwrap[hidden]{display:none}
+  .tabs{max-width:1180px;margin:0 auto;padding:8px 14px;display:flex;gap:7px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{height:0}
+  .tab{scroll-snap-align:start;flex-shrink:0;min-height:40px;padding:0 14px;border-radius:11px;border:1px solid var(--border);
+    background:var(--surface);color:var(--ink-2);font-size:13px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.16s;white-space:nowrap}
+  .tab:hover{border-color:var(--border-2);color:var(--ink);transform:translateY(-1px)}
+  .tab:focus-visible{outline:3px solid rgba(var(--proj-rgb),.35);outline-offset:2px}
+  .tab.on{background:linear-gradient(135deg,var(--proj),var(--proj-2));border-color:transparent;color:#fff;box-shadow:0 8px 20px -10px rgba(var(--proj-rgb),.9)}
+  .tab i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55;font-style:normal}
+  .tab .star{font-size:12px}
+  .readbar{height:2px;background:transparent}
+  .readbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--proj),var(--proj-2));transition:width .12s linear}
+
+  main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:calc(var(--top) + 74px) 18px 130px}
+  main.nostart{padding-top:calc(var(--top) + 26px)}
+
+  /* ---------- старт ---------- */
+  .start{border:1px solid var(--border);border-radius:var(--r-xl);background:
+      radial-gradient(120% 120% at 8% 0%,rgba(var(--accent-rgb),.14),transparent 55%),
+      radial-gradient(100% 100% at 100% 100%,rgba(124,58,237,.14),transparent 60%),var(--surface);
+    box-shadow:var(--shadow-2);padding:46px 34px;text-align:center;position:relative;overflow:hidden}
+  .start:before{content:"";position:absolute;inset:0;background:
+      repeating-linear-gradient(115deg,rgba(var(--accent-rgb),.05) 0 2px,transparent 2px 9px);opacity:.5;pointer-events:none}
+  .badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:99px;font-size:12px;font-weight:700;
+    background:rgba(var(--accent-rgb),.12);color:var(--accent);border:1px solid rgba(var(--accent-rgb),.25)}
+  .start h1{position:relative;font-size:clamp(30px,5.4vw,50px);line-height:1.06;letter-spacing:-.035em;margin:18px 0 12px;font-weight:800}
+  .start h1 em{font-style:normal;background:linear-gradient(100deg,var(--accent),#7c3aed 55%,#db2777);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .start p{position:relative;color:var(--ink-2);max-width:680px;margin:0 auto 22px;font-size:16.5px}
+  .meta{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:26px}
+  .chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);font-size:13px;color:var(--ink-2)}
+  .chip b{color:var(--ink)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 24px;border-radius:13px;border:1px solid transparent;
+    font-size:15px;font-weight:700;cursor:pointer;transition:.16s;user-select:none;text-decoration:none}
+  .btn:focus-visible{outline:3px solid rgba(var(--proj-rgb),.4);outline-offset:2px}
+  .btn-p{background:linear-gradient(135deg,var(--proj),var(--proj-2));color:#fff;box-shadow:0 12px 26px -12px rgba(var(--proj-rgb),.95)}
+  .btn-p:hover{transform:translateY(-2px);box-shadow:0 18px 34px -14px rgba(var(--proj-rgb),1)}
+  .btn-s{background:var(--surface);border-color:var(--border-2);color:var(--ink)}
+  .btn-s:hover{background:var(--surface-2);transform:translateY(-1px)}
+  .btn-g{background:transparent;color:var(--ink-2)}
+  .btn-g:hover{background:var(--surface-2);color:var(--ink)}
+  .btn-ok{background:var(--ok-soft);color:var(--ok);border-color:rgba(var(--ok-rgb),.35)}
+  .btn-lg{min-height:54px;padding:0 30px;font-size:16px;border-radius:15px}
+  .btn-sm{min-height:36px;padding:0 14px;font-size:13px;border-radius:10px}
+  .start-grid{position:relative;display:grid;gap:10px;grid-template-columns:repeat(2,1fr);margin-top:30px;text-align:left}
+  @media(min-width:720px){.start-grid{grid-template-columns:repeat(3,1fr)}}
+  .sg{border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;background:var(--surface);transition:.18s;position:relative;overflow:hidden}
+  .sg:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--c1),var(--c2))}
+  .sg:hover{transform:translateY(-3px);box-shadow:var(--shadow-2);border-color:var(--border-2)}
+  .sg b{display:block;font-size:13.5px;letter-spacing:-.01em}
+  .sg span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+  .sg em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--c1)}
+
+  /* ---------- заголовок проекта ---------- */
+  .phead{position:relative;border-radius:var(--r-xl);padding:30px 28px;color:#fff;overflow:hidden;margin-bottom:22px;
+    background:linear-gradient(135deg,var(--proj),var(--proj-2));box-shadow:var(--shadow-3)}
+  .phead:after{content:"";position:absolute;inset:0;background:
+      radial-gradient(80% 120% at 100% 0%,rgba(255,255,255,.28),transparent 60%),
+      repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 12px);pointer-events:none}
+  .phead .wm{position:absolute;right:-8px;top:-34px;font-size:150px;font-weight:900;letter-spacing:-.06em;opacity:.14;line-height:1;pointer-events:none}
+  .phead-in{position:relative;z-index:1}
+  .prow{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:10px}
+  .pcode{font-family:var(--mono);font-size:12px;font-weight:700;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:8px;letter-spacing:.06em}
+  .lvl{font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:99px;letter-spacing:.03em;background:rgba(255,255,255,.92);color:#111}
+  .lvl.b{color:#166534}.lvl.m{color:#92400e}.lvl.h{color:#9f1239}
+  .phead h2{margin:0 0 4px;font-size:clamp(26px,4.4vw,40px);letter-spacing:-.03em;font-weight:800;line-height:1.08}
+  .phead .kind{font-size:15px;opacity:.94;font-weight:600}
+  .phead .aud{margin-top:10px;font-size:13.5px;opacity:.9;max-width:640px}
+  .phead-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+  .phead .btn-s{background:rgba(255,255,255,.94);border-color:transparent;color:#111}
+  .phead .btn-s:hover{background:#fff}
+  .phead .btn-g{color:rgba(255,255,255,.9)}
+  .phead .btn-g:hover{background:rgba(255,255,255,.16);color:#fff}
+  .phead .btn-ok{background:#fff;color:var(--ok);border-color:transparent}
+
+  /* ---------- секции ---------- */
+  .sec{margin:26px 0}
+  .sec-h{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px}
+  .sec-n{flex-shrink:0;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;
+    background:linear-gradient(135deg,var(--proj),var(--proj-2));box-shadow:0 6px 16px -8px rgba(var(--proj-rgb),.9)}
+  .sec-t{font-size:19px;font-weight:750;letter-spacing:-.02em;margin:0}
+  .sec-s{font-size:13.5px;color:var(--ink-2);margin:2px 0 0}
+  .sec-hb{flex:1;min-width:0}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow-1);transition:.18s}
+  .card:hover{border-color:rgba(var(--proj-rgb),.4);box-shadow:var(--shadow-2);transform:translateY(-2px)}
+  .grid{display:grid;gap:12px}
+  .g2{grid-template-columns:1fr}
+  .g3{grid-template-columns:1fr}
+  @media(min-width:700px){.g2{grid-template-columns:1fr 1fr}}
+  @media(min-width:860px){.g3{grid-template-columns:repeat(3,1fr)}}
+
+  .legend{background:linear-gradient(180deg,rgba(var(--proj-rgb),.09),rgba(var(--proj-rgb),.03));border:1px solid rgba(var(--proj-rgb),.28);
+    border-left:4px solid var(--proj);border-radius:var(--r);padding:16px 18px;font-size:15px;line-height:1.65;color:var(--ink)}
+  .legend b{color:var(--proj)}
+
+  .kv{display:grid;gap:8px}
+  .kv-row{display:grid;grid-template-columns:1fr;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
+  @media(min-width:640px){.kv-row{grid-template-columns:150px 1fr;gap:14px;align-items:start}}
+  .kv-k{font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--proj)}
+  .kv-v{font-size:14px;color:var(--ink-2);line-height:1.55;word-break:break-word}
+  .kv-v code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 6px;border-radius:5px;color:var(--ink)}
+
+  .stories{display:grid;gap:9px;grid-template-columns:1fr}
+  @media(min-width:760px){.stories{grid-template-columns:1fr 1fr}}
+  .story{display:flex;gap:11px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;transition:.16s}
+  .story:hover{border-color:rgba(var(--proj-rgb),.45);transform:translateX(3px)}
+  .story i{flex-shrink:0;width:23px;height:23px;border-radius:7px;background:rgba(var(--proj-rgb),.13);color:var(--proj);
+    display:grid;place-items:center;font-size:11.5px;font-weight:800;font-style:normal;margin-top:1px}
+  .story span{font-size:13.8px;color:var(--ink-2);line-height:1.5}
+
+  .mvp{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:820px){.mvp{grid-template-columns:repeat(3,1fr)}}
+  .mcol{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--surface);box-shadow:var(--shadow-1)}
+  .mhead{padding:10px 14px;font-size:12px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  .mcol.must .mhead{background:var(--ok-soft);color:var(--ok)}
+  .mcol.nice .mhead{background:var(--warn-soft);color:var(--warn)}
+  .mcol.extra .mhead{background:var(--surface-3);color:var(--ink-2)}
+  .mcol ul{margin:0;padding:12px 14px 14px 30px;font-size:13.5px;color:var(--ink-2);line-height:1.55}
+  .mcol li{margin-bottom:6px}
+  .mcol.must li::marker{color:var(--ok)}
+  .mcol.nice li::marker{color:var(--warn)}
+
+  .tags{display:flex;flex-wrap:wrap;gap:7px}
+  .tag{font-size:12.5px;padding:6px 11px;border-radius:9px;background:var(--surface-2);border:1px solid var(--border);color:var(--ink-2)}
+
+  .code{position:relative;background:var(--code-bg);border-radius:var(--r);border:1px solid rgba(var(--proj-rgb),.28);overflow:hidden;box-shadow:var(--shadow-1)}
+  .code-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .code-h span{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--code-dim)}
+  .code pre{margin:0;padding:14px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--code-ink);max-height:340px}
+  .copy{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#cbd5e1;border-radius:8px;padding:5px 11px;font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .copy:hover{background:rgba(255,255,255,.16);color:#fff}
+  .copy.done{background:var(--ok);border-color:transparent;color:#fff}
+
+  .sprints{display:grid;gap:10px;grid-template-columns:1fr}
+  @media(min-width:760px){.sprints{grid-template-columns:repeat(4,1fr)}}
+  .sp{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;transition:.18s}
+  .sp:hover{transform:translateY(-3px);box-shadow:var(--shadow-2);border-color:rgba(var(--proj-rgb),.45)}
+  .sp b{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;font-size:13px;color:#fff;margin-bottom:9px;
+    background:linear-gradient(135deg,var(--proj),var(--proj-2))}
+  .sp p{margin:0;font-size:13.3px;color:var(--ink-2);line-height:1.5}
+  .sp.mvp{border-color:rgba(var(--ok-rgb),.5);background:linear-gradient(180deg,var(--ok-soft),var(--surface))}
+  .sp .flag{position:absolute;top:12px;right:12px;font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--ok)}
+
+  .pit{display:grid;gap:9px}
+  .pit-row{display:grid;grid-template-columns:1fr;gap:6px;border:1px solid rgba(var(--warn-rgb),.35);background:var(--warn-soft);border-radius:12px;padding:12px 14px}
+  @media(min-width:700px){.pit-row.two{grid-template-columns:1fr 1fr;gap:16px}}
+  .pit-row .w{font-size:13.5px;font-weight:650;color:var(--warn)}
+  .pit-row .f{font-size:13.5px;color:var(--ink-2)}
+  .pit-row .f:before{content:"→ ";color:var(--ok);font-weight:800}
+
+  .ai-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;transition:.18s}
+  .ai-card:hover{border-color:rgba(var(--proj-rgb),.45);box-shadow:var(--shadow-2)}
+  .ai-card h4{margin:0 0 7px;font-size:13.5px;display:flex;align-items:center;gap:8px}
+  .ai-card h4 i{font-style:normal;font-size:10px;font-weight:800;letter-spacing:.07em;color:var(--proj);background:rgba(var(--proj-rgb),.12);padding:3px 8px;border-radius:6px}
+  .ai-card p{margin:0 0 8px;font-size:13.4px;color:var(--ink-2);line-height:1.55}
+  .ai-card .chk{font-size:12.8px;color:var(--ok);background:var(--ok-soft);border-radius:9px;padding:8px 11px;line-height:1.45}
+  .ai-card .chk b{color:var(--ok)}
+
+  .demo{background:linear-gradient(135deg,rgba(var(--proj-rgb),.1),rgba(var(--proj-rgb),.03));border:1px solid rgba(var(--proj-rgb),.3);border-radius:var(--r);padding:16px 18px}
+  .demo p{margin:0 0 12px;font-size:14.5px;line-height:1.6;color:var(--ink)}
+  .demo .q{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border-radius:12px;padding:12px 14px;border:1px dashed rgba(var(--proj-rgb),.5)}
+  .demo .q i{font-style:normal;font-size:17px}
+  .demo .q b{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--proj);margin-bottom:3px}
+  .demo .q span{font-size:14px;color:var(--ink);font-weight:600}
+
+  .note{border-radius:var(--r);padding:14px 16px;font-size:14px;line-height:1.6;border:1px solid var(--border);background:var(--surface-2);color:var(--ink-2)}
+  .note.warn{background:var(--warn-soft);border-color:rgba(var(--warn-rgb),.35);color:var(--warn)}
+  .note.ok{background:var(--ok-soft);border-color:rgba(var(--ok-rgb),.35);color:var(--ok)}
+  .note.acc{background:rgba(var(--proj-rgb),.08);border-color:rgba(var(--proj-rgb),.3);color:var(--ink)}
+  .note b{color:inherit}
+  .note code{font-family:var(--mono);font-size:12.5px;background:var(--surface);padding:1px 6px;border-radius:5px}
+
+  /* ---------- таблицы ---------- */
+  .tw{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow-1)}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+  th{text-align:left;padding:11px 14px;background:var(--surface-2);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);border-bottom:1px solid var(--border)}
+  td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;color:var(--ink-2)}
+  tr:last-child td{border-bottom:none}
+  tbody tr{transition:.14s}
+  tbody tr:hover{background:rgba(var(--proj-rgb),.05)}
+  td b{color:var(--ink)}
+  .pts{display:inline-grid;place-items:center;min-width:34px;height:26px;border-radius:8px;font-family:var(--mono);font-weight:800;font-size:13px;
+    background:rgba(var(--proj-rgb),.13);color:var(--proj)}
+  .bar{height:6px;border-radius:99px;background:var(--surface-3);overflow:hidden;margin-top:7px;min-width:90px}
+  .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--proj),var(--proj-2));transition:width .9s cubic-bezier(.22,.61,.36,1)}
+  .in .bar i{width:var(--w)}
+
+  .levels{display:grid;gap:10px;grid-template-columns:1fr;margin-top:12px}
+  @media(min-width:700px){.levels{grid-template-columns:repeat(3,1fr)}}
+  .lv{border-radius:var(--r);padding:13px 15px;border:1px solid var(--border);background:var(--surface)}
+  .lv b{display:block;font-size:20px;font-family:var(--mono);letter-spacing:-.02em}
+  .lv span{font-size:12.5px;color:var(--ink-2)}
+  .lv.hi{border-color:rgba(var(--ok-rgb),.4);background:var(--ok-soft)}.lv.hi b{color:var(--ok)}
+  .lv.mid{border-color:rgba(var(--accent-rgb),.4)}.lv.mid b{color:var(--accent)}
+  .lv.lo{border-color:rgba(var(--warn-rgb),.4);background:var(--warn-soft)}.lv.lo b{color:var(--warn)}
+
+  /* ---------- сравнение / фильтры ---------- */
+  .controls{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:12px}
+  .fchip{min-height:36px;padding:0 14px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);font-size:13px;font-weight:650;cursor:pointer;transition:.15s}
+  .fchip:hover{border-color:var(--border-2);color:var(--ink)}
+  .fchip.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+  .fchip:focus-visible{outline:3px solid rgba(var(--proj-rgb),.35);outline-offset:2px}
+  .sel{min-height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);padding:0 10px;font-size:13px;cursor:pointer}
+  .sel:focus-visible{outline:3px solid rgba(var(--proj-rgb),.35);outline-offset:2px}
+  .cmp-code{font-family:var(--mono);font-weight:800;font-size:12.5px;color:var(--c1)}
+  .pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;letter-spacing:.02em;white-space:nowrap}
+  .pill.b{background:var(--ok-soft);color:var(--ok)}
+  .pill.m{background:var(--warn-soft);color:var(--warn)}
+  .pill.h{background:var(--danger-soft);color:var(--danger)}
+  tr.picked{background:rgba(var(--proj-rgb),.09)!important;box-shadow:inset 3px 0 0 var(--proj)}
+
+  .mytopic{border:1px solid rgba(var(--proj-rgb),.35);border-radius:var(--r-lg);padding:18px;background:
+      linear-gradient(135deg,rgba(var(--proj-rgb),.1),transparent 60%),var(--surface);box-shadow:var(--shadow-1)}
+  .mytopic.empty{border-style:dashed;background:var(--surface-2)}
+  .mt-h{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .mt-h h3{margin:0;font-size:17px;letter-spacing:-.02em}
+  .mt-grid{display:grid;gap:10px;grid-template-columns:1fr}
+  @media(min-width:760px){.mt-grid{grid-template-columns:1.1fr 1fr}}
+
+  .steps{counter-reset:s;display:grid;gap:9px}
+  .step{display:flex;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px}
+  .step i{font-style:normal;flex-shrink:0;width:24px;height:24px;border-radius:8px;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-size:12px;font-weight:800}
+  .step span{font-size:14px;color:var(--ink-2)}
+
+  /* ---------- низ / тост ---------- */
+  .actionbar{position:fixed;left:0;right:0;bottom:0;z-index:38;border-top:1px solid var(--border);
+    background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);padding:9px 18px}
+  @supports not (background:color-mix(in srgb,red 50%,blue)){.actionbar{background:var(--surface)}}
+  .actionbar[hidden]{display:none}
+  .ab{max-width:1180px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .ab-info{font-size:12.5px;color:var(--ink-3);min-width:0;flex:1}
+  .ab-info b{color:var(--ink)}
+  .ab-btns{display:flex;gap:8px;flex-wrap:wrap}
+  .toast{position:fixed;left:50%;bottom:78px;transform:translate(-50%,20px);z-index:60;opacity:0;pointer-events:none;
+    background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:650;box-shadow:var(--shadow-2);transition:.28s cubic-bezier(.22,.61,.36,1);max-width:90vw;text-align:center}
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+
+  [data-reveal]{opacity:0;transform:translateY(16px);transition:opacity .55s cubic-bezier(.22,.61,.36,1),transform .55s cubic-bezier(.22,.61,.36,1)}
+  [data-reveal].in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    [data-reveal]{opacity:1;transform:none}
+  }
+
+  @media(max-width:560px){
+    :root{--top:54px}
+    .tb{padding:0 12px;gap:8px}
+    .brand span{display:none}
+    .sel-chip{max-width:120px;font-size:11.5px;padding:0 9px}
+    main{padding:calc(var(--top) + 70px) 12px 140px}
+    .start{padding:30px 18px}
+    .phead{padding:22px 18px}
+    .phead .wm{font-size:100px;top:-18px}
+    .sec-t{font-size:17px}
+    .ab-info{display:none}
+    .ab-btns{width:100%}
+    .ab-btns .btn{flex:1}
+  }
+
+  @media print{
+    @page{size:A4;margin:14mm}
+    .aura,.grain,.topbar,.tabwrap,.actionbar,.toast,.phead-actions,.copy,.controls{display:none!important}
+    body{background:#fff}
+    main{padding:0;max-width:100%}
+    .card,.sp,.story,.mcol,.ai-card,.code,.tw{break-inside:avoid;box-shadow:none}
+    .phead{color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .code{background:#f1f5f9!important;border-color:#cbd5e1}
+    .code pre,.code-h span{color:#0f172a!important}
+    [data-reveal]{opacity:1!important;transform:none!important}
+    .bar i{width:var(--w)!important}
+  }
+</style>
+</head>
+<body>
+<div class="aura" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="tb">
+    <div class="mark" id="mark">19</div>
+    <div class="brand">
+      <b>Занятие 19 · Планирование проекта</b>
+      <span>Масликов М. М. · модуль 8 · ТЗ итогового Dashboard и выбор темы</span>
+    </div>
+    <span class="sel-chip" id="selChip"></span>
+    <button class="iconbtn" id="themeBtn" type="button" aria-label="Переключить тёмную тему" title="Тёмная тема">
+      <svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="iconbtn" id="printBtn" type="button" aria-label="Сохранить в PDF" title="Сохранить вкладку в PDF">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="tabwrap" id="tabwrap" hidden>
+  <nav class="tabs" id="tabs" aria-label="Вкладки: ТЗ и шесть тем"></nav>
+  <div class="readbar"><i id="readbar"></i></div>
+</div>
+
+<main id="view" class="nostart"></main>
+
+<div class="actionbar" id="actionbar" hidden>
+  <div class="ab">
+    <div class="ab-info" id="abInfo"></div>
+    <div class="ab-btns">
+      <button class="btn btn-s btn-sm" data-action="goto-tz" type="button">Основное ТЗ</button>
+      <button class="btn btn-p btn-sm" data-action="print" type="button">Сохранить вкладку в PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   Занятие 19 · Планирование проекта
+   Основное ТЗ (Приложения 1 и 2) + шесть тем P01–P06
+   ============================================================ */
+
+const MUST = [
+  { k:"Формат работы", v:"Интерактивный Dashboard. Тема на выбор из шести. Работа индивидуально или парой." },
+  { k:"HTML / CSS", v:"Mobile First, Grid + Flexbox, тёмная тема на CSS-переменных, aria-атрибуты." },
+  { k:"JavaScript", v:"DOM, валидация форм, fetch минимум к одному публичному API, localStorage." },
+  { k:"ИИ", v:"SVG-логотип или набор иконок; подробный README, структурированный моделью; рефакторинг минимум двух сложных функций." },
+  { k:"Инфраструктура", v:"Не меньше 10 осмысленных коммитов; фичи в ветках + Pull Request; публичная ссылка." },
+  { k:"UX", v:"Микроанимации (наведение, клик, загрузка), понятный интерфейс." }
+];
+
+const CRITERIA = [
+  { n:"Соответствие ТЗ (вёрстка, JS, API, localStorage)", p:10, w:"Полнота обязательных требований" },
+  { n:"Адаптивность и UI/UX", p:5, w:"Mobile First, тёмная тема, микроанимации" },
+  { n:"Культура работы с Git", p:5, w:"10+ осмысленных коммитов, ветвление, PR" },
+  { n:"Осознанное применение ИИ", p:5, w:"Иконки/логотип, README, рефакторинг + понимание кода" },
+  { n:"Защита и презентация", p:5, w:"Структура, ответы, рефлексия" }
+];
+
+const APIS = [
+  { n:"Open-Meteo", w:"Погода", note:"Без ключа. Широту и долготу города зашивают константой." },
+  { n:"Advice Slip", w:"Короткие советы", note:"Без ключа. Часто блокируется школьным прокси — фолбэк сразу." },
+  { n:"TVMaze", w:"Поиск сериалов и фильмов", note:"Без ключа. Пустой запрос даёт 400." },
+  { n:"Open Library", w:"Книги", note:"Без ключа. Ответы большие — брать только нужные поля." },
+  { n:"CheapShark", w:"Скидки на игры", note:"Без ключа. Полей много — брать title, price, sale." },
+  { n:"JSONPlaceholder", w:"Учебные сущности", note:"Часто режется школьным прокси — проверять заранее." }
+];
+
+const SPRINTS_COMMON = [
+  { n:20, t:"Каркас с заглушками вместо данных, тема в :root, репозиторий", mvp:false },
+  { n:21, t:"Логика и API: состояние, рендер, fetch с фолбэком", mvp:false },
+  { n:22, t:"localStorage, тёмная тема, микроанимации — граница MVP", mvp:true },
+  { n:23, t:"Взаимный тест на чужом устройстве, README, деплой", mvp:false }
+];
+
+const P = [
+  {
+    id:"P01", name:"Ритм 21", kind:"Трекер привычек", level:"базовый", lv:"b",
+    c1:"#0f766e", c2:"#14b8a6", rgb:"15,118,110",
+    who:"13–15 лет, уверенно прошли занятия 8–12 по инструкции",
+    users:"Подросток, который ведёт 3–7 привычек",
+    problem:"Срывы незаметны, нет «серии дней», мотивация гаснет к концу недели",
+    diff:"Отметки по датам и серия дней, а не статусы задач.",
+    short:"Привычки и отметки по датам", apiShort:"Advice Slip / Open-Meteo",
+    legend:"Школьный психолог Марина просит панель для кружка «Здоровые привычки»: подростки отмечают сон, воду и прогулку 21 день. Бумажные таблицы теряются, в чате невозможно увидеть серию дней. Нужен личный трекер без регистрации.",
+    stories:[
+      "Я как ученик, хочу добавить привычку с названием и цветом, чтобы видеть её на доске.",
+      "Я как ученик, хочу отметить привычку за сегодня, чтобы серия дней росла.",
+      "Я как ученик, хочу снять отметку, если отметил по ошибке.",
+      "Я как ученик, хочу видеть серию (streak) и календарь 7 дней, чтобы не бросить на третий день.",
+      "Я как ученик, хочу получить совет дня с API, чтобы экран не был пустой таблицей.",
+      "Я как ученик, хочу переключить тёмную тему вечером.",
+      "Я как ученик, хочу, чтобы данные не пропали после закрытия вкладки.",
+      "Я как ученик, хочу форму добавления с проверкой пустого имени."
+    ],
+    must:["Список привычек","Отметка «сегодня»","Серия дней (streak)","Форма добавления","fetch совета или погоды","localStorage","Mobile First, Grid + Flex","Тёмная тема","aria у чекбоксов и кнопок","10+ коммитов, ветка + PR","README","SVG-логотип"],
+    nice:["Календарь 21 дня","Архив привычки"],
+    extra:["Экспорт JSON","График из CSS"],
+    coverage:[
+      { k:"Grid / Flex", v:"Grid — сетка карточек привычек; Flex — шапка и ряд кнопок карточки." },
+      { k:"Тема", v:"--bg, --text, --accent в :root и [data-theme=\"dark\"]." },
+      { k:"Форма", v:"Название привычки, preventDefault, trim, ошибка в aria-live." },
+      { k:"API", v:"1) Advice Slip  2) Open-Meteo как «погода для прогулки»  3) Open Library (subject:self-help, осторожно с объёмом) + data/fallback.json { \"advice\": \"…\" }." },
+      { k:"DOM", v:"Рендер карточек из массива, обработчики отметок." },
+      { k:"localStorage", v:"См. схему данных ниже." },
+      { k:"ИИ", v:"Логотип «21», README, рефакторинг toggleHabit и countStreak." }
+    ],
+    screens:["Дашборд — карточки привычек, совет/погода, переключатель темы","Форма «Новая привычка» на той же странице","Состояние пустого списка — приглашение добавить первую"],
+    schema:[
+      '{',
+      '  "habits": [',
+      '    {',
+      '      "id": "h1",',
+      '      "title": "Вода 6 стаканов",',
+      '      "color": "#0f766e",',
+      '      "createdAt": "2026-03-01",',
+      '      "checks": ["2026-03-01", "2026-03-02"]',
+      '    }',
+      '  ],',
+      '  "settings": { "theme": "light" }',
+      '}'
+    ].join("\n"),
+    sprints:[
+      { n:20, t:"Каркас, карточки-заглушки, тема CSS, репозиторий", mvp:false },
+      { n:21, t:"Рендер из массива, форма, fetch совета + фолбэк", mvp:false },
+      { n:22, t:"localStorage, streak, микроанимации чекбокса", mvp:true },
+      { n:23, t:"Тест на телефоне, README, деплой", mvp:false }
+    ],
+    ai:[
+      { t:"SVG-логотип", p:"«Нарисуй простой логотип трекера привычек: круг из 21 деления и галочка. Только SVG, без градиентов брендов, viewBox 64 64, без фиксированной width/height в px».", c:"Открывается в браузере, нет лишних xmlns:xlink, масштабируется." },
+      { t:"README", p:"Контекст проекта + стек + что сделано ИИ + ссылка.", c:"Ссылка живая, нет выдуманных библиотек." },
+      { t:"Рефакторинг", p:"countStreak и toggleHabit.", c:"Серии считаются по календарным дням, не по длине массива." },
+      { t:"Тестовые данные", p:"5 привычек на 10 дней.", c:"Даты валидны, id уникальны." }
+    ],
+    pitfalls:[
+      { w:"Streak считают как checks.length", f:"Эталон: подряд до сегодня, разрыв обнуляет" },
+      { w:"Дата «сегодня» с часовым поясом", f:"Хранить YYYY-MM-DD локально через свой хелпер" },
+      { w:"Advice Slip блокируется", f:"Сразу включать фолбэк, не ждать" }
+    ],
+    accept:[
+      { n:"ТЗ · 10", v:"привычки + отметка + API + память" },
+      { n:"UI · 5", v:"карточки на 360 px без горизонтального скролла, тема, анимация галочки" },
+      { n:"Git · 5", v:"ветка feat/habits, PR" },
+      { n:"ИИ · 5", v:"логотип, README, две функции, объяснение streak" },
+      { n:"Защита · 5", v:"показать серию дней вживую" }
+    ],
+    demo:"Отметить привычку → серия +1; обновить страницу — отметка на месте; включить тему; совет дня.",
+    question:"Что будет со серией, если пропустить день?"
+  },
+  {
+    id:"P02", name:"Дедлайн-доска", kind:"Менеджер задач", level:"базовый", lv:"b",
+    c1:"#b45309", c2:"#f59e0b", rgb:"180,83,9",
+    who:"13–15 лет, кому понятнее статусы, чем календари привычек",
+    users:"Школьник, который ведёт 5–20 личных дел",
+    problem:"Дела живут в чате и голове; не видно, что в работе, что готово",
+    diff:"Не отметки по датам, а CRUD + статусы (очередь / в работе / готово) и фильтр.",
+    short:"Задачи со статусами", apiShort:"JSONPlaceholder / Open-Meteo",
+    legend:"Классный руководитель 8 «Б» тонет в тетрадке поручений: «стенгазета», «сбор макулатуры», «презентация к пятнице». Нужна доска задач ученика: три колонки, без чужого аккаунта.",
+    stories:[
+      "Я как ученик, хочу создать задачу с названием и сроком, чтобы она появилась в «Очереди».",
+      "Я как ученик, хочу перевести задачу в «В работе» и «Готово».",
+      "Я как ученик, хочу удалить задачу, подтвердив действие.",
+      "Я как ученик, хочу фильтровать «только на этой неделе».",
+      "Я как ученик, хочу видеть число задач в каждой колонке.",
+      "Я как ученик, хочу подтянуть учебный список дел из API как черновики.",
+      "Я как ученик, хочу, чтобы пустое название нельзя было сохранить.",
+      "Я как ученик, хочу тёмную тему и сохранение доски."
+    ],
+    must:["Три колонки статусов","Создание, смена статуса, удаление","Счётчики задач в колонках","Валидация формы","fetch заготовок","localStorage","Адаптив: на узком экране колонки столбиком","Тёмная тема","aria у кнопок статуса","Git, деплой и ИИ по программе"],
+    nice:["Просроченный срок — цветом"],
+    extra:["Поиск по названию"],
+    coverage:[
+      { k:"Grid / Flex", v:"Grid — три колонки статусов; Flex — карточка задачи (текст + кнопки)." },
+      { k:"API", v:"1) JSONPlaceholder /todos  2) Open-Meteo как виджет «сегодня плохая погода — не откладывай прогулку с собакой» (не список задач)  3) Advice Slip как подсказка «с чего начать» + fallback.json массив { \"title\": \"Собрать черновик презентации\" }." },
+      { k:"Форма", v:"Название, срок (date), required + JS." },
+      { k:"localStorage", v:"Массив задач." },
+      { k:"Статусы", v:"status: todo | doing | done." }
+    ],
+    screens:["Одна страница: виджет API + форма + три колонки","Пустые колонки с текстом «Перетаскивать не нужно — кнопки статуса»"],
+    schema:[
+      '{',
+      '  "tasks": [',
+      '    {',
+      '      "id": "t1",',
+      '      "title": "Черновик стенгазеты",',
+      '      "due": "2026-03-12",',
+      '      "status": "todo"',
+      '    }',
+      '  ],',
+      '  "settings": { "theme": "dark", "filter": "all" }',
+      '}',
+      '',
+      '// status: todo | doing | done'
+    ].join("\n"),
+    sprints:[
+      { n:20, t:"Сетка колонок, карточки-заглушки", mvp:false },
+      { n:21, t:"CRUD в памяти + fetch заготовок", mvp:false },
+      { n:22, t:"localStorage, фильтр, тема, анимация появления карточки", mvp:true },
+      { n:23, t:"QA, README", mvp:false }
+    ],
+    ai:[
+      { t:"SVG-логотип", p:"Логотип канбан-доски: три прямоугольника. Без логотипов компаний.", c:"" },
+      { t:"README", p:"README со схемой статусов.", c:"" },
+      { t:"Рефакторинг", p:"moveTask и renderBoard.", c:"" },
+      { t:"Тестовые данные", p:"8 тестовых задач с разными due.", c:"" }
+    ],
+    pitfalls:[
+      { w:"Мутация массива без рендера — требовать одну функцию renderBoard().", f:"" },
+      { w:"Удаление без подтверждения.", f:"" },
+      { w:"Просроченный due сравнивать строками YYYY-MM-DD, не Date в UTC вслепую.", f:"" }
+    ],
+    accept:null,
+    demo:"Показать цикл: создать → в работу → готово → обновить вкладку. На узком экране колонки друг под другом.",
+    question:"Где в коде решается, в какую колонку попадёт карточка?"
+  },
+  {
+    id:"P03", name:"Диванный зал", kind:"Кинопоиск", level:"повышенный", lv:"m",
+    c1:"#9d174d", c2:"#ec4899", rgb:"157,23,77",
+    who:"15–17 лет, кому дался fetch на занятии 12",
+    users:"Семья или класс, выбирающий фильм или сериал на вечер",
+    problem:"Вкладки с трейлерами расползаются; нет общего короткого списка",
+    diff:"Поиск по внешней каталожной базе, избранное локально, много карточек результатов.",
+    short:"Поиск по каталогу и избранное", apiShort:"TVMaze / Open Library",
+    legend:"Семейный киноклуб в подъезде: бабушки и подростки спорят, что смотреть в субботу. Нужен поиск по названию, карточка с рейтингом и сюжетом, список «посмотрим» без регистрации.",
+    stories:[
+      "Я как зритель, хочу ввести название и увидеть список карточек.",
+      "Я как зритель, хочу открыть подробности выбранного тайтла.",
+      "Я как зритель, хочу добавить тайтл в «Посмотрим».",
+      "Я как зритель, хочу убрать из списка.",
+      "Я как зритель, хочу видеть сообщение, если ничего не найдено.",
+      "Я как зритель, хочу видеть сообщение, если сети нет — и работать с локальным каталогом.",
+      "Я как зритель, хочу, чтобы пустой запрос не уходил на сервер.",
+      "Я как зритель, хочу тёмной темой смотреть вечером без «белой вспышки».",
+      "Я как зритель, хочу, чтобы «Посмотрим» сохранился."
+    ],
+    must:["Поиск","Список результатов","Избранное «Посмотрим»","Пустые и ошибочные состояния","Фолбэк JSON","Форма поиска","Тёмная тема","Grid карточек","Доступное поле поиска (label)","Git и ИИ по программе"],
+    nice:["Фильтр «только сериалы»"],
+    extra:["Отметка «уже видели»"],
+    coverage:[
+      { k:"API", v:"1) TVMaze https://api.tvmaze.com/search/shows?q=  2) Open Library как запасной «книги по мотивам»  3) локальный fallback.json на 8 вымышленных тайтлов. Advice Slip не подходит как каталог — не использовать третьим каталогом." },
+      { k:"Картинки", v:"Не использовать постеры чужих фильмов с копирайтом: в эталоне — цветные плейсхолдеры и вымышленные названия; с TVMaze — только данные API, без складирования чужих баннеров в репозиторий (горячая ссылка или плейсхолдер)." },
+      { k:"Grid / Flex", v:"Grid — результаты; Flex — карточка (постер-плейсхолдер + текст)." },
+      { k:"localStorage", v:"Массив избранного { id, title, year, summary }." }
+    ],
+    screens:["Поиск","Результаты","Боковая или нижняя панель «Посмотрим»","Деталь в модалке: dialog или самодельная с фокусом и Escape — навык занятия 10"],
+    schema:[
+      '{',
+      '  "watchlist": [',
+      '    { "id": "tv-123", "title": "Вымышленный маяк", "year": "2019", "note": "" }',
+      '  ],',
+      '  "settings": { "theme": "dark" }',
+      '}'
+    ].join("\n"),
+    sprints:[
+      { n:20, t:"Сетка, модалка-заглушка, форма", mvp:false },
+      { n:21, t:"fetch TVMaze + состояния загрузки, ошибки и пусто", mvp:false },
+      { n:22, t:"watchlist в localStorage, тема, анимация карточек", mvp:true },
+      { n:23, t:"Без сети открыть фолбэк, README", mvp:false }
+    ],
+    ai:null,
+    pitfalls:[
+      { w:"CORS редко, но школьный прокси режет TVMaze — фолбэк обязателен с занятия 21.", f:"" },
+      { w:"Длинный HTML в summary — textContent, не innerHTML.", f:"" },
+      { w:"Пустой q — 400 от API.", f:"" }
+    ],
+    accept:null,
+    demo:"Найти запрос → открыть карточку → добавить в список → F5. Затем отключить сеть в DevTools и показать фолбэк.",
+    question:"Почему нельзя вставлять описание через innerHTML?"
+  },
+  {
+    id:"P04", name:"Пиксельный штаб", kind:"Панель геймера", level:"повышенный", lv:"m",
+    c1:"#4c1d95", c2:"#8b5cf6", rgb:"76,29,149",
+    who:"14–18 лет, геймеры; нужна аккуратность с fetch и числами",
+    users:"Участник киберклуба",
+    problem:"Скидки смотрят в пяти вкладках, список «пройдено» ведут в заметках телефона",
+    diff:"Агрегация чисел (часы, оценка) + внешний прайс-лист скидок, не поиск сюжета как в P03.",
+    short:"Игры, часы, оценки и скидки", apiShort:"CheapShark / Open-Meteo",
+    legend:"Школьный киберклуб готовит вечер скидок и учёта «во что играли». Нужна панель: библиотека пройденных игр (своя) + блок актуальных скидок с открытого API, без логотипов магазинов-брендов в макете.",
+    stories:[
+      "Я как игрок, хочу добавить игру в библиотеку (название, часы, оценка 1–10).",
+      "Я как игрок, хочу видеть среднее время и число игр.",
+      "Я как игрок, хочу загрузить подборку скидок с API.",
+      "Я как игрок, хочу сохранить библиотеку локально.",
+      "Я как игрок, хочу валидировать оценку (1–10) и часы (≥ 0).",
+      "Я как игрок, хочу состояние «скидки недоступны — локальный список».",
+      "Я как игрок, хочу удалить игру из библиотеки.",
+      "Я как игрок, хочу тёмную «ночную» тему как на стриме."
+    ],
+    must:["CRUD библиотеки","Сводка чисел","fetch скидок","Фолбэк","Тёмная тема","Grid: сводка + две зоны","Форма","Подписи полей для доступности","Git и ИИ по программе"],
+    nice:["Сортировка по оценке"],
+    extra:["Фильтр «оценка ≥ 8»"],
+    coverage:[
+      { k:"API", v:"1) CheapShark https://www.cheapshark.com/api/1.0/deals?upperPrice=15  2) Open-Meteo виджет «не забудь разминку, если сидишь дома»  3) фолбэк: 6 вымышленных сделок { \"title\": \"Северная экспедиция\", \"price\": \"4.99\" } без чужих обложек." },
+      { k:"Картинки", v:"Не тащить товарные логотипы Steam и Epic." },
+      { k:"localStorage", v:"games[], settings.theme." },
+      { k:"Числа", v:"hours и score приходят строками из формы — приводить и проверять." }
+    ],
+    screens:["Сводка: три числа","Форма добавления игры","Сетка библиотеки","Лента скидок"],
+    schema:[
+      '{',
+      '  "games": [',
+      '    { "id": "g1", "title": "Северная экспедиция", "hours": 12, "score": 8 }',
+      '  ],',
+      '  "settings": { "theme": "dark" }',
+      '}'
+    ].join("\n"),
+    sprints:[
+      { n:20, t:"UI сводки и сеток", mvp:false },
+      { n:21, t:"fetch скидок + рендер ленты", mvp:false },
+      { n:22, t:"Библиотека + localStorage + подсчёты", mvp:true },
+      { n:23, t:"QA чисел (среднее), README", mvp:false }
+    ],
+    ai:null,
+    pitfalls:[
+      { w:"hours как строка из input — Number, проверка Number.isFinite.", f:"" },
+      { w:"CheapShark может отдать много полей — брать только title, price, sale.", f:"" },
+      { w:"Не класть чужие URL картинок в репозиторий.", f:"" }
+    ],
+    accept:null,
+    demo:"Добавить игру → среднее изменилось; показать ленту скидок; выключить сеть — фолбэк.",
+    question:"Где считается среднее и что будет при пустой библиотеке? (не делить на ноль)"
+  },
+  {
+    id:"P05", name:"Классный штаб", kind:"Школьная панель", level:"высокий", lv:"h",
+    c1:"#1d4ed8", c2:"#38bdf8", rgb:"29,78,216",
+    who:"15–18 лет, лидеры класса, кто тянет несколько сущностей",
+    users:"Дежурный командир и одноклассники",
+    problem:"Данные разнородные (события, люди, погода), легко сломать структуру",
+    diff:"Несколько коллекций + календарная неделя + внешняя погода. Школьный контекст.",
+    short:"Объявления, дежурства, дни рождения", apiShort:"Open-Meteo / Advice Slip",
+    legend:"Совет старшеклассников ведёт дежурства, объявления и дни рождения в трёх беседах. После каникул половина информации мертва. Нужен один экран «штаб класса»: объявление, график дежурных на неделю, ближайшие дни рождения, погода на завтра — выходить ли на линейку во двор.",
+    stories:[
+      "Я как командир, хочу добавить объявление с датой.",
+      "Я как командир, хочу назначить двух дежурных на день недели.",
+      "Я как одноклассник, хочу видеть, кто дежурит сегодня.",
+      "Я как одноклассник, хочу открыть список дней рождения месяца.",
+      "Я как командир, хочу подтянуть погоду на завтра.",
+      "Я как командир, хочу форму объявления с лимитом длины.",
+      "Я как одноклассник, хочу тёмную тему для вечернего просмотра с телефона.",
+      "Я как командир, хочу, чтобы штаб не обнулялся после закрытия браузера.",
+      "Я как педагог, хочу, чтобы не было персональных телефонов и домашних адресов в полях."
+    ],
+    must:["Объявления: CRUD","Сетка 5–6 рабочих дней с дежурными","Блок дней рождения: имя и дата без года или с классом","Погода через fetch","Валидация","Тёмная тема","Память (localStorage)","Персональные данные: только имя и класс, без телефонов"],
+    nice:["Подсветка «сегодня»"],
+    extra:["Архив объявлений"],
+    coverage:[
+      { k:"Grid / Flex", v:"Grid — шахматка недели; Flex — карточка объявления." },
+      { k:"API", v:"1) Open-Meteo: широту и долготу города организации зашить константой + комментарий «замените на свой город»  2) Advice Slip как «цитата на линейку»  3) фолбэк погоды { \"tmax\": 12, \"code\": 2 }." },
+      { k:"Формы", v:"Объявление; назначение дежурного." },
+      { k:"aria", v:"aria-current=\"date\" на сегодняшнем дне." },
+      { k:"Данные", v:"Только имя и класс. Телефоны и адреса не хранем." }
+    ],
+    screens:["Шапка с погодой","Объявления","Сетка дежурств","Список дней рождения"],
+    schema:[
+      '{',
+      '  "notices": [',
+      '    { "id": "n1", "title": "Сбор макулатуры", "body": "Кабинет 12", "date": "2026-03-14" }',
+      '  ],',
+      '  "duties": [',
+      '    { "weekday": 1, "names": ["Алина", "Тимур"] }',
+      '  ],',
+      '  "birthdays": [',
+      '    { "name": "София К.", "md": "03-21" }',
+      '  ],',
+      '  "settings": { "theme": "light", "lat": 55.75, "lon": 37.62 }',
+      '}'
+    ].join("\n"),
+    sprints:[
+      { n:20, t:"Сетка штаба, заглушки", mvp:false },
+      { n:21, t:"Погода + рендер объявлений", mvp:false },
+      { n:22, t:"Все коллекции в localStorage, тема, «сегодня»", mvp:true },
+      { n:23, t:"Тест на телефоне, политика «без телефонов в данных», README", mvp:false }
+    ],
+    ai:null,
+    pitfalls:[
+      { w:"Путаница weekday в JS (0 = воскресенье) — явно задокументировать.", f:"" },
+      { w:"Несколько массивов в одном JSON — не затирать ключи при записи.", f:"" },
+      { w:"Погода: единицы и поле weathercode.", f:"" }
+    ],
+    accept:null,
+    demo:"«Сегодня» подсвечено; сменить дежурного; показать погоду и фолбэк.",
+    question:"Какие данные нельзя хранить в этом проекте и почему?"
+  },
+  {
+    id:"P06", name:"Банк добрых дел", kind:"Волонтёрская панель", level:"высокий", lv:"h",
+    c1:"#be123c", c2:"#fb7185", rgb:"190,18,60",
+    who:"16–18 лет или сильная пара; нужны часы, записи на акцию, итог влияния",
+    users:"Волонтёры 13–18 и координатор",
+    problem:"Часы считают в таблице Excel, запись — в чате, книги — «потом пришлю ссылку»",
+    diff:"Запись на событие + суммирование часов + внешний книжный поиск. Социально значимый контекст.",
+    short:"Акции, записи, часы и книги", apiShort:"Open Library / Open-Meteo",
+    legend:"Волонтёрский отряд «Тёплая парта» помогает младшим с учёбой и собирает книги. Координатору нужно видеть акции, запись участников, закрытые часы и витрину книг, которые отряд рекомендует младшим (открытый книжный API). Заказчик — педагог-организатор, отчёт в конце четверти.",
+    stories:[
+      "Я как координатор, хочу создать акцию (название, дата, слоты).",
+      "Я как волонтёр, хочу записаться на акцию своим именем и классом.",
+      "Я как координатор, хочу отметить часы по акции.",
+      "Я как волонтёр, хочу видеть сумму моих часов (фильтр по имени).",
+      "Я как волонтёр, хочу найти книгу в Open Library и добавить в витрину «младшим почитать».",
+      "Я как гость, хочу понять, сколько часов отряд закрыл всего.",
+      "Я как координатор, хочу не принять запись без имени.",
+      "Я как волонтёр, хочу работу без сети с локальным списком книг.",
+      "Я как педагог, хочу тёмную тему и сохранение."
+    ],
+    must:["Акции","Запись участников","Сумма часов: всего и по имени","Поиск книги + витрина","Фолбэк книг","Формы","Тёмная тема","Адаптив"],
+    nice:["Лимит слотов: «мест нет»"],
+    extra:["Бейдж «10 часов»"],
+    coverage:[
+      { k:"Grid / Flex", v:"Grid — карточки акций и витрина книг; Flex — форма записи." },
+      { k:"API", v:"1) Open Library search  2) Open-Meteo «погода на уличную акцию»  3) фолбэк: 6 вымышленных книг { \"title\": \"Северные истории\", \"author\": \"А. Волкова\" }." },
+      { k:"Картинки", v:"Не использовать обложки издательств — плейсхолдер." },
+      { k:"localStorage", v:"Акции, записи, книги витрины." },
+      { k:"Часы", v:"Не путать «часы акции × число людей» и «часы одного человека». В README выбрать одну формулу и держаться её. Рекомендация: сумма hours акций, на которые человек записан." }
+    ],
+    screens:["Сводка часов","Список акций с формой записи","Витрина книг с поиском"],
+    schema:[
+      '{',
+      '  "events": [',
+      '    { "id": "e1", "title": "Помощь 5 классам", "date": "2026-03-18", "hours": 2, "slots": 6 }',
+      '  ],',
+      '  "signups": [',
+      '    { "eventId": "e1", "name": "Кира П.", "className": "8Б" }',
+      '  ],',
+      '  "books": [',
+      '    { "title": "Северные истории", "author": "А. Волкова" }',
+      '  ],',
+      '  "settings": { "theme": "light" }',
+      '}'
+    ].join("\n"),
+    sprints:[
+      { n:20, t:"Каркас сводки и двух сеток", mvp:false },
+      { n:21, t:"Open Library + погода, состояния поиска", mvp:false },
+      { n:22, t:"Записи, часы, localStorage, лимит слотов если успеют", mvp:true },
+      { n:23, t:"Сверка формулы часов, README для организатора", mvp:false }
+    ],
+    ai:null,
+    pitfalls:[
+      { w:"Двойная запись на одну акцию.", f:"" },
+      { w:"Часы как строки.", f:"" },
+      { w:"Open Library отдаёт большие JSON — брать docs[0].title и author_name[0].", f:"" },
+      { w:"Школьный прокси.", f:"" }
+    ],
+    accept:null,
+    demo:"Запись на акцию → сумма часов выросла; поиск книги → карточка в витрине; отчёт «всего часов отряда».",
+    question:"Как считается сумма и где это написано в README?"
+  }
+];
+
+/* ---------- состояние ---------- */
+const KEY = "wdc-l19-plan-v1";
+let state = { started:false, tab:"tz", selected:null, dark:false, filter:"all", sort:"code" };
+try{
+  const raw = localStorage.getItem(KEY);
+  if(raw){ const p = JSON.parse(raw); if(p && typeof p === "object") state = Object.assign(state, p); }
+}catch(e){}
+if(state.tab !== "tz" && !P.some(function(p){ return p.id === state.tab; })) state.tab = "tz";
+if(state.selected && !P.some(function(p){ return p.id === state.selected; })) state.selected = null;
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function proj(id){ return P.find(function(p){ return p.id === id; }) || null; }
+function esc(s){
+  return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+
+const view = document.getElementById("view");
+const tabsEl = document.getElementById("tabs");
+const tabwrap = document.getElementById("tabwrap");
+const actionbar = document.getElementById("actionbar");
+const selChip = document.getElementById("selChip");
+const abInfo = document.getElementById("abInfo");
+const toastEl = document.getElementById("toast");
+let toastTimer = null;
+
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ toastEl.classList.remove("on"); }, 2600);
+}
+
+function setHue(){
+  const p = state.tab === "tz" ? null : proj(state.tab);
+  const root = document.documentElement;
+  if(p){
+    root.style.setProperty("--proj", p.c1);
+    root.style.setProperty("--proj-2", p.c2);
+    root.style.setProperty("--proj-rgb", p.rgb);
+    document.getElementById("mark").textContent = p.id.replace("P","");
+  }else{
+    root.style.setProperty("--proj", state.dark ? "#60a5fa" : "#2563eb");
+    root.style.setProperty("--proj-2", "#7c3aed");
+    root.style.setProperty("--proj-rgb", state.dark ? "96,165,250" : "37,99,235");
+    document.getElementById("mark").textContent = "19";
+  }
+}
+
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme", state.dark ? "dark" : "light");
+  document.getElementById("themeIcon").innerHTML = state.dark
+    ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'
+    : '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  document.getElementById("themeBtn").title = state.dark ? "Светлая тема" : "Тёмная тема";
+  setHue();
+}
+
+/* ---------- шаблоны ---------- */
+function sec(n, t, s, inner){
+  return '<section class="sec" data-reveal><div class="sec-h"><div class="sec-n">' + n + '</div><div class="sec-hb">' +
+    '<h3 class="sec-t">' + esc(t) + '</h3>' + (s ? '<p class="sec-s">' + esc(s) + '</p>' : '') + '</div></div>' + inner + '</section>';
+}
+function codeBlock(text, label, id){
+  return '<div class="code" data-reveal><div class="code-h"><span>' + esc(label) + '</span>' +
+    '<button class="copy" type="button" data-copy="' + esc(id) + '">Копировать</button></div><pre>' + esc(text) + '</pre></div>';
+}
+function selectBtn(id, big){
+  const on = state.selected === id;
+  const cls = on ? "btn btn-ok" : (big ? "btn btn-s" : "btn btn-s btn-sm");
+  return '<button class="' + cls + '" type="button" data-select="' + id + '">' +
+    (on ? "✓ Тема выбрана" : "Выбрать эту тему") + '</button>';
+}
+function lvPill(p){ return '<span class="pill ' + p.lv + '">' + esc(p.level) + '</span>'; }
+
+/* ---------- старт ---------- */
+function renderStart(){
+  const cards = P.map(function(p){
+    return '<div class="sg" style="--c1:' + p.c1 + ';--c2:' + p.c2 + '">' +
+      '<em>' + p.id + '</em><b>«' + esc(p.name) + '»</b><span>' + esc(p.kind) + ' · ' + esc(p.level) + '</span></div>';
+  }).join("");
+  view.className = "nostart";
+  view.innerHTML =
+    '<section class="start" data-reveal>' +
+      '<span class="badge">● Занятие 19 из 24 · модуль 8 · планирование проекта</span>' +
+      '<h1>Техническое задание<br><em>и выбор своей темы</em></h1>' +
+      '<p>С занятия 20 ты четыре занятия подряд строишь один продукт — интерактивный Dashboard. Сегодня разбираем, что именно требуется, за что ставят 30 баллов, и выбираешь одну из шести тем. Седьмую не выдумываем.</p>' +
+      '<div class="meta">' +
+        '<span class="chip">📋 <b>7 вкладок</b>: ТЗ + шесть тем</span>' +
+        '<span class="chip">🎯 <b>30 баллов</b> по пяти критериям</span>' +
+        '<span class="chip">🏃 спринты <b>20–23</b>, защита 24</span>' +
+        '<span class="chip">⏱ 80 минут</span>' +
+      '</div>' +
+      '<button class="btn btn-p btn-lg" data-action="start" type="button">Начать работу' +
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>' +
+      '</button>' +
+      '<div class="start-grid">' + cards + '</div>' +
+    '</section>';
+  observe();
+}
+
+/* ---------- вкладка ТЗ ---------- */
+function comparisonRows(){
+  let list = P.slice();
+  if(state.filter !== "all") list = list.filter(function(p){ return p.level === state.filter; });
+  const order = { "базовый":0, "повышенный":1, "высокий":2 };
+  if(state.sort === "level") list.sort(function(a,b){ return order[a.level] - order[b.level] || a.id.localeCompare(b.id); });
+  else if(state.sort === "name") list.sort(function(a,b){ return a.name.localeCompare(b.name,"ru"); });
+  if(!list.length) return '<tr><td colspan="6">Под этот фильтр тем нет — сбрось фильтр.</td></tr>';
+  return list.map(function(p){
+    return '<tr class="' + (state.selected === p.id ? "picked" : "") + '" data-row="' + p.id + '">' +
+      '<td><span class="cmp-code" style="--c1:' + p.c1 + '">' + p.id + '</span></td>' +
+      '<td><b>«' + esc(p.name) + '»</b><br><span style="font-size:12.5px;color:var(--ink-3)">' + esc(p.kind) + '</span></td>' +
+      '<td>' + lvPill(p) + '</td>' +
+      '<td>' + esc(p.short) + '</td>' +
+      '<td style="font-family:var(--mono);font-size:12px">' + esc(p.apiShort) + '</td>' +
+      '<td style="white-space:nowrap"><button class="btn btn-s btn-sm" type="button" data-tab="' + p.id + '">Открыть</button> ' + selectBtn(p.id) + '</td>' +
+    '</tr>';
+  }).join("");
+}
+
+function myTopic(){
+  const p = proj(state.selected);
+  if(!p){
+    return '<div class="mytopic empty" id="mytopic"><div class="mt-h"><h3>Тема пока не выбрана</h3></div>' +
+      '<p style="margin:0;font-size:14px;color:var(--ink-2)">Открой вкладку любой темы, прочитай легенду, MVP-границу и подводные камни — и нажми «Выбрать эту тему». Выбор сохранится в этом браузере, его можно поменять в любой момент.</p></div>';
+  }
+  return '<div class="mytopic" id="mytopic" style="--proj:' + p.c1 + ';--proj-2:' + p.c2 + ';--proj-rgb:' + p.rgb + '">' +
+    '<div class="mt-h"><h3>Моя тема: ' + p.id + ' · «' + esc(p.name) + '»</h3>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap">' + lvPill(p) +
+      '<button class="btn btn-s btn-sm" type="button" data-tab="' + p.id + '">Открыть ТЗ темы</button>' +
+      '<button class="btn btn-g btn-sm" type="button" data-unselect="1">Снять выбор</button></div></div>' +
+    '<div class="mt-grid">' +
+      '<div><div class="kv-k" style="margin-bottom:6px">Обязательный MVP</div><div class="tags">' +
+        p.must.map(function(m){ return '<span class="tag">' + esc(m) + '</span>'; }).join("") + '</div></div>' +
+      '<div><div class="kv-k" style="margin-bottom:6px">Мои спринты</div><div class="kv">' +
+        p.sprints.map(function(s){ return '<div class="kv-row"><span class="kv-k">Занятие ' + s.n + (s.mvp ? " · MVP" : "") + '</span><span class="kv-v">' + esc(s.t) + '</span></div>'; }).join("") +
+      '</div></div>' +
+    '</div></div>';
+}
+
+function renderTZ(){
+  view.className = "";
+  const mustCards = MUST.map(function(m){
+    return '<div class="card"><div class="kv-k" style="margin-bottom:6px">' + esc(m.k) + '</div>' +
+      '<div style="font-size:14px;color:var(--ink-2);line-height:1.55">' + esc(m.v) + '</div></div>';
+  }).join("");
+
+  const critRows = CRITERIA.map(function(c){
+    return '<tr><td><b>' + esc(c.n) + '</b></td><td><span class="pts">' + c.p + '</span></td>' +
+      '<td>' + esc(c.w) + '<div class="bar" style="--w:' + (c.p / 10 * 100) + '%"><i></i></div></td></tr>';
+  }).join("");
+
+  const apiRows = APIS.map(function(a){
+    return '<tr><td><b>' + esc(a.n) + '</b></td><td>' + esc(a.w) + '</td><td>' + esc(a.note) + '</td></tr>';
+  }).join("");
+
+  const steps = [
+    "Прочитай обязательные требования ниже — их закрывают все шесть тем.",
+    "Выбери одну тему на витрине. Седьмую не выдумываем.",
+    "Открой ТЗ своей темы: там истории, MVP, API, схема данных и спринты 20–23.",
+    "С занятия 20 работай по спринтам. Код панели педагог не выдаёт."
+  ].map(function(s,i){ return '<div class="step"><i>' + (i+1) + '</i><span>' + esc(s) + '</span></div>'; }).join("");
+
+  view.innerHTML =
+    '<div class="phead" data-reveal><div class="wm">ТЗ</div><div class="phead-in">' +
+      '<div class="prow"><span class="pcode">ПРИЛОЖЕНИЯ 1 и 2</span><span class="lvl">обязательно для всех</span></div>' +
+      '<h2>Основное ТЗ итогового Dashboard</h2>' +
+      '<div class="kind">Сначала обязательные требования программы, потом одна тема из шести</div>' +
+      '<div class="aud">Здесь же лист на 30 баллов: критерии известны заранее и разбираются сегодня, а не предъявляются на защите.</div>' +
+    '</div></div>' +
+
+    sec("1", "Что делать сегодня", "Четыре шага занятия 19", '<div class="steps">' + steps + '</div>') +
+
+    sec("2", "Приложение 1 · Обязательно для всех", "Эти шесть групп требований закрывает каждая из шести тем",
+      '<div class="grid g3">' + mustCards + '</div>' +
+      '<div class="note acc" style="margin-top:12px"><b>Эта страница сама собрана по ТЗ:</b> Mobile First, Grid + Flexbox, тёмная тема на CSS-переменных. Переключи тему кнопкой в шапке — меняются только значения переменных, правила ниже не дублируются. Ровно это тебе предстоит сделать в своём проекте.</div>') +
+
+    sec("3", "Приложение 2 · Как ставят 30 баллов", "Пять критериев, максимум 30",
+      '<div class="tw"><table><thead><tr><th>Критерий</th><th>Макс.</th><th>Что смотреть</th></tr></thead><tbody>' + critRows + '</tbody></table></div>' +
+      '<div class="levels">' +
+        '<div class="lv hi"><b>25–30</b><span>высокий уровень</span></div>' +
+        '<div class="lv mid"><b>18–24</b><span>базовый уровень</span></div>' +
+        '<div class="lv lo"><b>12–17</b><span>стартовый уровень</span></div>' +
+      '</div>' +
+      '<div class="note warn" style="margin-top:12px"><b>Главное правило защиты:</b> обучающийся обязан объяснить любой фрагмент кода проекта, включая сгенерированный ИИ. Непонимаемый код в зачёт не идёт.</div>') +
+
+    sec("4", "Общие API без ключа", "Проверять перед курсом; в каждый проект класть data/fallback.json",
+      '<div class="tw"><table><thead><tr><th>API</th><th>Что отдаёт</th><th>На что смотреть</th></tr></thead><tbody>' + apiRows + '</tbody></table></div>' +
+      '<div class="note" style="margin-top:12px">Фолбэк — сохранённый файл с примером ответа. Он пишется <b>раньше</b> запроса, а не «если останется время», и показывается с честной пометкой, что данные из копии.</div>') +
+
+    sec("5", "Витрина шести тем", "Фильтр по сложности, сортировка и выбор темы",
+      '<div class="controls">' +
+        ['all','базовый','повышенный','высокий'].map(function(f){
+          const label = f === "all" ? "Все шесть" : f;
+          return '<button class="fchip' + (state.filter === f ? " on" : "") + '" type="button" data-filter="' + f + '">' + esc(label) + '</button>';
+        }).join("") +
+        '<select class="sel" id="sortSel" aria-label="Сортировка тем">' +
+          '<option value="code"' + (state.sort === "code" ? " selected" : "") + '>Сортировка: по коду</option>' +
+          '<option value="level"' + (state.sort === "level" ? " selected" : "") + '>Сортировка: по сложности</option>' +
+          '<option value="name"' + (state.sort === "name" ? " selected" : "") + '>Сортировка: по названию</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="tw"><table><thead><tr><th>Код</th><th>Тема</th><th>Сложность</th><th>Тип данных</th><th>API</th><th>Действие</th></tr></thead>' +
+      '<tbody id="cmpBody">' + comparisonRows() + '</tbody></table></div>' +
+      '<div class="note" style="margin-top:12px"><b>Как выбирать:</b> парам с разным уровнем — P01 или P02. Кто сделал мини-проект занятия 12 без фолбэка — не берёт P03 и P06 без страховки JSON. Высокие темы можно урезать до MVP-границы, не меняя легенду.</div>') +
+
+    sec("6", "Моя тема", "Выбор сохраняется в этом браузере", '<div id="mytopicSlot">' + myTopic() + '</div>') +
+
+    sec("7", "Общий ритм спринтов", "Правило работающего билда: в конце каждого занятия проект открывается по ссылке и не сломан",
+      '<div class="sprints">' + SPRINTS_COMMON.map(function(s){
+        return '<div class="sp' + (s.mvp ? " mvp" : "") + '">' + (s.mvp ? '<span class="flag">MVP</span>' : '') +
+          '<b>' + s.n + '</b><p>' + esc(s.t) + '</p></div>';
+      }).join("") + '</div>' +
+      '<div class="note ok" style="margin-top:12px"><b>Занятие 24 — публичная защита:</b> 3–5 минут. Структура: задача, демонстрация продукта, самое трудное место, роль ИИ и что сделано самостоятельно, что доработал бы дальше.</div>');
+  observe();
+}
+
+/* ---------- вкладка проекта ---------- */
+function renderProject(p){
+  view.className = "";
+  const stories = p.stories.map(function(s,i){
+    return '<div class="story"><i>' + (i+1) + '</i><span>' + esc(s) + '</span></div>';
+  }).join("");
+
+  const coverage = p.coverage.map(function(c){
+    return '<div class="kv-row"><span class="kv-k">' + esc(c.k) + '</span><span class="kv-v">' + esc(c.v) + '</span></div>';
+  }).join("");
+
+  const mvp =
+    '<div class="mvp">' +
+      '<div class="mcol must"><div class="mhead">✓ Обязательно · без этого не принимается</div><ul>' + p.must.map(function(m){ return '<li>' + esc(m) + '</li>'; }).join("") + '</ul></div>' +
+      '<div class="mcol nice"><div class="mhead">＋ Желательно</div><ul>' + p.nice.map(function(m){ return '<li>' + esc(m) + '</li>'; }).join("") + '</ul></div>' +
+      '<div class="mcol extra"><div class="mhead">◷ Если останется время</div><ul>' + p.extra.map(function(m){ return '<li>' + esc(m) + '</li>'; }).join("") + '</ul></div>' +
+    '</div>';
+
+  const sprints = p.sprints.map(function(s){
+    return '<div class="sp' + (s.mvp ? " mvp" : "") + '">' + (s.mvp ? '<span class="flag">MVP</span>' : '') +
+      '<b>' + s.n + '</b><p>' + esc(s.t) + '</p></div>';
+  }).join("");
+
+  const pitfalls = p.pitfalls.map(function(x){
+    const two = !!x.f;
+    return '<div class="pit-row' + (two ? " two" : "") + '"><span class="w">⚠ ' + esc(x.w) + '</span>' + (two ? '<span class="f">' + esc(x.f) + '</span>' : '') + '</div>';
+  }).join("");
+
+  const aiBlock = p.ai
+    ? '<div class="grid g2">' + p.ai.map(function(a){
+        return '<div class="ai-card"><h4><i>ИИ</i>' + esc(a.t) + '</h4><p>' + esc(a.p) + '</p>' +
+          (a.c ? '<div class="chk"><b>Проверить:</b> ' + esc(a.c) + '</div>' : '') + '</div>';
+      }).join("") + '</div>'
+    : '<div class="note acc">Для этой темы действуют общие требования по ИИ из вкладки «Основное ТЗ»: SVG-логотип или набор иконок, подробный README, структурированный моделью, и рефакторинг минимум двух сложных функций. Каждый заимствованный фрагмент проходит протокол аудита и объясняется вслух.</div>';
+
+  const acceptBlock = p.accept
+    ? '<div class="grid g2" style="margin-bottom:12px">' + p.accept.map(function(a){
+        return '<div class="card"><div class="kv-k" style="margin-bottom:5px">' + esc(a.n) + '</div><div style="font-size:13.6px;color:var(--ink-2)">' + esc(a.v) + '</div></div>';
+      }).join("") + '</div>'
+    : '<div class="note" style="margin-bottom:12px">Приёмка идёт по общей таблице 30 баллов из вкладки «Основное ТЗ»: ТЗ 10, адаптивность и UI/UX 5, Git 5, осознанный ИИ 5, защита 5.</div>';
+
+  view.innerHTML =
+    '<div class="phead" data-reveal><div class="wm">' + p.id + '</div><div class="phead-in">' +
+      '<div class="prow"><span class="pcode">' + p.id + '</span><span class="lvl ' + p.lv + '">' + esc(p.level) + '</span>' +
+      '<span class="pcode">' + esc(p.kind) + '</span></div>' +
+      '<h2>«' + esc(p.name) + '»</h2>' +
+      '<div class="kind">' + esc(p.users) + '</div>' +
+      '<div class="aud"><b>На кого:</b> ' + esc(p.who) + '</div>' +
+      '<div class="phead-actions">' + selectBtn(p.id, true) +
+        '<button class="btn btn-g" type="button" data-action="goto-tz">← Основное ТЗ и критерии</button>' +
+        '<button class="btn btn-g" type="button" data-action="print">Сохранить ТЗ темы в PDF</button>' +
+      '</div>' +
+    '</div></div>' +
+
+    sec("1", "Заказчик и проблема", "Легенда проекта — её не меняем",
+      '<div class="legend">' + esc(p.legend) + '</div>' +
+      '<div class="grid g3" style="margin-top:12px">' +
+        '<div class="card"><div class="kv-k" style="margin-bottom:5px">Аудитория</div><div style="font-size:13.8px;color:var(--ink-2)">' + esc(p.users) + '</div></div>' +
+        '<div class="card"><div class="kv-k" style="margin-bottom:5px">Проблема</div><div style="font-size:13.8px;color:var(--ink-2)">' + esc(p.problem) + '</div></div>' +
+        '<div class="card"><div class="kv-k" style="margin-bottom:5px">Отличие от других тем</div><div style="font-size:13.8px;color:var(--ink-2)">' + esc(p.diff) + '</div></div>' +
+      '</div>') +
+
+    sec("2", "Пользовательские истории", p.stories.length + " формулировок «я как … хочу … чтобы …»",
+      '<div class="stories">' + stories + '</div>') +
+
+    sec("3", "MVP-граница", "Обязательное закрывается к занятию 22. Остальное — только после него",
+      mvp + '<div class="note warn" style="margin-top:12px">При отставании <b>сокращай объём</b>, а не добавляй функции. Незавершённая функциональность живёт в отдельной ветке, опубликованная версия всегда рабочая.</div>') +
+
+    sec("4", "Покрытие обязательного ТЗ", "Как именно эта тема закрывает Приложение 1",
+      '<div class="kv">' + coverage + '</div>') +
+
+    sec("5", "Экраны", "Что видит пользователь",
+      '<div class="tags">' + p.screens.map(function(s){ return '<span class="tag">' + esc(s) + '</span>'; }).join("") + '</div>') +
+
+    sec("6", "Схема данных", "Ключ localStorage. Фолбэк кладём в data/fallback.json",
+      codeBlock(p.schema, p.id + " · схема данных", "schema-" + p.id)) +
+
+    sec("7", "Спринты 20–23", "Задача должна умещаться в одно занятие",
+      '<div class="sprints">' + sprints + '</div>') +
+
+    sec("8", "ИИ в работе", "Модель предлагает — ты проверяешь и объясняешь", aiBlock) +
+
+    sec("9", "Подводные камни", "Где обычно застревают и как подстраховаться",
+      '<div class="pit">' + pitfalls + '</div>') +
+
+    sec("10", "Приёмка и демо на защите", "3 минуты: показать, а не рассказать",
+      acceptBlock +
+      '<div class="demo"><p><b>Сценарий демо:</b> ' + esc(p.demo) + '</p>' +
+        '<div class="q"><i>❓</i><div><b>Вопрос залу</b><span>' + esc(p.question) + '</span></div></div>' +
+      '</div>');
+  observe();
+}
+
+/* ---------- вкладки / выбор ---------- */
+function renderTabs(){
+  const items = [{ id:"tz", label:"Основное ТЗ" }].concat(P.map(function(p){
+    return { id:p.id, label:p.id + " · " + p.name, c:p.c1 };
+  }));
+  tabsEl.innerHTML = items.map(function(it){
+    const on = state.tab === it.id;
+    const star = state.selected === it.id ? '<span class="star">★</span>' : (it.c ? '<i style="background:' + it.c + '"></i>' : '<i></i>');
+    return '<button class="tab' + (on ? " on" : "") + '" type="button" data-tab="' + it.id + '" aria-current="' + (on ? "page" : "false") + '">' +
+      star + esc(it.label) + '</button>';
+  }).join("");
+  const active = tabsEl.querySelector(".tab.on");
+  if(active && active.scrollIntoView) active.scrollIntoView({ block:"nearest", inline:"center", behavior:"smooth" });
+}
+
+function applySelection(){
+  const p = proj(state.selected);
+  selChip.classList.toggle("on", !!p);
+  if(p){
+    selChip.textContent = "★ " + p.id + " · " + p.name;
+    selChip.style.setProperty("--proj", p.c1);
+    selChip.style.setProperty("--proj-rgb", p.rgb);
+    abInfo.innerHTML = "Выбрана тема: <b>" + p.id + " · «" + esc(p.name) + "»</b> · " + esc(p.level) + ". К занятию 20 нужен каркас с заглушками и репозиторий.";
+  }else{
+    abInfo.innerHTML = "Тема ещё не выбрана. Открой вкладку темы и нажми <b>«Выбрать эту тему»</b>.";
+  }
+  document.querySelectorAll("[data-select]").forEach(function(btn){
+    const id = btn.getAttribute("data-select");
+    const on = state.selected === id;
+    const big = btn.closest(".phead-actions");
+    btn.className = on ? "btn btn-ok" + (big ? "" : " btn-sm") : "btn btn-s" + (big ? "" : " btn-sm");
+    btn.textContent = on ? "✓ Тема выбрана" : "Выбрать эту тему";
+  });
+  document.querySelectorAll("[data-row]").forEach(function(tr){
+    tr.classList.toggle("picked", tr.getAttribute("data-row") === state.selected);
+  });
+  const slot = document.getElementById("mytopicSlot");
+  if(slot) slot.innerHTML = myTopic();
+  renderTabs();
+}
+
+function renderView(){
+  setHue();
+  if(!state.started){ renderStart(); return; }
+  tabwrap.hidden = false;
+  actionbar.hidden = false;
+  if(state.tab === "tz") renderTZ(); else renderProject(proj(state.tab));
+  renderTabs();
+  applySelection();
+  updateRead();
+}
+
+function goTab(id){
+  state.tab = id; save();
+  renderView();
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+/* ---------- появление и прогресс ---------- */
+let io = null;
+function observe(){
+  if(io) io.disconnect();
+  const els = view.querySelectorAll("[data-reveal]");
+  if(!("IntersectionObserver" in window)){ els.forEach(function(e){ e.classList.add("in"); }); return; }
+  io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); }
+    });
+  }, { rootMargin:"0px 0px -8% 0px", threshold:.06 });
+  els.forEach(function(e,i){ e.style.transitionDelay = Math.min(i,5) * 45 + "ms"; io.observe(e); });
+}
+function updateRead(){
+  const bar = document.getElementById("readbar");
+  if(!bar) return;
+  const h = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = h > 40 ? Math.min(100, Math.max(0, window.scrollY / h * 100)) : 0;
+  bar.style.width = pct + "%";
+}
+window.addEventListener("scroll", updateRead, { passive:true });
+window.addEventListener("resize", updateRead);
+
+/* ---------- события ---------- */
+document.body.addEventListener("click", function(e){
+  const t = e.target.closest("[data-action],[data-tab],[data-select],[data-unselect],[data-filter],[data-copy]");
+  if(!t) return;
+
+  if(t.hasAttribute("data-copy")){
+    const id = t.getAttribute("data-copy");
+    const p = proj(id.replace("schema-",""));
+    if(p){
+      copyText(p.schema, t);
+    }
+    return;
+  }
+  if(t.hasAttribute("data-filter")){
+    state.filter = t.getAttribute("data-filter"); save();
+    document.querySelectorAll("[data-filter]").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-filter") === state.filter); });
+    const body = document.getElementById("cmpBody");
+    if(body) body.innerHTML = comparisonRows();
+    applySelection();
+    return;
+  }
+  if(t.hasAttribute("data-select")){
+    const id = t.getAttribute("data-select");
+    if(state.selected === id){
+      state.selected = null; save(); applySelection(); toast("Выбор снят. Тему можно выбрать заново.");
+    }else{
+      state.selected = id; save(); applySelection();
+      const p = proj(id);
+      toast("Выбрана тема " + p.id + " · «" + p.name + "». Она отмечена звездой во вкладках.");
+    }
+    return;
+  }
+  if(t.hasAttribute("data-unselect")){
+    state.selected = null; save(); applySelection(); toast("Выбор снят.");
+    return;
+  }
+  if(t.hasAttribute("data-tab")){ goTab(t.getAttribute("data-tab")); return; }
+
+  const a = t.getAttribute("data-action");
+  if(a === "start"){
+    state.started = true; save();
+    view.classList.remove("nostart");
+    renderView();
+    window.scrollTo({ top:0, behavior:"smooth" });
+    toast("Начни с вкладки «Основное ТЗ»: требования и 30 баллов.");
+  }else if(a === "goto-tz"){
+    goTab("tz");
+  }else if(a === "print"){
+    window.print();
+  }
+});
+
+document.body.addEventListener("change", function(e){
+  if(e.target && e.target.id === "sortSel"){
+    state.sort = e.target.value; save();
+    const body = document.getElementById("cmpBody");
+    if(body) body.innerHTML = comparisonRows();
+    applySelection();
+  }
+});
+
+document.getElementById("themeBtn").addEventListener("click", function(){
+  state.dark = !state.dark; save(); applyTheme();
+  toast(state.dark ? "Тёмная тема включена — изменились только переменные." : "Светлая тема включена.");
+});
+document.getElementById("printBtn").addEventListener("click", function(){ window.print(); });
+
+document.addEventListener("keydown", function(e){
+  const tag = (e.target.tagName || "").toLowerCase();
+  if(tag === "input" || tag === "select" || tag === "textarea") return;
+  if(!state.started) return;
+  const keys = ["1","2","3","4","5","6","7"];
+  const i = keys.indexOf(e.key);
+  if(i >= 0){
+    const ids = ["tz"].concat(P.map(function(p){ return p.id; }));
+    goTab(ids[i]);
+  }
+});
+
+function copyText(text, btn){
+  const done = function(){
+    const old = btn.textContent;
+    btn.textContent = "✓ Скопировано";
+    btn.classList.add("done");
+    setTimeout(function(){ btn.textContent = old; btn.classList.remove("done"); }, 1600);
+    toast("Схема данных скопирована — вставь в README или в код.");
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done).catch(function(){ fallback(text, done); });
+  }else fallback(text, done);
+}
+function fallback(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast("Скопируй вручную из блока кода."); }
+  document.body.removeChild(ta);
+}
+
+/* ---------- запуск ---------- */
+applyTheme();
+renderView();
+</script>
+</body>
+</html>
