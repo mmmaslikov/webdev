@@ -1,0 +1,1950 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Занятие 21 · Спринт 2: данные и API · Qwen + GitHub</title>
+<style>
+:root{
+--bg:#f3f6f9;--surface:#fff;--surface2:#eef3f8;--surface3:#e2e9f1;
+--border:#dde5ee;--border2:#c3cfdd;--ink:#08111c;--ink2:#42536b;--ink3:#71829b;
+--proj:#0e7490;--proj2:#0891b2;--rgb:14,116,144;
+--ok:#15803d;--okbg:#dcfce7;--okrgb:21,128,61;
+--warn:#b45309;--warnbg:#fef3c7;--warnrgb:180,83,9;
+--danger:#be123c;--dangerbg:#ffe4e6;--info:#1d4ed8;--infobg:#dbeafe;
+--cbg:#08131f;--cink:#d8e8f7;--cdim:#6b8299;
+--sh1:0 1px 2px rgba(8,17,28,.05),0 2px 6px rgba(8,17,28,.05);
+--sh2:0 12px 34px -14px rgba(8,17,28,.28),0 2px 8px rgba(8,17,28,.06);
+--sh3:0 26px 60px -26px rgba(var(--rgb),.55);
+--r:14px;--rl:20px;--rx:26px;--top:56px;
+--font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+html[data-theme=dark]{
+--bg:#050a11;--surface:#0e1723;--surface2:#141f2e;--surface3:#1c2839;
+--border:#20304a;--border2:#2e405a;--ink:#e8f1fa;--ink2:#a3b4cb;--ink3:#6e83a1;
+--ok:#4ade80;--okbg:#0d2c1b;--okrgb:74,222,128;--warn:#fbbf24;--warnbg:#31250b;--warnrgb:251,191,36;
+--danger:#fb7185;--dangerbg:#37121f;--info:#60a5fa;--infobg:#0e2140;
+--cbg:#04080f;--cink:#d7e7f8;--cdim:#5d7590;
+--sh1:0 1px 2px rgba(0,0,0,.5),0 2px 8px rgba(0,0,0,.35);
+--sh2:0 16px 42px -18px rgba(0,0,0,.8),0 2px 10px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--proj)}
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:var(--surface2)}
+::-webkit-scrollbar-thumb{background:rgba(var(--rgb),.45);border-radius:99px;border:3px solid var(--surface2)}
+::-webkit-scrollbar-thumb:hover{background:rgba(var(--rgb),.85)}
+*{scrollbar-color:rgba(var(--rgb),.55) var(--surface2);scrollbar-width:thin}
+.aura{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.aura i{position:absolute;display:block;border-radius:50%;filter:blur(92px);opacity:.3;transition:background .7s}
+.aura i:nth-child(1){width:54vw;height:54vw;left:-16vw;top:-20vw;background:radial-gradient(circle at 30% 30%,rgba(var(--rgb),.95),transparent 68%);animation:d1 27s ease-in-out infinite}
+.aura i:nth-child(2){width:46vw;height:46vw;right:-14vw;top:4vh;background:radial-gradient(circle at 60% 40%,rgba(132,204,22,.45),transparent 70%);animation:d2 33s ease-in-out infinite}
+.aura i:nth-child(3){width:42vw;height:42vw;left:28vw;bottom:-22vw;background:radial-gradient(circle at 50% 50%,rgba(var(--rgb),.5),transparent 72%);animation:d1 39s ease-in-out infinite reverse}
+html[data-theme=dark] .aura i{opacity:.26}
+@keyframes d1{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(5vw,4vh,0) scale(1.12)}}
+@keyframes d2{0%,100%{transform:translate3d(0,0,0) scale(1.05)}50%{transform:translate3d(-6vw,6vh,0) scale(.9)}}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.3;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E")}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:40;height:var(--top);background:var(--surface);border-bottom:1px solid var(--border);opacity:.97;backdrop-filter:blur(14px)}
+.tb{max-width:1180px;margin:0 auto;height:100%;padding:0 16px;display:flex;align-items:center;gap:10px}
+.mark{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12.5px;background:linear-gradient(135deg,var(--proj),var(--proj2));box-shadow:0 4px 14px -4px rgba(var(--rgb),.75)}
+.brand{min-width:0;flex:1;display:flex;flex-direction:column;line-height:1.25}
+.brand b{font-size:13.5px;font-weight:750;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand span{font-size:11.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stchip{display:inline-flex;align-items:center;height:32px;padding:0 12px;border-radius:99px;font-size:12.5px;font-weight:700;white-space:nowrap;background:var(--surface2);border:1px solid var(--border);color:var(--ink2)}
+.stchip.ok{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.ibtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:grid;place-items:center;transition:.16s;flex-shrink:0}
+.ibtn:hover{border-color:var(--proj);color:var(--proj);transform:translateY(-1px)}
+.ibtn:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.ibtn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.tabwrap{position:fixed;top:var(--top);left:0;right:0;z-index:35;background:var(--bg);border-bottom:1px solid var(--border);opacity:.97;backdrop-filter:blur(12px)}
+.tabs{max-width:1180px;margin:0 auto;padding:8px 14px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{height:0}
+.tab{flex-shrink:0;min-height:40px;padding:0 14px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-size:13px;font-weight:650;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:.16s;white-space:nowrap}
+.tab:hover{border-color:var(--border2);color:var(--ink);transform:translateY(-1px)}
+.tab:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.tab.on{background:linear-gradient(135deg,var(--proj),var(--proj2));border-color:transparent;color:#fff;box-shadow:0 8px 20px -10px rgba(var(--rgb),.9)}
+.tab i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
+.tab .bdg{font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:99px;background:var(--surface2);color:var(--ink3)}
+.tab.on .bdg{background:rgba(255,255,255,.22);color:#fff}
+.readbar{height:2px}
+.readbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--proj),var(--proj2));transition:width .12s linear}
+main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:calc(var(--top) + 74px) 16px 128px}
+main.nostart{padding-top:calc(var(--top) + 26px)}
+.hero{position:relative;border:1px solid var(--border);border-radius:var(--rx);padding:44px 32px;text-align:center;overflow:hidden;box-shadow:var(--sh2);background:radial-gradient(120% 120% at 8% 0%,rgba(var(--rgb),.16),transparent 55%),radial-gradient(100% 100% at 100% 100%,rgba(132,204,22,.14),transparent 60%),var(--surface)}
+.hero:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(var(--rgb),.05) 0 2px,transparent 2px 9px);opacity:.55;pointer-events:none}
+.badge{position:relative;display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:99px;font-size:12px;font-weight:700;background:rgba(var(--rgb),.12);color:var(--proj);border:1px solid rgba(var(--rgb),.25)}
+.hero h1{position:relative;font-size:clamp(29px,5.2vw,48px);line-height:1.06;letter-spacing:-.035em;margin:18px 0 12px;font-weight:800}
+.hero h1 em{font-style:normal;background:linear-gradient(100deg,var(--proj),#0891b2 45%,#65a30d);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{position:relative;color:var(--ink2);max-width:700px;margin:0 auto 22px;font-size:16.5px}
+.meta{position:relative;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:26px}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--ink2)}
+.chip b{color:var(--ink)}
+.hgrid{position:relative;display:grid;gap:10px;grid-template-columns:repeat(2,1fr);margin-top:28px;text-align:left}
+@media(min-width:760px){.hgrid{grid-template-columns:repeat(3,1fr)}}
+.hg{border:1px solid var(--border);border-radius:var(--r);padding:13px 14px;background:var(--surface);position:relative;overflow:hidden;transition:.18s}
+.hg:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c1)}
+.hg:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
+.hg em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--c1)}
+.hg b{display:block;font-size:13.5px;margin-top:2px}
+.hg span{display:block;font-size:11.5px;color:var(--ink3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:46px;padding:0 22px;border-radius:13px;border:1px solid transparent;font-size:15px;font-weight:700;cursor:pointer;transition:.16s;text-decoration:none}
+.btn:focus-visible{outline:3px solid rgba(var(--rgb),.4);outline-offset:2px}
+.btn-p{background:linear-gradient(135deg,var(--proj),var(--proj2));color:#fff;box-shadow:0 12px 26px -12px rgba(var(--rgb),.95)}
+.btn-p:hover{transform:translateY(-2px)}
+.btn-s{background:var(--surface);border-color:var(--border2);color:var(--ink)}
+.btn-s:hover{background:var(--surface2);transform:translateY(-1px)}
+.btn-g{background:transparent;color:var(--ink2)}
+.btn-g:hover{background:var(--surface2);color:var(--ink)}
+.btn-lg{min-height:54px;padding:0 30px;font-size:16px;border-radius:15px}
+.btn-sm{min-height:36px;padding:0 13px;font-size:12.5px;border-radius:10px}
+.phead{position:relative;border-radius:var(--rx);padding:28px 26px;color:#fff;overflow:hidden;margin-bottom:20px;background:linear-gradient(135deg,var(--proj),var(--proj2));box-shadow:var(--sh3)}
+.phead:after{content:"";position:absolute;inset:0;background:radial-gradient(80% 120% at 100% 0%,rgba(255,255,255,.26),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 12px);pointer-events:none}
+.phead .wm{position:absolute;right:-6px;top:-40px;font-size:150px;font-weight:900;letter-spacing:-.06em;opacity:.14;line-height:1;pointer-events:none}
+.ph-in{position:relative;z-index:1}
+.prow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.pcode{font-family:var(--mono);font-size:11.5px;font-weight:700;background:rgba(255,255,255,.22);padding:4px 10px;border-radius:8px;letter-spacing:.05em}
+.phead h2{margin:0 0 5px;font-size:clamp(24px,4vw,36px);letter-spacing:-.03em;font-weight:800;line-height:1.1}
+.phead p{margin:0;font-size:14.5px;opacity:.94;max-width:740px}
+.sec{margin:26px 0}
+.sec-h{display:flex;align-items:flex-start;gap:13px;margin-bottom:14px}
+.sec-n{flex-shrink:0;width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2))}
+.sec-t{font-size:19px;font-weight:750;letter-spacing:-.02em;margin:0}
+.sec-s{font-size:13.5px;color:var(--ink2);margin:2px 0 0}
+.sec-hb{flex:1;min-width:0}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh1);transition:.18s}
+.card:hover{border-color:rgba(var(--rgb),.4);box-shadow:var(--sh2);transform:translateY(-2px)}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:1fr}
+@media(min-width:760px){.g2{grid-template-columns:1fr 1fr}}
+.note{border-radius:var(--r);padding:14px 16px;font-size:14px;line-height:1.6;border:1px solid var(--border);background:var(--surface2);color:var(--ink2)}
+.note b{color:var(--ink)}
+.note.warn{background:var(--warnbg);border-color:rgba(var(--warnrgb),.35);color:var(--warn)}
+.note.warn b{color:var(--warn)}
+.note.ok{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.note.ok b{color:var(--ok)}
+.note.bad{background:var(--dangerbg);border-color:rgba(190,18,60,.35);color:var(--danger)}
+.note.acc{background:rgba(var(--rgb),.08);border-color:rgba(var(--rgb),.3);color:var(--ink)}
+.note ul,.note ol{margin:8px 0 0;padding-left:20px}
+.note li{margin-bottom:5px}
+code{font-family:var(--mono);font-size:12.5px;background:var(--surface3);padding:1px 6px;border-radius:5px;color:var(--ink)}
+.kv{display:grid;gap:8px}
+.kv-row{display:grid;grid-template-columns:1fr;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 14px}
+@media(min-width:640px){.kv-row{grid-template-columns:180px 1fr;gap:14px;align-items:start}}
+.kv-k{font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--proj)}
+.kv-v{font-size:13.8px;color:var(--ink2);line-height:1.55}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+.flabel{display:block;font-size:12.5px;color:var(--ink2);margin-bottom:5px;font-weight:650}
+.inp{width:100%;min-height:44px;padding:10px 13px;border:1px solid var(--border);border-radius:11px;background:var(--surface);font-size:14px;transition:.15s}
+.inp:focus{outline:none;border-color:var(--proj);box-shadow:0 0 0 3px rgba(var(--rgb),.18)}
+.inp.filled{background:rgba(var(--rgb),.05);border-color:rgba(var(--rgb),.4)}
+textarea.inp{min-height:150px;resize:vertical;font-family:var(--mono);font-size:12.5px;line-height:1.6}
+select.inp{cursor:pointer}
+.hint{font-size:11.5px;color:var(--ink3);margin-top:4px}
+.hint.bad{color:var(--danger)}
+.topics{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:760px){.topics{grid-template-columns:repeat(3,1fr)}}
+.topic{text-align:left;border:1px solid var(--border);border-radius:12px;padding:11px 12px;background:var(--surface);cursor:pointer;transition:.16s;position:relative;overflow:hidden;min-height:66px}
+.topic:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--c1)}
+.topic:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.topic:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.topic.on{border-color:var(--c1);box-shadow:0 0 0 2px rgba(var(--rgb),.18)}
+.topic em{font-style:normal;font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--c1)}
+.topic b{display:block;font-size:13px;margin-top:2px}
+.topic span{display:block;font-size:11px;color:var(--ink3)}
+.links{display:flex;flex-wrap:wrap;gap:8px}
+.lnk{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;background:var(--surface);border:1px solid var(--border);border-radius:11px;color:var(--proj);text-decoration:none;font-size:13px;font-weight:650;transition:.15s}
+.lnk:hover{border-color:var(--proj);background:rgba(var(--rgb),.08);transform:translateY(-1px)}
+.lnk.off{color:var(--ink3);pointer-events:none;opacity:.55}
+.lnk svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.timer{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh1)}
+.tdial{font-family:var(--mono);font-size:38px;font-weight:800;line-height:1;color:var(--proj);font-variant-numeric:tabular-nums;min-width:132px}
+.tdial.run{animation:tp 2s ease-in-out infinite}
+@keyframes tp{0%,100%{opacity:1}50%{opacity:.7}}
+.tphase{flex:1;min-width:200px;font-size:13.5px;color:var(--ink2)}
+.tphase b{display:block;color:var(--ink);font-size:14px}
+.tbtns{display:flex;gap:8px;flex-wrap:wrap}
+.phases{display:grid;gap:6px;margin-top:12px}
+.phase{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);font-size:13px;color:var(--ink2)}
+.phase.on{background:rgba(var(--rgb),.1);border-color:rgba(var(--rgb),.35);color:var(--ink);font-weight:650}
+.phase.done{opacity:.55}
+.phase em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink3);min-width:92px}
+.steps{display:grid;gap:10px}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh1)}
+.step.done{border-color:rgba(var(--okrgb),.45)}
+.step-h{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;cursor:pointer}
+.step-h:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:-3px}
+.step-n{flex-shrink:0;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2))}
+.step.done .step-n{background:var(--ok)}
+.step-tb{flex:1;min-width:0}
+.step-t{font-size:15px;font-weight:700;margin:0}
+.step-m{font-size:11.5px;color:var(--ink3);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.where{font-size:10px;font-weight:800;letter-spacing:.05em;padding:2px 7px;border-radius:6px;text-transform:uppercase}
+.where.q{background:rgba(124,58,237,.16);color:#7c3aed}
+.where.g{background:rgba(var(--okrgb),.16);color:var(--ok)}
+.where.b{background:var(--infobg);color:var(--info)}
+.where.a{background:rgba(var(--rgb),.16);color:var(--proj)}
+.step-body{padding:0 16px 16px 58px;font-size:13.8px;color:var(--ink2);line-height:1.6}
+.step-body ol,.step-body ul{margin:6px 0 0;padding-left:20px}
+.step-body li{margin-bottom:5px}
+.step-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.closes{display:inline-flex;font-size:11.5px;font-weight:700;color:var(--warn);background:var(--warnbg);padding:3px 9px;border-radius:99px;margin-top:10px}
+.chk{flex-shrink:0;width:24px;height:24px;border-radius:7px;border:2px solid var(--border2);display:grid;place-items:center;transition:.15s;margin-top:3px}
+.step.done .chk{background:var(--ok);border-color:var(--ok)}
+.chk svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:.15s}
+.step.done .chk svg{opacity:1}
+.pblock{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh1);margin-bottom:14px}
+.pb-h{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap}
+.pb-n{flex-shrink:0;font-family:var(--mono);font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--proj),var(--proj2));padding:4px 9px;border-radius:7px}
+.pb-tb{flex:1;min-width:160px}
+.pb-t{font-size:15px;font-weight:750;margin:0}
+.pb-s{font-size:12px;color:var(--ink3);margin-top:2px}
+.pb-body{padding:14px 16px}
+.code{position:relative;background:var(--cbg);border-radius:12px;border:1px solid rgba(var(--rgb),.3);overflow:hidden}
+.code-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.08)}
+.code-h span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--cdim)}
+.code pre{margin:0;padding:14px;overflow:auto;font-family:var(--mono);font-size:12.2px;line-height:1.65;color:var(--cink);max-height:400px;white-space:pre-wrap;word-break:break-word}
+.copy{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.07);color:#cbd5e1;border-radius:8px;padding:5px 11px;font-size:11.5px;font-weight:650;cursor:pointer;transition:.15s;white-space:nowrap}
+.copy:hover{background:rgba(255,255,255,.18);color:#fff}
+.copy.done{background:var(--ok);border-color:transparent;color:#fff}
+.checks{margin-top:12px;background:var(--okbg);border:1px solid rgba(var(--okrgb),.3);border-radius:12px;padding:11px 14px}
+.checks b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ok);margin-bottom:6px}
+.checks ul{margin:0;padding-left:18px;font-size:13px;color:var(--ink2);line-height:1.5}
+.checks li{margin-bottom:4px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.fchip{min-height:36px;padding:0 13px;border-radius:99px;border:1px solid var(--border);background:var(--surface);color:var(--ink2);font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s}
+.fchip:hover{border-color:var(--border2);color:var(--ink)}
+.fchip.on{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.paths{max-height:230px;overflow:auto;background:var(--cbg);border-radius:12px;padding:10px 12px;border:1px solid rgba(var(--rgb),.3)}
+.paths div{font-family:var(--mono);font-size:11.8px;color:var(--cink);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);word-break:break-all}
+.paths div:last-child{border-bottom:none}
+.paths span{color:var(--cdim)}
+.maprow{display:grid;grid-template-columns:1fr;gap:6px;padding:9px 0;border-top:1px solid var(--border)}
+@media(min-width:640px){.maprow{grid-template-columns:190px 1fr;gap:12px;align-items:center}}
+.maprow b{font-size:13px}
+.maprow small{display:block;font-size:11.5px;color:var(--ink3);font-weight:400}
+.ring{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;box-shadow:var(--sh1)}
+.rwrap{position:relative;width:88px;height:88px;flex-shrink:0}
+.rsvg{width:88px;height:88px;transform:rotate(-90deg)}
+.rsvg circle{fill:none;stroke-width:9;stroke-linecap:round}
+.rsvg .bgc{stroke:var(--surface3)}
+.rsvg .fgc{stroke:var(--proj);transition:stroke-dashoffset .7s cubic-bezier(.22,.61,.36,1)}
+.rnum{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:18px;font-weight:800}
+.rinfo{flex:1;min-width:210px}
+.rinfo b{display:block;font-size:15px}
+.rinfo span{font-size:13px;color:var(--ink2)}
+.basebar{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.bdot{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--surface2);border:1px solid var(--border);color:var(--ink3)}
+.bdot.on{background:var(--okbg);border-color:rgba(var(--okrgb),.35);color:var(--ok)}
+.clist{display:grid;gap:8px}
+.ci{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;cursor:pointer;transition:.16s}
+.ci:hover{border-color:rgba(var(--rgb),.45);transform:translateX(3px)}
+.ci:focus-visible{outline:3px solid rgba(var(--rgb),.35);outline-offset:2px}
+.ci.on{background:var(--okbg);border-color:rgba(var(--okrgb),.45)}
+.ci.base{border-left:4px solid var(--warn)}
+.ci.base.on{border-left-color:var(--ok)}
+.ci.main{box-shadow:0 0 0 2px rgba(var(--rgb),.22)}
+.cbox{flex-shrink:0;width:24px;height:24px;border-radius:7px;border:2px solid var(--border2);display:grid;place-items:center;transition:.15s;margin-top:2px}
+.ci.on .cbox{background:var(--ok);border-color:var(--ok)}
+.cbox svg{width:14px;height:14px;stroke:#fff;stroke-width:3;fill:none;opacity:0;transition:.15s}
+.ci.on .cbox svg{opacity:1}
+.cnum{flex-shrink:0;font-family:var(--mono);font-size:12px;font-weight:800;color:var(--ink3);min-width:22px;margin-top:3px}
+.ci.on .cnum{color:var(--ok)}
+.ctb{flex:1;min-width:0}
+.ct{font-size:14px;font-weight:650;line-height:1.45;display:block}
+.ch{font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.5;display:block}
+.ch b{color:var(--ink3)}
+.btag{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:var(--warnbg);color:var(--warn);margin-left:6px}
+.mtag{display:inline-block;font-size:10px;font-weight:800;padding:2px 7px;border-radius:6px;background:rgba(var(--rgb),.16);color:var(--proj);margin-left:6px}
+.ci.on .btag{background:rgba(var(--okrgb),.16);color:var(--ok)}
+.verdict{border-radius:var(--rl);padding:18px;border:1px solid var(--border);background:var(--surface2)}
+.verdict.pass{background:var(--okbg);border-color:rgba(var(--okrgb),.45);animation:pop .5s cubic-bezier(.22,.61,.36,1)}
+.verdict.fail{background:var(--warnbg);border-color:rgba(var(--warnrgb),.4)}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.015)}100%{transform:scale(1)}}
+.verdict h3{margin:0 0 6px;font-size:18px}
+.verdict p{margin:0;font-size:14px;line-height:1.6;color:var(--ink2)}
+.verdict ul{margin:8px 0 0;padding-left:20px;font-size:13.5px;color:var(--ink2)}
+.tw{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);box-shadow:var(--sh1)}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:520px}
+th{text-align:left;padding:11px 14px;background:var(--surface2);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);border-bottom:1px solid var(--border)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.5;color:var(--ink2)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:rgba(var(--rgb),.05)}
+td b{color:var(--ink)}
+.actions{position:fixed;left:0;right:0;bottom:0;z-index:38;border-top:1px solid var(--border);background:var(--surface);opacity:.97;backdrop-filter:blur(14px);padding:9px 16px}
+.ab{max-width:1180px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.ab-i{font-size:12.5px;color:var(--ink3);min-width:0;flex:1}
+.ab-i b{color:var(--ink)}
+.ab-b{display:flex;gap:8px;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:76px;transform:translate(-50%,20px);z-index:60;opacity:0;pointer-events:none;background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:650;box-shadow:var(--sh2);transition:.28s cubic-bezier(.22,.61,.36,1);max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.conf{position:fixed;z-index:70;width:9px;height:14px;border-radius:2px;pointer-events:none}
+.errbox{border:2px solid var(--danger);background:var(--dangerbg);color:var(--danger);border-radius:var(--r);padding:18px;font-family:var(--mono);font-size:13px;white-space:pre-wrap}
+[data-reveal]{opacity:0;transform:translateY(16px);transition:opacity .55s cubic-bezier(.22,.61,.36,1),transform .55s cubic-bezier(.22,.61,.36,1)}
+[data-reveal].in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}[data-reveal]{opacity:1;transform:none}}
+@media(max-width:560px){
+:root{--top:52px}
+.tb{padding:0 11px;gap:7px}
+.brand span{display:none}
+main{padding:calc(var(--top) + 70px) 11px 136px}
+.hero{padding:28px 17px}
+.phead{padding:22px 17px}
+.phead .wm{font-size:96px;top:-16px}
+.sec-t{font-size:17px}
+.step-body{padding-left:16px}
+.ab-i{display:none}
+.ab-b{width:100%}
+.ab-b .btn{flex:1}
+.tdial{font-size:32px;min-width:112px}
+}
+@media print{
+@page{size:A4;margin:14mm}
+.aura,.grain,.topbar,.tabwrap,.actions,.toast,.copy,.filters,.no-print{display:none!important}
+body{background:#fff}
+main{padding:0;max-width:100%}
+.code,.code pre,.paths{background:#f1f5f9!important;color:#0f172a!important;border-color:#cbd5e1;max-height:none}
+.code-h span,.paths div,.paths span{color:#475569!important}
+.card,.step,.pblock,.ci,.tw{break-inside:avoid;box-shadow:none}
+[data-reveal]{opacity:1!important;transform:none!important}
+.ci.on{background:#dcfce7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.phead{color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div class="aura" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="grain" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="tb">
+    <div class="mark">21</div>
+    <div class="brand">
+      <b>Занятие 21 · Спринт 2: данные и API</b>
+      <span>Масликов М. М. · модуль 9 · Qwen + GitHub, без локального Git</span>
+    </div>
+    <span class="stchip" id="stchip">0 / 22</span>
+    <button class="ibtn" id="themeBtn" type="button" aria-label="Тёмная тема" title="Тёмная тема">
+      <svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="ibtn" id="printBtn" type="button" aria-label="Отчёт в PDF" title="Отчёт в PDF">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="tabwrap" id="tabwrap" hidden>
+  <nav class="tabs" id="tabs" aria-label="Вкладки спринта"></nav>
+  <div class="readbar"><i id="readbar"></i></div>
+</div>
+
+<main id="view" class="nostart"></main>
+
+<div class="actions" id="actionbar" hidden>
+  <div class="ab">
+    <div class="ab-i" id="abInfo"></div>
+    <div class="ab-b">
+      <button class="btn btn-s btn-sm" type="button" data-action="go-check">Чек-лист спринта</button>
+      <button class="btn btn-p btn-sm" type="button" data-action="print">Отчёт в PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+
+var TOPICS = [
+  { id:"P01", name:"Ритм 21", kind:"Трекер привычек", c1:"#0f766e", repo:"ritm-21", arr:"habits", fn:"renderHabits",
+    legend:"личный трекер привычек на 21 день для школьного кружка «Здоровые привычки»",
+    form:"одно поле «Название привычки» и кнопка «Добавить»",
+    rec:'{ id: "h1", title: "Вода 6 стаканов", color: "#0f766e", checks: [] }',
+    act:"отметка «сегодня» и снятие отметки",
+    api1:{n:"Advice Slip",u:"https://api.adviceslip.com/advice",d:"Совет дня. Ответ — объект с полем slip.advice."},
+    api2:{n:"Open-Meteo",u:"https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&daily=temperature_2m_max&timezone=auto",d:"Погода для прогулки. Массивы внутри daily."},
+    targets:[{k:"advice",l:"Текст совета",h:"обычно slip.advice"}] },
+  { id:"P02", name:"Дедлайн-доска", kind:"Менеджер задач", c1:"#b45309", repo:"dedline-doska", arr:"tasks", fn:"renderBoard",
+    legend:"доска личных задач школьника с тремя колонками статусов",
+    form:"поле «Название задачи», поле «Срок» (date) и кнопка «Добавить»",
+    rec:'{ id: "t1", title: "Черновик стенгазеты", due: "2026-03-12", status: "todo" }',
+    act:"перевод задачи в «В работе» и «Готово», удаление с подтверждением",
+    api1:{n:"JSONPlaceholder",u:"https://jsonplaceholder.typicode.com/todos?_limit=5",d:"Учебные дела-черновики. Массив объектов с полем title."},
+    api2:{n:"Advice Slip",u:"https://api.adviceslip.com/advice",d:"Подсказка «с чего начать»."},
+    targets:[{k:"title",l:"Название дела",h:"обычно [0].title"}] },
+  { id:"P03", name:"Диванный зал", kind:"Кинопоиск", c1:"#9d174d", repo:"divannyi-zal", arr:"watchlist", fn:"renderResults",
+    legend:"поиск фильмов и сериалов для семейного киноклуба со списком «Посмотрим»",
+    form:"поле «Название фильма или сериала» и кнопка «Найти»",
+    rec:'{ id: "tv-101", title: "Вымышленный маяк", year: "2019", summary: "Короткое описание" }',
+    act:"добавление тайтла в «Посмотрим» и удаление из списка",
+    api1:{n:"TVMaze",u:"https://api.tvmaze.com/search/shows?q=%D0%BC%D0%B0%D1%8F%D0%BA",d:"Поиск. Массив, внутри каждого элемента объект show."},
+    api2:{n:"Open Library",u:"https://openlibrary.org/search.json?q=%D0%BA%D0%BD%D0%B8%D0%B3%D0%B8&limit=3",d:"Запасной источник «книги по мотивам»."},
+    targets:[{k:"title",l:"Название",h:"обычно [0].show.name"},{k:"year",l:"Год",h:"обычно [0].show.premiered"},{k:"summary",l:"Описание",h:"обычно [0].show.summary"}] },
+  { id:"P04", name:"Пиксельный штаб", kind:"Панель геймера", c1:"#4c1d95", repo:"pixelnyi-shtab", arr:"games", fn:"renderLibrary",
+    legend:"панель школьного киберклуба: своя библиотека игр и лента скидок",
+    form:"поля «Название», «Часы» (number, min 0), «Оценка» (number, 1–10) и кнопка «Добавить»",
+    rec:'{ id: "g1", title: "Северная экспедиция", hours: 12, score: 8 }',
+    act:"удаление игры из библиотеки и пересчёт сводки",
+    api1:{n:"CheapShark",u:"https://www.cheapshark.com/api/1.0/deals?upperPrice=15",d:"Скидки. Массив сделок, полей много — берём только нужные."},
+    api2:{n:"Open-Meteo",u:"https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&current_weather=true",d:"Виджет «не забудь разминку»."},
+    targets:[{k:"title",l:"Название сделки",h:"обычно [0].title"},{k:"price",l:"Цена со скидкой",h:"обычно [0].salePrice"}] },
+  { id:"P05", name:"Классный штаб", kind:"Школьная панель", c1:"#1d4ed8", repo:"klassnyi-shtab", arr:"notices", fn:"renderNotices",
+    legend:"штаб класса: объявления, дежурства на неделю, дни рождения и погода",
+    form:"поля «Заголовок», «Текст», «Дата» и кнопка «Добавить»",
+    rec:'{ id: "n1", title: "Сбор макулатуры", body: "Кабинет 12", date: "2026-03-14" }',
+    act:"назначение дежурных на день и удаление объявления",
+    api1:{n:"Open-Meteo",u:"https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&daily=temperature_2m_max,weathercode&timezone=auto",d:"Погода на завтра. Внутри daily массивы, брать первый элемент."},
+    api2:{n:"Advice Slip",u:"https://api.adviceslip.com/advice",d:"Цитата на линейку."},
+    targets:[{k:"tmax",l:"Температура днём",h:"обычно daily.temperature_2m_max[0]"},{k:"code",l:"Код погоды",h:"обычно daily.weathercode[0]"}] },
+  { id:"P06", name:"Банк добрых дел", kind:"Волонтёрская панель", c1:"#be123c", repo:"bank-dobryh-del", arr:"events", fn:"renderEvents",
+    legend:"панель волонтёрского отряда: акции, записи участников, часы и витрина книг",
+    form:"поля «Имя и фамилия», «Класс» и кнопка «Записаться»",
+    rec:'{ id: "e1", title: "Помощь 5 классам", date: "2026-03-18", hours: 2, slots: 6 }',
+    act:"запись участника на акцию и снятие записи",
+    api1:{n:"Open Library",u:"https://openlibrary.org/search.json?q=%D0%B8%D1%81%D1%82%D0%BE%D1%80%D0%B8%D0%B8&limit=3",d:"Книги для витрины. Внутри docs массив книг."},
+    api2:{n:"Open-Meteo",u:"https://api.open-meteo.com/v1/forecast?latitude=55.75&longitude=37.62&daily=temperature_2m_max&timezone=auto",d:"Погода на уличную акцию."},
+    targets:[{k:"title",l:"Название книги",h:"обычно docs[0].title"},{k:"author",l:"Автор",h:"обычно docs[0].author_name[0]"}] }
+];
+
+var CHECKS = [
+  { n:1, t:"Обработчик висит на форме и слушает submit, а не click на кнопке", how:"Поставь курсор в поле названия и нажми Enter. Страница не перезагрузилась, запись добавилась." },
+  { n:2, t:"preventDefault() стоит первой строкой обработчика", how:"Отправь форму: адресная строка не мигает, введённое не исчезает, страница не прыгает наверх." },
+  { n:3, t:"Значение обрезается через .trim() до проверки", how:"Введи три пробела и отправь. Запись не добавилась, появилось сообщение." },
+  { n:4, t:"Пустое поле не добавляет запись, под полем сообщение-инструкция", how:"Отправь пустую форму. Под полем текст, который говорит, что сделать, а не «Ошибка».", base:true },
+  { n:5, t:"Массив — источник истины: после изменения список перерисовывается целиком", how:"В обработчике нет appendChild и createElement. Есть вызов {FN}() после изменения массива.", base:true },
+  { n:6, t:"После успешного добавления форма очищается", how:"Добавь запись: поле пустое, готово к следующему вводу." },
+  { n:7, t:"Фокус возвращается в первое поле", how:"Добавь запись и сразу печатай, не касаясь мыши: текст идёт в поле." },
+  { n:8, t:"Запись есть в массиве {ARR}, а не только на экране", how:"F12 → Console → напиши {ARR} и Enter. Видно length и последнюю запись с нужными полями.", base:true, main:true },
+  { n:9, t:"У каждой записи свой уникальный id", how:"Добавь две записи с одинаковым названием. В консоли у них разные id." },
+  { n:10, t:"Пустой список объясняет, что делать", how:"Удали все записи. На экране приглашение добавить первую, а не пустое место." },
+  { n:11, t:"Удаление и смена статуса идут через массив и перерисовку", how:"Удали запись: в консоли массив стал короче, на экране карточки нет." },
+  { n:12, t:"Обработчики на контейнере, внутри closest и проверка на null", how:"Нажми по заголовку внутри карточки и по пустому месту списка: первое работает, второе ничего не ломает." },
+  { n:13, t:"Текст, который ввёл человек, выводится через textContent", how:"Введи в поле набор символов с угловыми скобками. На экране он виден как текст, а не как разметка." },
+  { n:14, t:"Адрес API открыт в браузере, имена полей выписаны", how:"Рядом с кодом список полей, которые ты видел глазами в ответе сервиса." },
+  { n:15, t:"Нормализация собрана в одной функции", how:"Внутри функции отрисовки нет чужих путей вида raw.a.b — только свои короткие имена." },
+  { n:16, t:"Сбой сети проверен: показан фолбэк с честной пометкой", how:"F12 → Network → Offline в этой вкладке, обнови и нажми загрузку. Видно запасные данные и текст, что они из копии.", base:true },
+  { n:17, t:"Ошибочный код ответа проверен отдельно от сбоя сети", how:"Подставь в адрес опечатку, получи 404. На экране сообщение об ошибке, а не «пусто»." },
+  { n:18, t:"Видны все четыре состояния: загрузка, данные, пусто, ошибка", how:"Пройди их по очереди: индикатор, карточки, объяснение пустоты, сообщение об ошибке." },
+  { n:19, t:"Кнопка блокируется на время запроса и возвращается в finally", how:"Network → Slow 3G, нажми кнопку дважды подряд. Второй клик ничего не отправляет." },
+  { n:20, t:"Фолбэк написан заранее и лежит в проекте", how:"В коде есть константа с запасными данными или файл data/fallback.json той же формы." },
+  { n:21, t:"Публичная ссылка обновлена и открывается с телефона", how:"Actions — зелёная галочка, обнови с Ctrl+F5, открой адрес на настоящем телефоне.", base:true },
+  { n:22, t:"Ветка спринта, два осмысленных коммита и принятый PR", how:"Вкладка Commits: сообщения называют файл и изменение. Pull requests: PR слит, ветка удалена." }
+];
+
+var EXTRAS = [
+  { id:"e1", t:"Первый рефакторинг через ИИ сделан и проверен на трёх наборах", how:"Обычные данные, пустой массив, Offline — обе версии дают одинаковый результат." },
+  { id:"e2", t:"Кэш последнего удачного ответа показывается при сбое", how:"Загрузи данные, включи Offline, обнови: видно прошлые данные с пометкой времени." },
+  { id:"e3", t:"Кнопка «Попробовать снова» после ошибки", how:"Выключи Offline и нажми её: данные приходят без перезагрузки страницы." },
+  { id:"e4", t:"Счётчик «Показано N из M» над списком", how:"Добавь и удали запись: числа меняются вместе с массивом." },
+  { id:"e5", t:"Время последнего обновления данных на экране", how:"Загрузи данные: рядом с блоком видно, когда они получены." },
+  { id:"e6", t:"Второй источник данных подключён", how:"Отключи первый в Offline: второй блок продолжает работать." }
+];
+
+var STEPS = [
+  { n:1, min:"2 мин", where:"g", title:"Ветка спринта feature/logic",
+    body:"<p>Каркас с занятия 20 уже опубликован. Логику делаем в отдельной ветке, чтобы рабочая ссылка не сломалась.</p><ol><li>Открой репозиторий, убедись что ты в main и ссылка открывается.</li><li>Переключатель веток → введи feature/logic → Create branch from main.</li><li>Все правки сегодня — в этой ветке.</li></ol>",
+    closes:[], act:[{t:"Мои ветки",link:"branches"},{t:"Инструкция GitHub",a:"go-github"}] },
+  { n:2, min:"2 мин", where:"b", title:"Выпиши поля формы и структуру записи",
+    body:"<p>До кода — на бумаге или в поле ниже. Какие поля в форме, как называется массив, какие поля у записи.</p><ul><li>Массив проекта: <b>{ARR}</b>.</li><li>Функция перерисовки: <b>{FN}</b>.</li><li>Структура записи — в вкладке «Шаблоны».</li></ul>",
+    closes:[], act:[{t:"Структура записи",a:"go-tpl"}] },
+  { n:3, min:"7 мин", where:"q", title:"Промпт П1 — форма и добавление в массив",
+    body:"<p>Пять шагов цикла добавления не меняются: submit → preventDefault → trim → проверка → массив и перерисовка.</p><ol><li>Открой вкладку «Промпты», найди П1.</li><li>Копируй целиком: тема, массив и поля уже подставлены.</li><li>Отправь в chat.qwen.ai, скопируй только код.</li></ol>",
+    closes:[1,2,3,4,6,7], act:[{t:"Промпт П1",a:"go-p1"},{t:"Открыть Qwen",href:"https://chat.qwen.ai/"}] },
+  { n:4, min:"3 мин", where:"q", title:"Аудит ответа: пойми каждую строку",
+    body:"<p>Код от модели — не готовый ответ. Прочитай его целиком, отметь непонятное, спроси объяснение.</p><ol><li>Промпт П8, вставь полученный код.</li><li>Сверь объяснение со своим пониманием.</li><li>Незнакомый метод — попроси заменить на знакомый.</li></ol>",
+    closes:[], act:[{t:"Промпт П8",a:"go-p8"}] },
+  { n:5, min:"4 мин", where:"g", title:"Вставь код и проверь главный пункт",
+    body:"<ol><li>Add file → Edit script.js, вставь код, Commit changes по шаблону К1.</li><li>Открой страницу, добавь запись.</li><li><b>Главная проверка спринта:</b> F12 → Console → напиши имя массива и Enter.</li><li>Запись должна быть в массиве. Карточка только в дереве страницы — это ошибка, на занятии 22 она сотрёт данные.</li></ol>",
+    closes:[5,8,9], act:[{t:"Шаблоны коммитов",a:"go-tpl"}] },
+  { n:6, min:"5 мин", where:"q", title:"Промпт П2 — полная перерисовка и пустой случай",
+    body:"<p>Одна функция рисует список заново целиком. Пустой массив — понятное сообщение, а не пустое место.</p><ol><li>Скопируй П2, отправь в том же чате.</li><li>Проверь: одно присваивание innerHTML после map и join, проверка длины в начале.</li><li>Текст от человека — только через textContent.</li></ol>",
+    closes:[10,13], act:[{t:"Промпт П2",a:"go-p2"}] },
+  { n:7, min:"5 мин", where:"q", title:"Промпт П3 — удаление и статус через делегирование",
+    body:"<p>Карточки создаёт скрипт, поэтому обработчик висит на контейнере, который есть всегда.</p><ol><li>Скопируй П3: внутри описано твоё действие над записью.</li><li>Проверь: closest, проверка на null, изменение массива, вызов перерисовки.</li><li>Нажми по заголовку внутри карточки — должно сработать.</li></ol>",
+    closes:[11,12], act:[{t:"Промпт П3",a:"go-p3"}] },
+  { n:8, min:"4 мин", where:"a", title:"Открой ответ API глазами",
+    body:"<p>Формат ответа не спрашивают у модели и не угадывают. Его открывают в браузере и смотрят.</p><ol><li>Вкладка «API»: нажми «Открыть ответ» — сервис покажет JSON.</li><li>Скопируй ответ и вставь в поле на той же вкладке.</li><li>Нажми «Разобрать ответ»: лист покажет настоящие пути к полям.</li><li>Сопоставь их со своими именами и получи готовую нормализацию.</li></ol>",
+    closes:[14], act:[{t:"Открыть вкладку API",a:"go-api"}] },
+  { n:9, min:"5 мин", where:"q", title:"Промпт П4 — нормализация в одной функции",
+    body:"<p>Чужие имена полей живут только внутри normalize. Дальше весь код работает со своими короткими именами.</p><ol><li>Возьми готовую функцию из вкладки «API» или скопируй П4.</li><li>Проверь: поля совпадают с тем, что ты видел глазами.</li><li>Внутри отрисовки не должно остаться чужих путей.</li></ol>",
+    closes:[15], act:[{t:"Промпт П4",a:"go-p4"},{t:"Вкладка API",a:"go-api"}] },
+  { n:10, min:"6 мин", where:"q", title:"Промпт П5 — запрос и четыре состояния",
+    body:"<p>Загрузка, данные, пусто, ошибка. Молчание не является ответом ни в одном случае.</p><ol><li>Скопируй П5: адрес и фолбэк подставлены по теме.</li><li>Проверь по чек-листу запроса: отправили → дождались → проверили ответ → вывели → предусмотрели ошибку.</li><li>response.ok проверяется вручную, ошибочный код бросается через throw.</li></ol>",
+    closes:[17,18,19,20], act:[{t:"Промпт П5",a:"go-p5"},{t:"Промпт П6",a:"go-p6"}] },
+  { n:11, min:"5 мин", where:"b", title:"Проверь сбой двумя способами",
+    body:"<p>Нет сети и сервис ответил ошибкой — разные случаи, и лечатся они по-разному.</p><ol><li>F12 → Network → выбери Offline. Обнови вкладку, нажми загрузку.</li><li>Должен появиться фолбэк и честная пометка, что данные из копии.</li><li>Верни Online, подставь в адрес опечатку → получишь 404 → сообщение об ошибке.</li><li>Slow 3G: нажми кнопку дважды — второй клик не должен отправлять запрос.</li></ol>",
+    closes:[16,17,19], act:[{t:"Как проверить сбой",a:"go-api"}] },
+  { n:12, min:"6 мин", where:"g", title:"Рефакторинг, PR, телефон, доска",
+    body:"<ol><li>Промпт П7: отдай модели одну функцию длиннее двадцати строк. Проверь три набора данных.</li><li>Коммиты по шаблонам, PR с описанием в три блока.</li><li>Merge → Delete branch → Actions зелёная галочка → Ctrl+F5.</li><li>Открой ссылку с настоящего телефона.</li><li>Переведи задачу на доске в «Сделано».</li></ol>",
+    closes:[21,22], act:[{t:"Промпт П7",a:"go-p7"},{t:"Шаблон PR",a:"go-tpl"},{t:"Создать PR",link:"compare"}] }
+];
+
+var PHASES = [
+  { from:0, to:240, t:"Ветка и поля формы", d:"Шаги 1–2" },
+  { from:240, to:900, t:"Форма и добавление в массив", d:"Шаги 3–5" },
+  { from:900, to:1500, t:"Перерисовка и делегирование", d:"Шаги 6–7" },
+  { from:1500, to:2100, t:"API глазами и нормализация", d:"Шаги 8–9" },
+  { from:2100, to:2640, t:"Четыре состояния и Offline", d:"Шаги 10–11" },
+  { from:2640, to:3000, t:"Рефакторинг, PR, телефон", d:"Шаг 12" }
+];
+
+var KEY="wdc-l21-sprint-v1";
+var state={ started:false, tab:"sprint", topic:"P01", owner:"", repo:"", link:"", dark:false,
+  steps:{}, checks:{}, extras:{}, filter:"all", q:"",
+  api:{ paste:"", paths:[], map:{}, parsed:false, error:"" },
+  timer:{ left:3000, running:false, endsAt:null } };
+
+try{
+  var raw=localStorage.getItem(KEY);
+  if(raw){ var pj=JSON.parse(raw); if(pj&&typeof pj==="object"){ for(var kk in pj){ if(Object.prototype.hasOwnProperty.call(pj,kk)) state[kk]=pj[kk]; } } }
+}catch(e){}
+if(!state.timer||typeof state.timer.left!=="number") state.timer={left:3000,running:false,endsAt:null};
+if(!state.steps) state.steps={};
+if(!state.checks) state.checks={};
+if(!state.extras) state.extras={};
+if(!state.api) state.api={paste:"",paths:[],map:{},parsed:false,error:""};
+if(!state.api.paths) state.api.paths=[];
+if(!state.api.map) state.api.map={};
+var tFound=false;
+for(var ti=0;ti<TOPICS.length;ti++){ if(TOPICS[ti].id===state.topic) tFound=true; }
+if(!tFound) state.topic="P01";
+
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
+function T(){ for(var i=0;i<TOPICS.length;i++){ if(TOPICS[i].id===state.topic) return TOPICS[i]; } return TOPICS[0]; }
+function esc(s){
+  if(s===null||s===undefined) return "";
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
+}
+function fill(s){ return String(s).replace(/\{ARR\}/g,T().arr).replace(/\{FN\}/g,T().fn); }
+function slug(s){ return String(s||"").trim().toLowerCase().replace(/[^a-z0-9-]/g,""); }
+function owner(){ return slug(state.owner); }
+function repo(){ return slug(state.repo)||T().repo; }
+function hasGH(){ return owner().length>0&&repo().length>0; }
+function ghURL(p){ return hasGH()?"https://github.com/"+owner()+"/"+repo()+(p||""):""; }
+function pagesURL(){ return owner()?"https://"+owner()+".github.io/"+repo()+"/":""; }
+function dynLink(k){
+  if(k==="repo") return ghURL("");
+  if(k==="branches") return ghURL("/branches");
+  if(k==="compare") return ghURL("/compare/main...feature/logic");
+  if(k==="pages") return ghURL("/settings/pages");
+  if(k==="actions") return ghURL("/actions");
+  if(k==="pulls") return ghURL("/pulls");
+  if(k==="site") return pagesURL();
+  return "";
+}
+
+var view=document.getElementById("view");
+var tabsEl=document.getElementById("tabs");
+var tabwrap=document.getElementById("tabwrap");
+var actionbar=document.getElementById("actionbar");
+var stchip=document.getElementById("stchip");
+var abInfo=document.getElementById("abInfo");
+var toastEl=document.getElementById("toast");
+var toastT=null;
+function toast(m){
+  toastEl.textContent=m;
+  toastEl.classList.add("on");
+  if(toastT) clearTimeout(toastT);
+  toastT=setTimeout(function(){ toastEl.classList.remove("on"); },2800);
+}
+
+var HUES={
+  sprint:["#0e7490","#0891b2","14,116,144"],
+  route:["#4f46e5","#7c3aed","79,70,229"],
+  prompts:["#6d28d9","#a855f7","109,40,217"],
+  api:["#0f766e","#14b8a6","15,118,110"],
+  tpl:["#9d174d","#ec4899","157,23,77"],
+  github:["#15803d","#84cc16","21,128,61"],
+  check:["#b45309","#f59e0b","180,83,9"]
+};
+function setHue(){
+  var h=HUES[state.tab]||HUES.sprint, r=document.documentElement;
+  r.style.setProperty("--proj",h[0]);
+  r.style.setProperty("--proj2",h[1]);
+  r.style.setProperty("--rgb",h[2]);
+}
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme",state.dark?"dark":"light");
+  var ic=document.getElementById("themeIcon");
+  if(ic){
+    ic.innerHTML=state.dark
+      ?'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'
+      :'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  }
+}
+
+/* ---------- промпты ---------- */
+function ctx(){
+  var t=T();
+  return [
+    "[КТО Я]",
+    "Я школьник, 10–11 класс. Делаю учебный проект — "+t.legend+".",
+    "Чистые HTML, CSS и JavaScript: без фреймворков, сборщиков, npm и TypeScript.",
+    "Файлы правлю прямо в браузере на GitHub. Второй спринт из четырёх: сегодня данные и API.",
+    "",
+    "[ЧТО Я УЖЕ УМЕЮ]",
+    "Семантические теги, один main, label с for, aria-атрибуты, видимый фокус.",
+    "CSS-переменные в :root, Grid и Flexbox, Mobile First через min-width.",
+    "const и let, Number(), функции с return, массив объектов, map, filter, find, join, sort,",
+    "циклы for и for...of, шаблонные строки, querySelector, addEventListener,",
+    "делегирование через closest, textContent, classList, валидация форм,",
+    "Promise, async и await, try/catch/finally, fetch, response.ok.",
+    "",
+    "[ЧЕГО Я НЕ УМЕЮ — НЕ ИСПОЛЬЗУЙ]",
+    "reduce, регулярные выражения, деструктуризацию, spread вне копии массива,",
+    "optional chaining, классы, модули, import и export, библиотеки, сборщики.",
+    "localStorage проходили, но сегодня не используем — он в третьем спринте."
+  ].join("\n");
+}
+function tail(name){
+  return [
+    "",
+    "[ФОРМАТ ОТВЕТА]",
+    "Только код "+name+" в одном блоке, без вступления и заключения.",
+    "После кода — ровно пять строк «Что проверить», по одной проверке на строку.",
+    "",
+    "[КРИТЕРИИ ПРОВЕРКИ]",
+    "Я открою страницу и увижу результат сразу, в консоли ноль ошибок.",
+    "Я смогу объяснить каждую строку вслух: если строку нельзя объяснить школьнику — перепиши проще."
+  ].join("\n");
+}
+function P1(){
+  var t=T();
+  return ctx()+"\n\n"+[
+    "[ЗАДАЧА]",
+    "Напиши обработчик формы, который добавляет запись в массив и перерисовывает список.",
+    "Массив проекта называется "+t.arr+", функция перерисовки — "+t.fn+".",
+    "Разметка формы уже есть: "+t.form+".",
+    "",
+    "[ПОРЯДОК, КОТОРЫЙ НЕЛЬЗЯ МЕНЯТЬ]",
+    "1. Обработчик на форме, событие submit, не click на кнопке.",
+    "2. event.preventDefault() первой строкой.",
+    "3. Значение поля читается и обрезается через .trim().",
+    "4. Проверка: если значение пустое — показать сообщение под полем и выйти через return.",
+    "   Сообщение говорит, что сделать, а не «Ошибка».",
+    "5. Запись добавляется в массив "+t.arr+" через push.",
+    "6. Сразу вызывается "+t.fn+"() — список перерисовывается целиком.",
+    "7. form.reset() и фокус в первое поле.",
+    "",
+    "[СТРУКТУРА ЗАПИСИ]",
+    t.rec,
+    "id делай уникальным: строка из Date.now() подходит.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- никаких createElement и appendChild в обработчике: массив — единственный источник истины;",
+    "- никаких обработчиков на кнопке вместо формы;",
+    "- не больше 40 строк;",
+    "- комментарий на русском к каждому шагу цикла;",
+    "- у поля ошибки есть id, у поля ввода aria-describedby на этот id."
+  ].join("\n")+tail("обработчика формы");
+}
+function P2(){
+  var t=T();
+  return ctx()+"\n\n"+[
+    "[ЗАДАЧА]",
+    "Напиши функцию "+t.fn+"(), которая рисует список заново целиком из массива "+t.arr+".",
+    "",
+    "[ЧТО ДОЛЖНО БЫТЬ]",
+    "1. В начале проверка: если массив пустой — положить в контейнер понятное сообщение",
+    "   и выйти через return. Сообщение приглашает добавить первую запись.",
+    "2. Иначе одно присваивание innerHTML: массив.map(...).join(\"\").",
+    "3. У каждой карточки класс card и атрибут data-id со значением id записи.",
+    "4. Поля записи: "+t.rec,
+    "5. Текст, который ввёл человек, вставляется только через textContent:",
+    "   собери разметку с пустым узлом, затем заполни его текстом.",
+    "   Если не знаешь, как это сделать без innerHTML для чужого текста, — спроси меня,",
+    "   не выдумывай незнакомых приёмов.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- одно присваивание innerHTML, не в цикле;",
+    "- никаких обработчиков внутри функции отрисовки;",
+    "- не больше 35 строк;",
+    "- комментарий на русском перед каждым блоком."
+  ].join("\n")+tail("функции "+t.fn);
+}
+function P3(){
+  var t=T();
+  return ctx()+"\n\n"+[
+    "[ЗАДАЧА]",
+    "Напиши обработчик на контейнере списка, который выполняет действие над записью: "+t.act+".",
+    "",
+    "[ЧТО ДОЛЖНО БЫТЬ]",
+    "1. Один addEventListener на контейнер списка, не на каждую карточку.",
+    "2. Внутри: event.target.closest(\".card\"), проверка на null и выход через return.",
+    "3. id читается из card.dataset.id.",
+    "4. Запись находится в массиве "+t.arr+" через find, результат проверяется.",
+    "5. Изменение делается в массиве, потом вызывается "+t.fn+"().",
+    "6. Для удаления — подтверждение действия перед изменением массива.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- никаких правок разметки в обход массива;",
+    "- никаких обработчиков, навешанных при отрисовке карточек;",
+    "- не больше 35 строк;",
+    "- комментарий на русском к каждой строке, которую школьник может не понять."
+  ].join("\n")+tail("обработчика списка");
+}
+function P4(){
+  var t=T(),i,lines=[];
+  for(i=0;i<t.targets.length;i++) lines.push("- "+t.targets[i].k+" — "+t.targets[i].l+" ("+t.targets[i].h+")");
+  return ctx()+"\n\n"+[
+    "[ЗАДАЧА]",
+    "Напиши функцию normalize(raw), которая приводит ответ сервиса к моей структуре.",
+    "Сервис: "+t.api1.n+". Адрес я открыл в браузере и видел ответ глазами.",
+    "",
+    "[МОИ ПОЛЯ]",
+    lines.join("\n"),
+    "",
+    "[ЧТО ДОЛЖНО БЫТЬ]",
+    "1. Функция принимает сырой ответ и возвращает объект с моими короткими именами.",
+    "2. Все чужие пути встречаются только внутри этой функции.",
+    "3. Если поля может не быть — проверь его наличие простым if и верни понятное значение.",
+    "4. Числа приводятся через Number, текст обрезается через trim, если это строка.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- никаких optional chaining, деструктуризации и reduce;",
+    "- не придумывай поля, которых нет в ответе: если сомневаешься — задай вопрос;",
+    "- не больше 25 строк;",
+    "- комментарий на русском: какое чужое поле во что превращается.",
+    "",
+    "[ФОРМАТ ОТВЕТА]",
+    "Только код функции. После кода — пять строк «Что проверить».",
+    "Если тебе не хватает знании о формате ответа — не пиши код, задай не больше трёх вопросов."
+  ].join("\n");
+}
+function P5(){
+  var t=T();
+  return ctx()+"\n\n"+[
+    "[ЗАДАЧА]",
+    "Напиши асинхронную функцию загрузки данных с сервиса "+t.api1.n+" и обработчик кнопки.",
+    "Адрес: "+t.api1.u,
+    "",
+    "[ЧЕК-ЛИСТ ЗАПРОСА, ПОРЯДОК НЕ МЕНЯЕТСЯ]",
+    "1. Отправили: показать состояние загрузки и заблокировать кнопку.",
+    "2. Дождались: await внутри async-функции.",
+    "3. Проверили ответ: если response.ok ложно — бросить ошибку через throw с текстом кода.",
+    "4. Разобрали ответ и проверили, что данные не пустые: пустой ответ — отдельное спокойное сообщение.",
+    "5. Вывели данные на страницу через функцию отрисовки, предварительно нормализовав их.",
+    "6. Предусмотрели ошибку: в catch показать FALLBACK и честную пометку, что данные из копии.",
+    "7. В finally разблокировать кнопку и убрать индикатор — при любом исходе.",
+    "",
+    "[ЧТО ДОЛЖНО БЫТЬ ВИДНО ПОЛЬЗОВАТЕЛЮ]",
+    "Четыре состояния: загрузка, данные, пусто, ошибка. Молчание не является ответом.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- никаких библиотек и axios, только fetch;",
+    "- не использовать результат до await;",
+    "- фолбэк — константа FALLBACK той же формы, что возвращает normalize;",
+    "- не больше 55 строк;",
+    "- комментарий на русском к каждому из семи шагов."
+  ].join("\n")+tail("функции загрузки");
+}
+function P6(){
+  var t=T(),i,keys=[];
+  for(i=0;i<t.targets.length;i++) keys.push(t.targets[i].k);
+  return ctx()+"\n\n"+[
+    "[ЗАДАЧА]",
+    "Помоги оформить запасные данные и честную пометку для проекта «"+t.name+"».",
+    "Мои поля после нормализации: "+keys.join(", ")+".",
+    "",
+    "[ЧТО НУЖНО]",
+    "1. Константа FALLBACK с двумя-тремя выдуманными, но правдоподобными записями на русском.",
+    "   Форма ровно та же, что возвращает normalize.",
+    "2. Текст пометки для пользователя: короткий, честный, без слова «ошибка».",
+    "   Пример смысла: данные из сохранённой копии, сервис сейчас недоступен.",
+    "3. Строка кода, которая показывает эту пометку в отдельном блоке статуса.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- не выдумывать возможности, которых у проекта нет;",
+    "- не использовать чужие тексты, названия брендов и обложки;",
+    "- не прятать пометку в консоль: её должен увидеть человек;",
+    "- не больше 20 строк кода.",
+    "",
+    "[ФОРМАТ ОТВЕТА]",
+    "Один блок кода с константой и строкой пометки. После — три строки «Что проверить»."
+  ].join("\n");
+}
+function P7(){
+  return [
+    "[КОНТЕКСТ]",
+    "Я школьник, делаю учебный проект — веб-панель на чистых HTML, CSS и JavaScript,",
+    "без фреймворков и без бэкенда. На занятиях были: массивы и объекты,",
+    "filter/map/join/find/sort, циклы for и for...of, функции, условия, шаблонные строки,",
+    "querySelector, addEventListener, делегирование через closest, textContent, classList,",
+    "валидация форм, Promise, async/await, try/catch/finally, fetch.",
+    "Данные хранятся в массиве, интерфейс всегда перерисовывается целиком.",
+    "",
+    "Функция, которую нужно переписать:",
+    "<<< сюда вставить свой код целиком >>>",
+    "",
+    "[ЗАДАЧА]",
+    "Перепиши эту функцию так, чтобы её было легче читать.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- ПОВЕДЕНИЕ НЕ МЕНЯТЬ: на тех же данных обе версии дают одинаковый результат,",
+    "  включая границы — пустой массив, отсутствующее поле, сбой запроса;",
+    "- не использовать приёмы, которых нет в списке выше, в частности reduce,",
+    "  регулярные выражения и деструктуризацию: я не смогу объяснить такой код;",
+    "- не менять имена функций, которые вызываются снаружи;",
+    "- числа-константы вынести наверх с говорящими именами;",
+    "- не длиннее исходной функции больше чем на пять строк;",
+    "- const и let, никакого var.",
+    "",
+    "[ФОРМАТ ОТВЕТА]",
+    "Сначала список из 3–5 строк: что именно ты изменишь и почему.",
+    "Потом один блок кода с функцией целиком. Без пояснений после кода.",
+    "Если данных не хватает — не пиши код, задай не больше трёх вопросов.",
+    "",
+    "[КРИТЕРИИ ПРОВЕРКИ]",
+    "1. Прогоняю обе версии на обычных данных — результат совпадает.",
+    "2. Прогоняю на пустом массиве — совпадает.",
+    "3. Прогоняю при отключённой сети — совпадает.",
+    "4. Каждую строку новой версии я могу пересказать своими словами.",
+    "5. Ни одного метода, которого нет в списке с занятий."
+  ].join("\n");
+}
+function P8(){
+  return [
+    "Ты объясняешь готовый код построчно ученику 10–11 класса.",
+    "",
+    "[КОНТЕКСТ]",
+    "Это файл моего учебного проекта: панель на чистых HTML, CSS и JavaScript.",
+    "Код мне написала модель, и я обязан понимать каждую строку: на защите спросят про любой фрагмент.",
+    "Сегодняшний спринт — данные и API: массив как источник истины, полная перерисовка,",
+    "нормализация ответа, четыре состояния интерфейса.",
+    "",
+    "[ЗАДАЧА]",
+    "Разбери код построчно: что делает каждая строка и что сломается, если её убрать.",
+    "Отдельно ответь на два вопроса:",
+    "1) что произойдёт, если убрать вызов функции перерисовки после изменения массива;",
+    "2) что произойдёт, если убрать проверку response.ok.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- не переписывай мой код и не предлагай улучшений;",
+    "- не используй термины, которых нет в моём коде, без объяснения тут же;",
+    "- не упоминай классы, модули, сборщики и библиотеки;",
+    "- пиши по-русски короткими предложениями, как для одноклассника.",
+    "",
+    "[ФОРМАТ ОТВЕТА]",
+    "Таблица из трёх колонок: строка кода — что делает — что сломается без неё.",
+    "После таблицы два абзаца ответов на вопросы. Потом раздел «Что мне пока непонятно», не больше трёх пунктов.",
+    "",
+    "Вот мой код:",
+    "<<< вставь сюда код файла целиком >>>"
+  ].join("\n");
+}
+function P9(){
+  return [
+    "Ты помогаешь школьнику починить одну конкретную ошибку в учебном проекте.",
+    "",
+    "[КОНТЕКСТ]",
+    "Чистые HTML, CSS и JavaScript, без библиотек. Панель хранит данные в массиве",
+    " и перерисовывает список целиком. Данные приходят с публичного API через fetch.",
+    "",
+    "[ЧТО СЛОМАЛОСЬ]",
+    "Что я делал: <<< добавил запись / нажал загрузку / включил Offline / удалил карточку >>>",
+    "Что ожидал: <<< что должно было произойти >>>",
+    "Что получилось: <<< что увидел на самом деле >>>",
+    "Текст ошибки из консоли: <<< вставь красную строку или напиши «ошибок нет» >>>",
+    "Что показывает консоль про массив: <<< напиши имя массива и что вернулось >>>",
+    "",
+    "Мой код:",
+    "<<< вставь только тот файл, где ошибка >>>",
+    "",
+    "[ЗАДАЧА]",
+    "Найди одну причину и покажи минимальную правку.",
+    "",
+    "[ОГРАНИЧЕНИЯ]",
+    "- не переписывай файл целиком: покажи только строку до и строку после;",
+    "- не предлагай библиотек и незнакомых мне методов;",
+    "- объясни причину одним предложением, понятным школьнику;",
+    "- если причин несколько — назови самую вероятную первой и остановись на ней.",
+    "",
+    "[ФОРМАТ ОТВЕТА]",
+    "1) Причина — одно предложение.",
+    "2) Было: строка кода. Стало: строка кода.",
+    "3) Как проверить, что починилось — одно действие.",
+    "",
+    "[КРИТЕРИИ ПРОВЕРКИ]",
+    "Я могу внести правку сам и объяснить, почему она работает."
+  ].join("\n");
+}
+function P10(){
+  var t=T();
+  return [
+    "Ты помогаешь школьнику оформить Pull Request в учебном проекте.",
+    "",
+    "Контекст: проект «"+t.name+"» — "+t.legend+". Чистые HTML, CSS и JavaScript.",
+    "Ветка feature/logic, второй спринт из четырёх. Каркас уже был опубликован на прошлом занятии.",
+    "",
+    "Факты об изменении (ничего не добавляй от себя):",
+    "- форма добавляет запись в массив "+t.arr+", пустое значение не проходит, форма очищается;",
+    "- список перерисовывается целиком функцией "+t.fn+", пустой список объясняется;",
+    "- "+t.act+" работает через обработчик на контейнере;",
+    "- данные приходят с "+t.api1.n+", ответ нормализуется одной функцией;",
+    "- показаны четыре состояния: загрузка, данные, пусто, ошибка;",
+    "- при сбое сети видны запасные данные с честной пометкой.",
+    "",
+    "Задача: напиши заголовок и описание Pull Request.",
+    "",
+    "Ограничения:",
+    "- заголовок называет изменение, а не номер спринта: до 72 символов;",
+    "- описание ровно из трёх блоков: «Что сделано» — по пункту на файл;",
+    "  «Как проверить» — пронумерованные шаги, обязательно шаг про Enter в поле,",
+    "  шаг про имя массива в консоли и шаг про Offline во вкладке Network;",
+    "  «Что осталось» — честно: localStorage, тема и анимации в третьем спринте;",
+    "- не выдумывать возможности, которых нет в списке фактов;",
+    "- без слов работа, правки, фикс, рефакторинг.",
+    "",
+    "Формат ответа: сначала строка заголовка, потом описание в Markdown.",
+    "",
+    "Критерии проверки: ревьюер понимает, что смотреть и как проверить, не открывая код."
+  ].join("\n");
+}
+
+var PROMPTS=[
+  { id:"p1", n:"П1", t:"Форма и добавление в массив", s:"Шаг 3 · цикл из пяти шагов", make:P1,
+    checks:["Обработчик на форме и слушает submit","preventDefault первой строкой","trim до проверки, пробелы не проходят","Запись попадает в массив, потом вызывается перерисовка","Нет createElement и appendChild в обработчике","После успеха reset и focus"] },
+  { id:"p2", n:"П2", t:"Полная перерисовка и пустой случай", s:"Шаг 6 · одна функция рисует всё", make:P2,
+    checks:["Пустой массив обработан в начале функции","Одно присваивание innerHTML после map и join","У карточки есть data-id","Текст человека не попадает в innerHTML","Обработчиков внутри отрисовки нет"] },
+  { id:"p3", n:"П3", t:"Делегирование: удаление и статус", s:"Шаг 7 · обработчик на контейнере", make:P3,
+    checks:["Один обработчик на контейнер","closest и проверка на null","find по id, результат проверен","Изменение в массиве, потом перерисовка","Удаление с подтверждением"] },
+  { id:"p4", n:"П4", t:"Нормализация ответа", s:"Шаг 9 · чужие имена в одном месте", make:P4,
+    checks:["Поля совпадают с тем, что видел глазами","Чужие пути только внутри normalize","Нет optional chaining и деструктуризации","Отсутствующее поле проверено простым if"] },
+  { id:"p5", n:"П5", t:"Запрос и четыре состояния", s:"Шаг 10 · чек-лист запроса", make:P5,
+    checks:["Индикатор и блокировка кнопки до запроса","await внутри async-функции","response.ok проверен, ошибка брошена через throw","Пустой ответ — отдельное сообщение","catch рисует фолбэк с пометкой","finally разблокирует кнопку"] },
+  { id:"p6", n:"П6", t:"Фолбэк и честная пометка", s:"Шаг 10 · план на случай сбоя", make:P6,
+    checks:["Форма фолбэка совпадает с результатом normalize","Пометка видна на странице, не в консоли","Нет чужих текстов и брендов","Данные выдуманные, но правдоподобные"] },
+  { id:"p7", n:"П7", t:"Первый рефакторинг из двух", s:"Шаг 12 · поведение не меняется", make:P7,
+    checks:["Три набора данных дают одинаковый результат","Пустой массив и Offline проверены","Имена функций снаружи не изменились","Ни одного метода вне списка занятий","Каждую строку можешь пересказать","Старая версия сохранена"] },
+  { id:"p8", n:"П8", t:"Объясни построчно", s:"Шаг 4 · аудит ответа модели", make:P8,
+    checks:["Разобрана каждая строка","Ответы про перерисовку и response.ok конкретные","Объяснение совпадает с твоим пониманием","Код не переписан","Терминов без пояснения нет"] },
+  { id:"p9", n:"П9", t:"Почини одну ошибку", s:"Правило трёх попыток", make:P9,
+    checks:["Названа одна причина","Показана строка до и строка после","Правку можешь внести сам","После третьей неудачи читаешь код вручную"] },
+  { id:"p10", n:"П10", t:"Описание PR спринта 2", s:"Шаг 12 · три блока", make:P10,
+    checks:["Заголовок называет изменение","В «Как проверить» есть Enter, консоль и Offline","Нет выдуманных возможностей","Что осталось написано честно"] }
+];
+
+/* ---------- шаблоны ---------- */
+function tplPR(){
+  var t=T();
+  return [
+    "ЗАГОЛОВОК:",
+    "Данные и API: форма, массив "+t.arr+", загрузка с "+t.api1.n,
+    "",
+    "ОПИСАНИЕ:",
+    "## Что сделано",
+    "- script.js: обработчик формы, добавление записи в массив "+t.arr,
+    "- script.js: функция "+t.fn+" рисует список целиком, пустой список объясняется",
+    "- script.js: "+t.act+" через обработчик на контейнере",
+    "- script.js: normalize приводит ответ "+t.api1.n+" к своим полям",
+    "- script.js: загрузка с четырьмя состояниями, фолбэк и честная пометка",
+    "- index.html: блок статуса и сообщения под полями формы",
+    "",
+    "## Как проверить",
+    "1. Поставить курсор в поле и нажать Enter — страница не перезагружается, запись добавляется",
+    "2. Отправить пустую форму и поле из трёх пробелов — запись не добавляется, видно сообщение",
+    "3. F12 → Console → написать "+t.arr+" — запись есть в массиве, а не только на экране",
+    "4. Нажать по заголовку внутри карточки — действие срабатывает",
+    "5. F12 → Network → Offline, обновить, нажать загрузку — видны запасные данные с пометкой",
+    "6. Вернуть Online, испортить адрес — сообщение об ошибке, а не «пусто»",
+    "7. Slow 3G: нажать кнопку дважды — второй клик не отправляет запрос",
+    "",
+    "## Что осталось",
+    "- localStorage, тёмная тема и микроанимации — третий спринт",
+    "- тест на чужом устройстве и известные ограничения в README — четвёртый спринт"
+  ].join("\n");
+}
+function tplRecord(){
+  var t=T();
+  return [
+    "/* Массив — единственный источник истины. Имя для консоли: "+t.arr+" */",
+    "const "+t.arr+" = [",
+    "  "+t.rec,
+    "];",
+    "",
+    "/* Форма проекта: "+t.form+" */",
+    "/* Действие над записью: "+t.act+" */",
+    "",
+    "/* Правило спринта: изменил массив — вызвал "+t.fn+"().",
+    "   Карточка, созданная мимо массива, исчезнет при следующей перерисовке. */"
+  ].join("\n");
+}
+function tplReadme(){
+  var t=T();
+  var site=pagesURL()||("https://МОЙ-ЛОГИН.github.io/"+t.repo+"/");
+  return [
+    "# "+t.name+" — "+t.kind.toLowerCase(),
+    "",
+    "**Открыть:** "+site,
+    "",
+    "## Стек",
+    "HTML, CSS, JavaScript. Без фреймворков и сборщиков.",
+    "",
+    "## Что умеет",
+    "- добавление записи через форму с проверкой пустого значения",
+    "- список рисуется из массива целиком, пустой список объясняется",
+    "- "+t.act,
+    "- данные с "+t.api1.n+" приводятся к своей структуре одной функцией",
+    "- четыре состояния: загрузка, данные, пусто, ошибка",
+    "- при недоступности сервиса видны запасные данные с пометкой",
+    "",
+    "## Что сделано с помощью ИИ",
+    "- обработчик формы, отрисовка и загрузка написаны моделью Qwen по моим промптам",
+    "- формат ответа сервиса я смотрел глазами в браузере, поля сверены вручную",
+    "- одна функция переписана понятнее, поведение проверено на трёх наборах данных",
+    "",
+    "## Известные ограничения",
+    "- данные не сохраняются между визитами: память появится в третьем спринте"
+  ].join("\n");
+}
+var COMMITS=[
+  { id:"k1", t:"К1 · после формы", v:"script.js: форма добавляет запись в массив" },
+  { id:"k2", t:"К2 · после отрисовки", v:"script.js: список рисуется из массива целиком" },
+  { id:"k3", t:"К3 · после делегирования", v:"script.js: действие над записью через контейнер" },
+  { id:"k4", t:"К4 · после API", v:"script.js: загрузка данных с четырьмя состояниями" },
+  { id:"k5", t:"К5 · после фолбэка", v:"script.js: запасные данные с пометкой при сбое" },
+  { id:"k6", t:"К6 · после рефакторинга", v:"script.js: функция загрузки разбита на части" }
+];
+function tplRemark(){
+  return [
+    "Формула замечания к чужому PR: место + что не так + почему.",
+    "",
+    "Примеры, которые можно исполнить:",
+    "- script.js, обработчик формы: карточка создаётся через appendChild, а в массив запись не попадает —",
+    "  при следующей перерисовке она исчезнет.",
+    "- script.js, загрузка: нет проверки response.ok — при 404 код разберёт страницу ошибки как данные.",
+    "- script.js, catch: фолбэк показан без пометки — человек думает, что данные свежие.",
+    "- index.html: у поля нет label с for — клик по подписи не ставит курсор в поле.",
+    "",
+    "Так не работает: «мне не нравится», «ну такое, переделай», «ты не подумал о сети»."
+  ].join("\n");
+}
+function textFor(id){
+  var i;
+  for(i=0;i<PROMPTS.length;i++){ if(PROMPTS[i].id===id) return PROMPTS[i].make(); }
+  for(i=0;i<COMMITS.length;i++){ if(COMMITS[i].id===id) return COMMITS[i].v; }
+  if(id==="tpl-pr") return tplPR();
+  if(id==="tpl-record") return tplRecord();
+  if(id==="tpl-readme") return tplReadme();
+  if(id==="tpl-remark") return tplRemark();
+  if(id==="api-normalize") return buildNormalize()||"";
+  if(id==="api-fallback") return buildFallback()||"";
+  return "";
+}
+
+/* ---------- подсчёты ---------- */
+function checkedCount(){ var n=0,i; for(i=0;i<CHECKS.length;i++){ if(state.checks[CHECKS[i].n]) n++; } return n; }
+function baseList(){ var a=[],i; for(i=0;i<CHECKS.length;i++){ if(CHECKS[i].base) a.push(CHECKS[i]); } return a; }
+function baseDone(){ var b=baseList(),n=0,i; for(i=0;i<b.length;i++){ if(state.checks[b[i].n]) n++; } return n; }
+function passed(){ return baseDone()===5&&checkedCount()>=15; }
+function stepsDone(){ var n=0,i; for(i=0;i<STEPS.length;i++){ if(state.steps[STEPS[i].n]) n++; } return n; }
+function extrasDone(){ var n=0,i; for(i=0;i<EXTRAS.length;i++){ if(state.extras[EXTRAS[i].id]) n++; } return n; }
+
+/* ---------- разбор ответа API ---------- */
+function collectPaths(value){
+  var out=[];
+  function walk(v,segs,depth){
+    if(out.length>=80) return;
+    if(v===null||typeof v!=="object"){
+      out.push({segs:segs.slice(),type:(v===null?"null":typeof v),sample:String(v).slice(0,70)});
+      return;
+    }
+    if(depth>6) return;
+    if(Array.isArray(v)){
+      if(v.length===0){ out.push({segs:segs.slice(),type:"пустой массив",sample:"[]"}); return; }
+      walk(v[0],segs.concat([0]),depth+1);
+      return;
+    }
+    var keys=Object.keys(v),i;
+    if(keys.length===0){ out.push({segs:segs.slice(),type:"пустой объект",sample:"{}"}); return; }
+    for(i=0;i<keys.length&&out.length<80;i++) walk(v[keys[i]],segs.concat([keys[i]]),depth+1);
+  }
+  walk(value,[],0);
+  return out;
+}
+function accessor(segs){
+  var s="raw",i,k;
+  for(i=0;i<segs.length;i++){
+    k=segs[i];
+    if(typeof k==="number") s+="["+k+"]";
+    else if(/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(k)) s+="."+k;
+    else s+='["'+String(k).replace(/"/g,'\\"')+'"]';
+  }
+  return s;
+}
+function getVal(data,segs){
+  var cur=data,i;
+  for(i=0;i<segs.length;i++){
+    if(cur===null||cur===undefined) return undefined;
+    cur=cur[segs[i]];
+  }
+  return cur;
+}
+function parseApi(){
+  var txt=String(state.api.paste||"").trim();
+  if(!txt){ state.api.error="Поле пустое. Открой ответ по ссылке выше, скопируй его целиком и вставь сюда."; state.api.parsed=false; state.api.paths=[]; return; }
+  var data;
+  try{ data=JSON.parse(txt); }
+  catch(e){ state.api.error="Это не JSON: "+e.message+". Скопируй ответ целиком, без лишних слов до и после."; state.api.parsed=false; state.api.paths=[]; return; }
+  var paths=collectPaths(data);
+  if(!paths.length){ state.api.error="Ответ разобран, но полей не найдено. Проверь, что скопировал весь ответ."; state.api.parsed=false; state.api.paths=[]; return; }
+  state.api.paths=paths;
+  state.api.parsed=true;
+  state.api.error="";
+}
+function mapReady(){
+  var t=T(),i,idx;
+  if(!state.api.parsed) return false;
+  for(i=0;i<t.targets.length;i++){
+    idx=state.api.map[t.targets[i].k];
+    if(idx===undefined||idx===null||idx==="") return false;
+    if(!state.api.paths[Number(idx)]) return false;
+  }
+  return true;
+}
+function buildNormalize(){
+  if(!mapReady()) return "";
+  var t=T(),data;
+  try{ data=JSON.parse(state.api.paste); }catch(e){ return ""; }
+  var lines=["/* Нормализация: чужие имена полей живут только здесь */","function normalize(raw) {","  return {"];
+  var i,p,v,acc,expr;
+  for(i=0;i<t.targets.length;i++){
+    p=state.api.paths[Number(state.api.map[t.targets[i].k])];
+    acc=accessor(p.segs);
+    v=getVal(data,p.segs);
+    expr=acc;
+    if(typeof v==="number") expr="Number("+acc+")";
+    else if(typeof v==="string") expr="String("+acc+").trim()";
+    lines.push("    "+t.targets[i].k+": "+expr+(i<t.targets.length-1?",":""));
+  }
+  lines.push("  };");
+  lines.push("}");
+  lines.push("");
+  lines.push("/* Дальше весь код работает только со своими именами:");
+  var names=[];
+  for(i=0;i<t.targets.length;i++) names.push(t.targets[i].k);
+  lines.push("   "+names.join(", ")+". Чужих путей в отрисовке быть не должно. */");
+  return lines.join("\n");
+}
+function buildFallback(){
+  if(!mapReady()) return "";
+  var t=T(),data;
+  try{ data=JSON.parse(state.api.paste); }catch(e){ return ""; }
+  var lines=["/* Запасные данные той же формы, что возвращает normalize.",
+             "   Значения ниже взяты из настоящего ответа — замени их на выдуманные,",
+             "   если не хочешь класть чужой текст в репозиторий. */",
+             "const FALLBACK = {"];
+  var i,p,v,lit;
+  for(i=0;i<t.targets.length;i++){
+    p=state.api.paths[Number(state.api.map[t.targets[i].k])];
+    v=getVal(data,p.segs);
+    if(typeof v==="string") lit=JSON.stringify(v.slice(0,90));
+    else if(typeof v==="number") lit=String(v);
+    else if(typeof v==="boolean") lit=String(v);
+    else lit='""';
+    lines.push("  "+t.targets[i].k+": "+lit+(i<t.targets.length-1?",":""));
+  }
+  lines.push("};");
+  lines.push("");
+  lines.push('/* В catch: показать эти данные и честную пометку */');
+  lines.push('/* statusBox.textContent = "Сервис недоступен — данные из сохранённой копии"; */');
+  return lines.join("\n");
+}
+
+/* ---------- хелперы рендера ---------- */
+function sec(n,t,s,inner){
+  return '<section class="sec" data-reveal><div class="sec-h"><div class="sec-n">'+esc(n)+'</div><div class="sec-hb">'+
+    '<h3 class="sec-t">'+esc(t)+'</h3>'+(s?'<p class="sec-s">'+esc(s)+'</p>':'')+'</div></div>'+inner+'</section>';
+}
+function codeBox(text,label,id){
+  return '<div class="code"><div class="code-h"><span>'+esc(label)+'</span>'+
+    '<button class="copy" type="button" data-copy="'+esc(id)+'">Копировать</button></div>'+
+    '<pre data-code="'+esc(id)+'">'+esc(text)+'</pre></div>';
+}
+function linkBtn(label,url){
+  var off=!url;
+  return '<a class="lnk'+(off?' off':'')+'" href="'+(off?'#':esc(url))+'"'+(off?'':' target="_blank" rel="noopener"')+'>'+
+    '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>'+esc(label)+'</a>';
+}
+function dynLinksHTML(){
+  return linkBtn("Репозиторий",dynLink("repo"))+linkBtn("Ветки",dynLink("branches"))+
+    linkBtn("Создать PR",dynLink("compare"))+linkBtn("Settings → Pages",dynLink("pages"))+
+    linkBtn("Actions",dynLink("actions"))+linkBtn("Опубликованный сайт",dynLink("site"));
+}
+function fmt(s){
+  s=Math.max(0,Math.floor(s));
+  var m=Math.floor(s/60),x=s%60;
+  return (m<10?"0":"")+m+":"+(x<10?"0":"")+x;
+}
+function curPhase(){
+  var el=3000-state.timer.left,i;
+  for(i=0;i<PHASES.length;i++){ if(el<PHASES[i].to) return PHASES[i]; }
+  return PHASES[PHASES.length-1];
+}
+function linkHint(){
+  var v=String(state.link||"").trim();
+  if(!v) return "Ссылка с занятия 20. Формат: https://логин.github.io/проект/";
+  if(v.indexOf("https://")!==0) return "Ссылка должна начинаться с https://";
+  if(v.indexOf("file:")===0) return "Это локальный путь, а не публичная ссылка.";
+  if(v.indexOf(".")===-1) return "Адрес не похож на публичный сайт.";
+  return "Похоже на публичную ссылку. Открой её с телефона после публикации.";
+}
+
+/* ---------- вкладка Спринт ---------- */
+function renderStart(){
+  var cards="",i,t;
+  for(i=0;i<TOPICS.length;i++){
+    t=TOPICS[i];
+    cards+='<div class="hg" style="--c1:'+t.c1+'"><em>'+t.id+'</em><b>«'+esc(t.name)+'»</b><span>'+esc(t.kind)+'</span></div>';
+  }
+  view.className="nostart";
+  view.innerHTML=
+    '<section class="hero" data-reveal><span class="badge">● Занятие 21 из 24 · модуль 9 · спринт 2 из 4</span>'+
+    '<h1>Панель перестаёт<br><em>быть картинкой</em></h1>'+
+    '<p>Каркас с прошлого занятия уже открывается по ссылке. Сегодня внутрь приходят данные: форма добавляет запись в массив, список рисуется целиком, а из сети приходят настоящие числа и названия — и панель честно переживает сбой.</p>'+
+    '<div class="meta"><span class="chip">🧩 <b>12 шагов</b> маршрута</span><span class="chip">✍️ <b>10 промптов</b> под твою тему</span><span class="chip">🔎 <b>разбор ответа</b> API</span><span class="chip">✅ <b>22 пункта</b> чек-листа</span><span class="chip">⏱ 50 минут</span></div>'+
+    '<button class="btn btn-p btn-lg" type="button" data-action="start">Начать спринт'+
+    '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>'+
+    '<div class="hgrid">'+cards+'</div></section>';
+  observe();
+}
+
+function varsBlock(){
+  var t=T(),topics="",i,x;
+  for(i=0;i<TOPICS.length;i++){
+    x=TOPICS[i];
+    topics+='<button type="button" class="topic'+(x.id===state.topic?' on':'')+'" style="--c1:'+x.c1+'" data-topic="'+x.id+'">'+
+      '<em>'+x.id+'</em><b>«'+esc(x.name)+'»</b><span>'+esc(x.kind)+'</span></button>';
+  }
+  var ob=state.owner&&!owner(), rb=state.repo&&!slug(state.repo);
+  return '<div class="grid g2">'+
+    '<div class="card"><div class="kv-k" style="margin-bottom:8px">Твоя тема</div><div class="topics">'+topics+'</div>'+
+    '<div class="hint" style="margin-top:8px">От темы зависят имя массива, поля записи, адрес сервиса и все промпты.</div></div>'+
+    '<div class="card">'+
+      '<div class="field"><label class="flabel" for="fOwner">Логин GitHub</label>'+
+      '<input class="inp'+(owner()?' filled':'')+'" id="fOwner" data-var="owner" type="text" autocomplete="off" placeholder="например, ivanov-ivan" value="'+esc(state.owner)+'">'+
+      '<div class="hint'+(ob?' bad':'')+'">'+(ob?'Только латиница, цифры и дефис.':'Латиница, строчные, без пробелов.')+'</div></div>'+
+      '<div class="field"><label class="flabel" for="fRepo">Имя репозитория</label>'+
+      '<input class="inp filled" id="fRepo" data-var="repo" type="text" autocomplete="off" placeholder="'+esc(t.repo)+'" value="'+esc(state.repo)+'">'+
+      '<div class="hint'+(rb?' bad':'')+'">'+(rb?'Только латиница, цифры и дефис.':'Пусто — подставим «'+esc(t.repo)+'».')+'</div></div>'+
+      '<div class="field"><label class="flabel" for="fLink">Публичная ссылка проекта</label>'+
+      '<input class="inp'+(state.link?' filled':'')+'" id="fLink" data-var="link" type="url" autocomplete="off" placeholder="'+esc(pagesURL()||"https://логин.github.io/проект/")+'" value="'+esc(state.link)+'">'+
+      '<div class="hint" id="linkHint">'+esc(linkHint())+'</div></div>'+
+    '</div></div>'+
+    '<div class="links" id="dynLinks" style="margin-top:12px">'+dynLinksHTML()+'</div>'+
+    (hasGH()?'':'<div class="hint" style="margin-top:8px">Впиши логин — ссылки станут рабочими и поведут прямо в твой репозиторий.</div>');
+}
+
+function renderSprint(){
+  var ph="",i,p,on,done,el=3000-state.timer.left;
+  for(i=0;i<PHASES.length;i++){
+    p=PHASES[i]; on=el>=p.from&&el<p.to; done=el>=p.to;
+    ph+='<div class="phase'+(on?' on':'')+(done?' done':'')+'" data-phase="'+i+'"><em>'+fmt(p.from)+'–'+fmt(p.to)+'</em><span><b>'+esc(p.t)+'</b> · '+esc(p.d)+'</span></div>';
+  }
+  var cp=curPhase(),t=T();
+  view.className="";
+  view.innerHTML=
+    '<div class="phead" data-reveal><div class="wm">02</div><div class="ph-in">'+
+      '<div class="prow"><span class="pcode">СПРИНТ 2 ИЗ 4</span><span class="pcode">50 МИНУТ</span><span class="pcode">БАЗОВЫЙ БЛОК: 5 ПУНКТА</span></div>'+
+      '<h2>Источник истины — массив</h2>'+
+      '<p>Порядок любого действия сегодня один: изменил данные → перерисовал целиком. Карточка, созданная мимо массива, выглядит правильно ровно до следующей перерисовки — и исчезает. Поэтому главный пункт спринта проверяется не глазами на экране, а именем массива в консоли.</p>'+
+    '</div></div>'+
+    sec("1","Твоя тема и твои ссылки","Массив проекта: "+t.arr+" · функция перерисовки: "+t.fn,varsBlock())+
+    sec("2","Таймер спринта","Пятьдесят минут практики, шесть отрезков",
+      '<div class="timer"><div class="tdial'+(state.timer.running?' run':'')+'" id="tdial">'+fmt(state.timer.left)+'</div>'+
+      '<div class="tphase" id="tphase"><b>'+esc(cp.t)+'</b>'+esc(cp.d)+'</div>'+
+      '<div class="tbtns"><button class="btn btn-p btn-sm" type="button" data-action="timer" id="tbtn">'+(state.timer.running?"Пауза":"Старт")+'</button>'+
+      '<button class="btn btn-s btn-sm" type="button" data-action="timer-reset">Сброс</button></div></div>'+
+      '<div class="phases" id="phases">'+ph+'</div>')+
+    sec("3","Что делаем и чего не делаем","Граница спринта — чтобы не утонуть",
+      '<div class="grid g2">'+
+      '<div class="card"><div class="kv-k" style="margin-bottom:8px;color:var(--ok)">Делаем сегодня</div><ul style="margin:0;padding-left:18px;font-size:13.8px;color:var(--ink2);line-height:1.6">'+
+      '<li>форма: submit, preventDefault, trim, проверка</li><li>запись в массив и полная перерисовка</li>'+
+      '<li>пустой список объясняет, что делать</li><li>'+esc(t.act)+'</li>'+
+      '<li>ответ сервиса смотрим глазами и нормализуем</li><li>четыре состояния интерфейса</li>'+
+      '<li>фолбэк с честной пометкой</li><li>проверка Offline и ошибочного кода</li><li>первый рефакторинг, PR, публикация</li></ul></div>'+
+      '<div class="card"><div class="kv-k" style="margin-bottom:8px;color:var(--danger)">Не делаем сегодня</div><ul style="margin:0;padding-left:18px;font-size:13.8px;color:var(--ink2);line-height:1.6">'+
+      '<li>localStorage — третий спринт</li><li>переключатель тёмной темы — третий спринт</li>'+
+      '<li>микроанимации — третий спринт</li><li>карточки через createElement мимо массива</li>'+
+      '<li>правки разметки в обход данных</li><li>тест на чужом устройстве — четвёртый спринт</li>'+
+      '<li>выключение Wi-Fi в кабинете: сбой проверяется переключателем во вкладке</li></ul></div></div>'+
+      '<div class="note acc" style="margin-top:12px"><b>Правило работающего билда.</b> В конце занятия проект открывается по публичной ссылке и не сломан. Незаконченное остаётся в ветке. При отставании сокращай объём, а не добавляй функции.</div>')+
+    sec("4","Как работать с Qwen, чтобы код остался твоим","Пять правил вайб-кодинга на этом курсе",
+      '<div class="kv">'+
+      '<div class="kv-row"><span class="kv-k">Рамка промпта</span><span class="kv-v">Контекст → задача → ограничения → формат ответа → критерии проверки. Все промпты здесь уже собраны по этой рамке.</span></div>'+
+      '<div class="kv-row"><span class="kv-k">Один кусок за раз</span><span class="kv-v">Форма, отрисовка, делегирование, нормализация, загрузка — пять отдельных запросов. «Сделай панель целиком» даёт код, который не объяснишь.</span></div>'+
+      '<div class="kv-row"><span class="kv-k">Формат API — глазами</span><span class="kv-v">Имена полей не спрашивают у модели и не угадывают. Открывают адрес в браузере и смотрят ответ. Вкладка «API» разбирает его за тебя.</span></div>'+
+      '<div class="kv-row"><span class="kv-k">Три попытки</span><span class="kv-v">После третьего неудачного запроса код читается вручную или задача дробится. Ещё один «перепиши всё» ничего не чинит.</span></div>'+
+      '<div class="kv-row"><span class="kv-k">Объяснимость</span><span class="kv-v">На защите объясняешь любой фрагмент, включая написанный моделью. Непонимаемый код в зачёт не идёт.</span></div>'+
+      '</div><div class="links" style="margin-top:12px">'+linkBtn("Открыть Qwen","https://chat.qwen.ai/")+linkBtn("Открыть GitHub","https://github.com/")+'</div>')+
+    sec("5","Цикл занятия","Пять минут в конце — не сокращать",
+      '<div class="note"><b>ветка → форма → массив → перерисовка → API → состояния → Offline → рефакторинг → PR → merge → Actions → ссылка → телефон → доска.</b>'+
+      '<ul><li>Главный пункт проверяется в консоли: имя массива, а не вид карточки на экране.</li>'+
+      '<li>Сбой проверяется переключателем Offline в этой вкладке, а не выключением Wi-Fi в кабинете.</li>'+
+      '<li>Мини-демо: покажи добавление записи и объясни одну строку, которую написала модель.</li></ul></div>');
+  observe();
+}
+
+/* ---------- вкладка Маршрут ---------- */
+function renderRoute(){
+  var items="",i,j,s,a,acts,closes,wh,done;
+  for(i=0;i<STEPS.length;i++){
+    s=STEPS[i]; done=!!state.steps[s.n]; acts="";
+    for(j=0;j<s.act.length;j++){
+      a=s.act[j];
+      if(a.href) acts+=linkBtn(a.t,a.href);
+      else if(a.link) acts+=linkBtn(a.t,dynLink(a.link));
+      else acts+='<button class="btn btn-s btn-sm" type="button" data-action="'+a.a+'">'+esc(a.t)+'</button>';
+    }
+    closes=s.closes.length?'<div><span class="closes">Закрывает пункты '+s.closes.join(", ")+'</span></div>':"";
+    wh=s.where==="q"?'<span class="where q">Qwen</span>':(s.where==="g"?'<span class="where g">GitHub</span>':(s.where==="a"?'<span class="where a">API</span>':'<span class="where b">Браузер</span>'));
+    items+='<div class="step'+(done?' done':'')+'">'+
+      '<div class="step-h" data-steptoggle="'+s.n+'" role="button" tabindex="0" aria-pressed="'+done+'">'+
+      '<span class="step-n">'+s.n+'</span><span class="step-tb"><span class="step-t">'+esc(fill(s.title))+'</span>'+
+      '<span class="step-m">'+wh+'<span>'+esc(s.min)+'</span></span></span>'+
+      '<span class="chk"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span></div>'+
+      '<div class="step-body">'+fill(s.body)+closes+'<div class="step-act">'+acts+'</div></div></div>';
+  }
+  view.className="";
+  view.innerHTML='<div class="phead" data-reveal><div class="wm">12</div><div class="ph-in">'+
+    '<div class="prow"><span class="pcode">МАРШРУТ</span><span class="pcode">'+stepsDone()+' / 12 ШАГОВ</span></div>'+
+    '<h2>От формы до данных из сети</h2>'+
+    '<p>Идёшь сверху вниз. Отмечай шаг, когда он реально сделан. Каждый шаг показывает, какие пункты чек-листа он закрывает, и ведёт прямо к нужному промпту.</p></div></div>'+
+    sec("→","Шаги спринта","Нажми на строку, чтобы отметить шаг пройденным",'<div class="steps">'+items+'</div>')+
+    sec("✓","Базовый блок спринта","Пункты 4, 5, 8, 16, 21 — без них спринт не закрыт",
+      '<div class="note warn"><b>Ловушка спринта.</b> Пятнадцать мелочей без пяти базовых пунктов спринт не закрывают. Базовые: пустое поле не проходит, массив — источник истины, запись видна в консоли, сбой проверен через Offline, ссылка открывается с телефона.</div>'+
+      '<div style="margin-top:12px"><button class="btn btn-p btn-sm" type="button" data-action="go-check">Открыть чек-лист</button></div>');
+  observe();
+}
+
+/* ---------- вкладка Промпты ---------- */
+function renderPrompts(){
+  var q=String(state.q||"").toLowerCase().trim(),blocks="",shown=0,i,j,p,hit,ch;
+  for(i=0;i<PROMPTS.length;i++){
+    p=PROMPTS[i];
+    hit=!q||(p.n+" "+p.t+" "+p.s).toLowerCase().indexOf(q)!==-1;
+    if(!hit) continue;
+    shown++; ch="";
+    for(j=0;j<p.checks.length;j++) ch+="<li>"+esc(p.checks[j])+"</li>";
+    blocks+='<div class="pblock" id="'+p.id+'" data-reveal>'+
+      '<div class="pb-h"><span class="pb-n">'+p.n+'</span><span class="pb-tb"><span class="pb-t">'+esc(p.t)+'</span><span class="pb-s">'+esc(p.s)+'</span></span>'+
+      '<button class="btn btn-p btn-sm no-print" type="button" data-copy="'+p.id+'">Копировать</button></div>'+
+      '<div class="pb-body">'+codeBox(p.make(),"промпт для qwen · тема "+T().id,p.id)+
+      '<div class="checks"><b>Проверить ответ руками</b><ul>'+ch+'</ul></div></div></div>';
+  }
+  if(!shown) blocks='<div class="note">Под этот поиск промптов нет. Очисти строку поиска.</div>';
+  view.className="";
+  view.innerHTML='<div class="phead" data-reveal><div class="wm">AI</div><div class="ph-in">'+
+    '<div class="prow"><span class="pcode">10 ПРОМПТОВ</span><span class="pcode">ТЕМА: '+T().id+'</span><span class="pcode">МАССИВ: '+T().arr+'</span></div>'+
+    '<h2>Промпты, которые пишут код твоего уровня</h2>'+
+    '<p>Каждый промпт знает твою тему, имя массива, поля записи и адрес сервиса. Копируй целиком, отправляй в Qwen, читай ответ и проверяй по списку под ним. Один промпт — один кусок логики.</p></div></div>'+
+    '<div class="filters no-print"><input class="inp" data-var="q" type="search" placeholder="Поиск промпта: форма, отрисовка, API, рефакторинг…" value="'+esc(state.q)+'" style="max-width:340px">'+
+    linkBtn("Открыть Qwen","https://chat.qwen.ai/")+'<button class="btn btn-s btn-sm" type="button" data-action="go-sprint">Сменить тему</button></div>'+
+    blocks+
+    '<div class="note acc" style="margin-top:14px"><b>Если чат новый.</b> Промпты П2–П5 рассчитаны на продолжение разговора: модель помнит разметку и имена. В новом чате приложи к промпту свой готовый файл — иначе имена разойдутся.</div>';
+  observe();
+}
+
+/* ---------- вкладка API ---------- */
+function renderApi(){
+  var t=T(),i,pathsHtml="",mapHtml="",gen="",p;
+  if(state.api.parsed&&state.api.paths.length){
+    for(i=0;i<state.api.paths.length;i++){
+      p=state.api.paths[i];
+      pathsHtml+='<div>'+esc(accessor(p.segs))+' <span>· '+esc(p.type)+' · '+esc(p.sample)+'</span></div>';
+    }
+    for(i=0;i<t.targets.length;i++){
+      var sel=state.api.map[t.targets[i].k];
+      var opts='<option value="">— выбери путь —</option>',j;
+      for(j=0;j<state.api.paths.length;j++){
+        opts+='<option value="'+j+'"'+(String(sel)===String(j)?' selected':'')+'>'+esc(accessor(state.api.paths[j].segs))+'</option>';
+      }
+      mapHtml+='<div class="maprow"><b>'+esc(t.targets[i].l)+'<small>моё поле: '+esc(t.targets[i].k)+' · '+esc(t.targets[i].h)+'</small></b>'+
+        '<select class="inp" data-apimap="'+esc(t.targets[i].k)+'">'+opts+'</select></div>';
+    }
+    if(mapReady()){
+      gen='<div class="grid g2" style="margin-top:14px">'+
+        '<div>'+codeBox(buildNormalize(),"нормализация · вставь в script.js","api-normalize")+'</div>'+
+        '<div>'+codeBox(buildFallback(),"фолбэк · запасные данные","api-fallback")+'</div></div>'+
+        '<div class="note ok" style="margin-top:12px"><b>Готово.</b> Скопируй обе части в проект. Проверь: поля совпадают с тем, что ты видел глазами, а внутри отрисовки не осталось чужих путей.</div>';
+    }else{
+      gen='<div class="note" style="margin-top:12px">Сопоставь все свои поля с путями из ответа — и здесь появится готовая функция нормализации и фолбэк той же формы.</div>';
+    }
+  }
+  var err=state.api.error?'<div class="note bad" style="margin-top:12px"><b>Не разобралось.</b> '+esc(state.api.error)+'</div>':"";
+  var found=state.api.parsed?'<div class="note ok" style="margin-top:12px"><b>Ответ разобран.</b> Найдено полей: '+state.api.paths.length+'. Ниже — настоящие пути к значениям.</div>':"";
+
+  view.className="";
+  view.innerHTML='<div class="phead" data-reveal><div class="wm">API</div><div class="ph-in">'+
+    '<div class="prow"><span class="pcode">ОТВЕТ СМОТРЯТ ГЛАЗАМИ</span><span class="pcode">'+esc(t.api1.n)+'</span></div>'+
+    '<h2>Формат ответа не спрашивают у модели</h2>'+
+    '<p>Открой адрес в браузере, посмотри, как на самом деле устроен JSON, скопируй его сюда — и лист покажет настоящие пути к полям. Из них соберётся нормализация и фолбэк ровно той формы, которая нужна твоей панели.</p></div></div>'+
+    sec("1","Сервисы твоей темы","Открой ответ в новой вкладке и посмотри на него",
+      '<div class="grid g2">'+
+      '<div class="card"><div class="kv-k" style="margin-bottom:6px">Основной · '+esc(t.api1.n)+'</div>'+
+      '<div style="font-size:13.5px;color:var(--ink2);margin-bottom:10px">'+esc(t.api1.d)+'</div>'+
+      '<div class="links">'+linkBtn("Открыть ответ",t.api1.u)+'</div>'+
+      '<div class="hint" style="margin-top:8px;word-break:break-all">'+esc(t.api1.u)+'</div></div>'+
+      '<div class="card"><div class="kv-k" style="margin-bottom:6px">Запасной · '+esc(t.api2.n)+'</div>'+
+      '<div style="font-size:13.5px;color:var(--ink2);margin-bottom:10px">'+esc(t.api2.d)+'</div>'+
+      '<div class="links">'+linkBtn("Открыть ответ",t.api2.u)+'</div>'+
+      '<div class="hint" style="margin-top:8px;word-break:break-all">'+esc(t.api2.u)+'</div></div></div>'+
+      '<div class="note warn" style="margin-top:12px"><b>Если сервис не отвечает из школьной сети.</b> Это тоже результат: запиши, что увидел, и работай с фолбэком. Форма данных от этого не меняется — меняется только источник.</div>')+
+    sec("2","Разбор ответа","Вставь то, что увидел глазами — лист найдёт пути к полям",
+      '<div class="field"><label class="flabel" for="apiPaste">Ответ сервиса целиком</label>'+
+      '<textarea class="inp'+(state.api.paste?' filled':'')+'" id="apiPaste" data-var="apiPaste" placeholder="Вставь сюда JSON, который открылся по ссылке выше">'+esc(state.api.paste)+'</textarea></div>'+
+      '<div class="links no-print"><button class="btn btn-p btn-sm" type="button" data-action="api-parse">Разобрать ответ</button>'+
+      '<button class="btn btn-s btn-sm" type="button" data-action="api-clear">Очистить</button></div>'+
+      err+found+
+      (pathsHtml?'<div style="margin-top:12px"><div class="flabel">Найденные пути</div><div class="paths">'+pathsHtml+'</div></div>':'')+
+      (mapHtml?'<div style="margin-top:14px"><div class="flabel">Сопоставь со своими полями</div>'+mapHtml+'</div>':'')+
+      gen)+
+    sec("3","Как проверить сбой","Два разных случая, которые лечатся по-разному",
+      '<div class="grid g2">'+
+      '<div class="card"><div class="kv-k" style="margin-bottom:8px">Нет сети</div>'+
+      '<ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+
+      '<li>F12 → вкладка Network</li><li>В списке скорости выбери Offline</li><li>Обнови вкладку и нажми загрузку</li>'+
+      '<li>Должны появиться запасные данные и честная пометка</li><li>Верни Online и повтори — данные придут настоящие</li></ol>'+
+      '<div class="note warn" style="margin-top:10px;padding:9px 12px;font-size:13px">Wi-Fi в кабинете не выключаем: переключатель действует только на эту вкладку.</div></div>'+
+      '<div class="card"><div class="kv-k" style="margin-bottom:8px">Сервис ответил ошибкой</div>'+
+      '<ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+
+      '<li>Подставь в адрес опечатку, чтобы получить 404</li><li>Ответ получен, поэтому в catch он сам не попадёт</li>'+
+      '<li>Проверка response.ok и throw переводят его в обработку ошибки</li><li>На экране сообщение об ошибке, а не «пусто»</li>'+
+      '<li>Slow 3G: кнопка блокируется, второй клик не отправляет запрос</li></ol>'+
+      '<div class="note acc" style="margin-top:10px;padding:9px 12px;font-size:13px">Пустой ответ — третий случай: данные пришли, но их нет. Сообщение спокойное, не тревожное.</div></div></div>');
+  observe();
+}
+
+/* ---------- вкладка Шаблоны ---------- */
+function renderTpl(){
+  var cm="",i,c,t=T();
+  for(i=0;i<COMMITS.length;i++){
+    c=COMMITS[i];
+    cm+='<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">'+
+      '<span style="flex:1;min-width:200px"><b style="display:block;font-size:13px">'+esc(c.t)+'</b>'+
+      '<code style="display:inline-block;margin-top:5px">'+esc(c.v)+'</code>'+
+      '<span class="hint">'+c.v.length+' символов · правило 5–72</span></span>'+
+      '<button class="btn btn-s btn-sm no-print" type="button" data-copy="'+c.id+'">Копировать</button></div>';
+  }
+  view.className="";
+  view.innerHTML='<div class="phead" data-reveal><div class="wm">TPL</div><div class="ph-in">'+
+    '<div class="prow"><span class="pcode">ШАБЛОНЫ</span><span class="pcode">ТЕМА: '+t.id+'</span><span class="pcode">МАССИВ: '+t.arr+'</span></div>'+
+    '<h2>Что вставлять в проект и в GitHub</h2>'+
+    '<p>Структура записи, сообщения коммитов, описание Pull Request, обновление README и формула замечания. Всё подставлено под твою тему.</p></div></div>'+
+    sec("1","Структура данных","Массив — единственный источник истины",codeBox(tplRecord(),"script.js · массив и запись","tpl-record"))+
+    sec("2","Имена в проекте","Латиница, строчные, без пробелов",
+      '<div class="tw"><table><thead><tr><th>Что</th><th>Как назвать</th><th>Почему так</th></tr></thead><tbody>'+
+      '<tr><td><b>Ветка спринта</b></td><td><code>feature/logic</code></td><td>Одна задача — одна ветка. После слияния удаляется.</td></tr>'+
+      '<tr><td><b>Массив</b></td><td><code>'+esc(t.arr)+'</code></td><td>Это имя ты пишешь в консоли на главной проверке спринта.</td></tr>'+
+      '<tr><td><b>Перерисовка</b></td><td><code>'+esc(t.fn)+'()</code></td><td>Одна функция рисует список целиком после любого изменения.</td></tr>'+
+      '<tr><td><b>Нормализация</b></td><td><code>normalize(raw)</code></td><td>Чужие имена полей живут только внутри неё.</td></tr>'+
+      '<tr><td><b>Загрузка</b></td><td><code>loadData()</code></td><td>Внутри чек-лист запроса из семи шагов.</td></tr>'+
+      '<tr><td><b>Фолбэк</b></td><td><code>FALLBACK</code> или <code>data/fallback.json</code></td><td>Пишется заранее, той же формы, что результат нормализации.</td></tr>'+
+      '</tbody></table></div>')+
+    sec("3","Сообщения коммитов","Шесть готовых формулировок под шаги спринта",'<div class="grid">'+cm+'</div>')+
+    sec("4","Описание Pull Request","Три блока: что сделано, как проверить, что осталось",codeBox(tplPR(),"шаблон pr · вставить в описание","tpl-pr"))+
+    sec("5","Обновление README","Блок «что умеет» вырос, ограничения названы честно",codeBox(tplReadme(),"readme.md · после спринта 2","tpl-readme"))+
+    sec("6","Замечание к чужому PR","Место + что не так + почему",codeBox(tplRemark(),"формула замечания","tpl-remark"));
+  observe();
+}
+
+/* ---------- вкладка GitHub ---------- */
+function renderGitHub(){
+  var blocks=[
+    { t:"Создать ветку feature/logic", url:dynLink("branches"),
+      s:["Убедиться, что main открывается по публичной ссылке","Переключатель веток → ввести feature/logic","Create branch from main","Проверить, что переключатель показывает новую ветку"],
+      how:"Вкладка Branches показывает main и feature/logic." },
+    { t:"Поправить script.js", url:dynLink("repo"),
+      s:["Открыть файл в ветке feature/logic","Карандаш Edit this file","Вставить код из ответа Qwen","Commit changes с сообщением из шаблона К1"],
+      how:"В истории появился коммит с понятным сообщением." },
+    { t:"Поправить index.html", url:dynLink("repo"),
+      s:["Добавить блок статуса для четырёх состояний","Добавить сообщение под полем формы с id","Связать поле и сообщение через aria-describedby","Commit changes отдельным коммитом"],
+      how:"Разметка и логика зафиксированы разными коммитами." },
+    { t:"Создать файл фолбэка", url:dynLink("repo"),
+      s:["Add file → Create new file","Путь: data/fallback.json","Вставить запасные данные той же формы","Commit changes: «data: запасные данные для сбоя сети»"],
+      how:"Файл виден в списке, форма данных совпадает с нормализацией." },
+    { t:"Создать Pull Request", url:dynLink("compare"),
+      s:["Баннер Compare & pull request или Pull requests → New","base: main, compare: feature/logic","Заголовок и описание из шаблона PR","Create pull request"],
+      how:"PR открыт, описание в три блока, в Files changed виден диф." },
+    { t:"Слить и удалить ветку", url:dynLink("pulls"),
+      s:["Merge pull request","Confirm merge","Delete branch","Переключиться на main и убедиться, что файлы на месте"],
+      how:"В main новая логика, ветки feature/logic в списке нет." },
+    { t:"Дождаться публикации", url:dynLink("actions"),
+      s:["Вкладка Actions","Последний запуск — зелёная галочка","Открыть публичную ссылку","Обновить с Ctrl+F5, если видишь старую версию"],
+      how:"На опубликованной странице форма добавляет запись." },
+    { t:"Проверить с телефона", url:dynLink("site"),
+      s:["Открыть адрес на настоящем телефоне","Добавить запись с экранной клавиатуры","Проверить, что сообщение об ошибке читается","Убедиться, что горизонтальной прокрутки нет"],
+      how:"Пункт 21 чек-листа закрыт: ссылка работает не только в эмуляторе." },
+    { t:"Диагностика, если что-то не доехало", url:"",
+      s:["F12 → Console: красная строка называет тип и номер строки","F12 → Network: красная строка 404 — прочитать адрес запроса","Проверить имя массива в консоли: запись должна быть там","Поправить, закоммитить, дождаться Actions, обновить с Ctrl+F5"],
+      how:"В консоли ноль ошибок, в Network ноль строк 404." }
+  ];
+  var html="",i,j,b,li;
+  for(i=0;i<blocks.length;i++){
+    b=blocks[i]; li="";
+    for(j=0;j<b.s.length;j++) li+="<li>"+esc(b.s[j])+"</li>";
+    html+='<div class="card"><div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin-bottom:8px">'+
+      '<span class="step-n">'+(i+1)+'</span><b style="flex:1;min-width:180px;font-size:15px">'+esc(b.t)+'</b>'+
+      (b.url?linkBtn("Открыть",b.url):"")+'</div>'+
+      '<ol style="margin:0;padding-left:20px;font-size:13.6px;color:var(--ink2);line-height:1.6">'+li+'</ol>'+
+      '<div class="note ok" style="margin-top:10px;padding:9px 12px;font-size:13px"><b>Как проверить:</b> '+esc(b.how)+'</div></div>';
+  }
+  view.className="";
+  view.innerHTML='<div class="phead" data-reveal><div class="wm">GH</div><div class="ph-in">'+
+    '<div class="prow"><span class="pcode">ВСЁ В БРАУЗЕРЕ</span><span class="pcode">БЕЗ ПРОГРАММЫ GIT</span></div>'+
+    '<h2>GitHub: девять действий кнопками</h2>'+
+    '<p>Программы Git на школьных ноутбуках нет — и она не нужна. Ветка, правки, коммиты, PR, слияние и публикация делаются на сайте. Проверка сбоя — в DevTools, не в настройках сети кабинета.</p></div></div>'+
+    '<div class="links" style="margin-bottom:16px">'+linkBtn("github.com","https://github.com/")+linkBtn("Мой репозиторий",dynLink("repo"))+
+    linkBtn("Создать PR",dynLink("compare"))+linkBtn("Actions",dynLink("actions"))+'</div>'+
+    '<div class="grid g2">'+html+'</div>'+
+    '<div class="note warn" style="margin-top:14px"><b>Три частые поломки этого спринта.</b> Карточка создана мимо массива — исчезнет при перерисовке. Результат запроса использован до await — на экране пусто. Ответ разобран без проверки response.ok — страница ошибки показана как данные.</div>';
+  observe();
+}
+
+/* ---------- вкладка Чек-лист ---------- */
+function checkRowHTML(c){
+  var on=!!state.checks[c.n];
+  return '<div class="ci'+(on?' on':'')+(c.base?' base':'')+(c.main?' main':'')+'" data-check="'+c.n+'" role="checkbox" aria-checked="'+on+'" tabindex="0">'+
+    '<span class="cnum">'+c.n+'</span>'+
+    '<span class="cbox"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span>'+
+    '<span class="ctb"><span class="ct">'+esc(fill(c.t))+(c.base?'<span class="btag">БАЗОВЫЙ</span>':'')+(c.main?'<span class="mtag">ГЛАВНЫЙ</span>':'')+'</span>'+
+    '<span class="ch"><b>Как проверить:</b> '+esc(fill(c.how))+'</span></span></div>';
+}
+function filteredChecks(){
+  var a=[],i,c;
+  for(i=0;i<CHECKS.length;i++){
+    c=CHECKS[i];
+    if(state.filter==="base"&&!c.base) continue;
+    if(state.filter==="todo"&&state.checks[c.n]) continue;
+    a.push(c);
+  }
+  return a;
+}
+function verdictHTML(){
+  var cnt=checkedCount(),i,b,miss,need;
+  if(passed()){
+    return '<div class="verdict pass"><h3>Спринт закрыт</h3><p>Все пять базовых пунктов отмечены и набрано '+cnt+' из 22. Панель хранит данные в массиве, получает их из сети и честно переживает сбой — можно переходить к третьему спринту.</p>'+
+      '<ul><li>Покажи ссылку педагогу и открой её при нём с телефона.</li><li>Назови имя массива в консоли и покажи запись.</li><li>Включи Offline при педагоге и покажи пометку про копию.</li><li>Переведи задачу на доске в «Сделано».</li></ul></div>';
+  }
+  b=baseList(); miss="";
+  for(i=0;i<b.length;i++){ if(!state.checks[b[i].n]) miss+="<li>Не закрыт базовый пункт №"+b[i].n+" — "+esc(fill(b[i].t))+"</li>"; }
+  if(!miss) miss="<li>Базовый блок закрыт целиком — осталось набрать пункты</li>";
+  need=Math.max(0,15-cnt);
+  if(need>0) miss+="<li>Не хватает ещё "+need+" пункт"+(need===1?"а":(need<5?"ов":""))+"</li>";
+  return '<div class="verdict fail"><h3>Спринт ещё не закрыт</h3><p>Отмечено '+cnt+' из 22, базовый блок '+baseDone()+' из 5. Зачёт: все пять базовых пунктов и не меньше 15 из 22.</p><ul>'+miss+'</ul></div>';
+}
+function renderCheck(){
+  var cnt=checkedCount(),pct=Math.round(cnt/22*100),C=2*Math.PI*38;
+  var list=filteredChecks(),rows="",i,e,on,bd="",b=baseList(),o,filters="",fs,f;
+  for(i=0;i<list.length;i++) rows+=checkRowHTML(list[i]);
+  if(!rows) rows='<div class="note">В этом фильтре пунктов нет.</div>';
+  var ex="";
+  for(i=0;i<EXTRAS.length;i++){
+    e=EXTRAS[i]; on=!!state.extras[e.id];
+    ex+='<div class="ci'+(on?' on':'')+'" data-extra="'+e.id+'" role="checkbox" aria-checked="'+on+'" tabindex="0">'+
+      '<span class="cbox"><svg viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg></span>'+
+      '<span class="ctb"><span class="ct">'+esc(e.t)+'</span><span class="ch"><b>Как проверить:</b> '+esc(e.how)+'</span></span></div>';
+  }
+  for(i=0;i<b.length;i++){
+    o=!!state.checks[b[i].n];
+    bd+='<span class="bdot'+(o?' on':'')+'">№'+b[i].n+' '+(o?"✓":"—")+'</span>';
+  }
+  fs=[["all","Все 22"],["base","Базовый блок"],["todo","Не отмечено"]];
+  for(f=0;f<fs.length;f++){
+    filters+='<button class="fchip'+(state.filter===fs[f][0]?' on':'')+'" type="button" data-filter="'+fs[f][0]+'">'+fs[f][1]+'</button>';
+  }
+  view.className="";
+  view.innerHTML='<div class="phead" data-reveal><div class="wm">22</div><div class="ph-in">'+
+    '<div class="prow"><span class="pcode">ЧЕК-ЛИСТ СПРИНТА 2</span><span class="pcode">'+cnt+' / 22</span><span class="pcode">БАЗА '+baseDone()+' / 5</span></div>'+
+    '<h2>Отметь то, что реально работает</h2>'+
+    '<p>Рядом с каждым пунктом написано, что нажать и что должно произойти. Чек-лист сам проект не проверяет — отметки ставишь ты. Пункты с пометкой «базовый» обязательны, а пункт 8 — главный: он проверяется именем массива в консоли.</p></div></div>'+
+    '<div class="ring" data-reveal><div class="rwrap"><svg class="rsvg" viewBox="0 0 88 88" aria-hidden="true">'+
+    '<circle class="bgc" cx="44" cy="44" r="38"/><circle class="fgc" cx="44" cy="44" r="38" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C-C*pct/100)+'"/></svg>'+
+    '<div class="rnum">'+pct+'%</div></div>'+
+    '<div class="rinfo"><b>Готовность спринта: '+cnt+' из 22</b><span>Зачёт: базовые 4, 5, 8, 16, 21 и не меньше 15 пунктов. Дополнительно отмечено '+extrasDone()+' из 6.</span>'+
+    '<div class="basebar">'+bd+'</div></div>'+
+    '<div class="tbtns no-print"><button class="btn btn-p btn-sm" type="button" data-action="verify">Проверить спринт</button>'+
+    '<button class="btn btn-s btn-sm" type="button" data-action="copy-report">Скопировать отчёт</button>'+
+    '<button class="btn btn-g btn-sm" type="button" data-action="reset">Сбросить</button></div></div>'+
+    '<div class="filters no-print" style="margin-top:14px">'+filters+'</div>'+
+    '<div class="clist" id="clist">'+rows+'</div>'+
+    sec("+","Если останется время","Эти пункты не влияют на закрытие спринта",'<div class="clist">'+ex+'</div>')+
+    sec("✓","Вердикт","Обновляется после нажатия «Проверить спринт»",'<div id="verdictSlot">'+verdictHTML()+'</div>')+
+    sec("→","Отчёт для педагога","Печатается только эта вкладка",
+      '<div class="note"><b>В отчёт попадёт:</b> тема «'+esc(T().name)+'», массив '+esc(T().arr)+', репозиторий '+(hasGH()?esc(owner()+"/"+repo()):"не указан")+
+      ', публичная ссылка '+(state.link?esc(state.link):"не указана")+', отметки по 22 пунктам, базовый блок и вердикт.</div>'+
+      '<div class="links" style="margin-top:12px"><button class="btn btn-p btn-sm" type="button" data-action="print">Сохранить PDF</button>'+
+      (state.link?linkBtn("Открыть мой сайт",state.link):"")+'</div>');
+  observe();
+}
+
+/* ---------- каркас ---------- */
+function renderTabs(){
+  var items=[
+    {id:"sprint",l:"Спринт",b:""},
+    {id:"route",l:"Маршрут",b:stepsDone()+"/12"},
+    {id:"prompts",l:"Промпты",b:"10"},
+    {id:"api",l:"API",b:state.api.parsed?"разобран":"—"},
+    {id:"tpl",l:"Шаблоны",b:""},
+    {id:"github",l:"GitHub",b:""},
+    {id:"check",l:"Чек-лист",b:checkedCount()+"/22"}
+  ];
+  var h="",i,it,on;
+  for(i=0;i<items.length;i++){
+    it=items[i]; on=state.tab===it.id;
+    h+='<button class="tab'+(on?' on':'')+'" type="button" data-tab="'+it.id+'" aria-current="'+(on?"page":"false")+'"><i></i>'+esc(it.l)+
+      (it.b?'<span class="bdg">'+esc(it.b)+'</span>':'')+'</button>';
+  }
+  tabsEl.innerHTML=h;
+}
+function updateChrome(){
+  var cnt=checkedCount(),ok=passed();
+  stchip.textContent=ok?"Спринт закрыт ✓":cnt+" / 22";
+  if(ok) stchip.classList.add("ok"); else stchip.classList.remove("ok");
+  abInfo.innerHTML=ok
+    ?"<b>Спринт закрыт.</b> Покажи ссылку и имя массива в консоли педагогу."
+    :"Тема: <b>"+esc(T().name)+"</b> · массив <b>"+esc(T().arr)+"</b> · отмечено <b>"+cnt+" из 22</b> · база "+baseDone()+" из 5";
+  renderTabs();
+}
+function renderView(){
+  setHue();
+  if(!state.started){ renderStart(); return; }
+  tabwrap.hidden=false; actionbar.hidden=false;
+  if(state.tab==="sprint") renderSprint();
+  else if(state.tab==="route") renderRoute();
+  else if(state.tab==="prompts") renderPrompts();
+  else if(state.tab==="api") renderApi();
+  else if(state.tab==="tpl") renderTpl();
+  else if(state.tab==="github") renderGitHub();
+  else renderCheck();
+  updateChrome(); updateRead();
+}
+function go(tab){ state.tab=tab; save(); renderView(); window.scrollTo({top:0,behavior:"smooth"}); }
+
+var io=null;
+function observe(){
+  if(io){ io.disconnect(); io=null; }
+  var els=view.querySelectorAll("[data-reveal]"),i;
+  if(!("IntersectionObserver" in window)){ for(i=0;i<els.length;i++) els[i].classList.add("in"); return; }
+  io=new IntersectionObserver(function(en){
+    for(var k=0;k<en.length;k++){ if(en[k].isIntersecting){ en[k].target.classList.add("in"); io.unobserve(en[k].target); } }
+  },{rootMargin:"0px 0px -6% 0px",threshold:0.05});
+  for(i=0;i<els.length;i++){ els[i].style.transitionDelay=Math.min(i,6)*40+"ms"; io.observe(els[i]); }
+}
+function updateRead(){
+  var b=document.getElementById("readbar");
+  if(!b) return;
+  var h=document.documentElement.scrollHeight-window.innerHeight;
+  b.style.width=(h>40?Math.min(100,Math.max(0,window.scrollY/h*100)):0)+"%";
+}
+window.addEventListener("scroll",updateRead,{passive:true});
+window.addEventListener("resize",updateRead);
+
+var tick=null;
+function stopTick(){ if(tick){ clearInterval(tick); tick=null; } }
+function startTick(){ stopTick(); tick=setInterval(timerTick,1000); }
+function timerTick(){
+  if(!state.timer.running) return;
+  var left=Math.max(0,Math.round((state.timer.endsAt-Date.now())/1000));
+  state.timer.left=left;
+  var d=document.getElementById("tdial"); if(d) d.textContent=fmt(left);
+  var cp=curPhase(),p=document.getElementById("tphase");
+  if(p) p.innerHTML="<b>"+esc(cp.t)+"</b>"+esc(cp.d);
+  var el=3000-left,ph=document.querySelectorAll("[data-phase]"),i,x;
+  for(i=0;i<ph.length;i++){
+    x=PHASES[i];
+    if(el>=x.from&&el<x.to) ph[i].classList.add("on"); else ph[i].classList.remove("on");
+    if(el>=x.to) ph[i].classList.add("done"); else ph[i].classList.remove("done");
+  }
+  if(left<=0){
+    state.timer.running=false; state.timer.endsAt=null; stopTick();
+    var btn=document.getElementById("tbtn"); if(btn) btn.textContent="Старт";
+    if(d) d.classList.remove("run");
+    toast("Время спринта вышло. Проверь базовый блок и открой ссылку с телефона.");
+  }
+  save();
+}
+
+function fallbackCopy(text,done){
+  var ta=document.createElement("textarea");
+  ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast("Скопируй текст вручную из блока."); }
+  document.body.removeChild(ta);
+}
+function copyText(text,btn,msg){
+  if(!text){ toast("Сначала собери код: разбери ответ и сопоставь поля."); return; }
+  var done=function(){
+    if(btn){ var o=btn.textContent; btn.textContent="✓ Скопировано"; btn.classList.add("done");
+      setTimeout(function(){ btn.textContent=o; btn.classList.remove("done"); },1600); }
+    toast(msg||"Скопировано. Вставь в Qwen или в GitHub.");
+  };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(done,function(){ fallbackCopy(text,done); }); }
+  else fallbackCopy(text,done);
+}
+function reportText(){
+  var t=T(),L=[],i;
+  L.push("Занятие 21 · Спринт 2: данные и API");
+  L.push("Тема: "+t.id+" «"+t.name+"» — "+t.kind);
+  L.push("Массив проекта: "+t.arr+" · перерисовка: "+t.fn+"()");
+  L.push("Репозиторий: "+(hasGH()?owner()+"/"+repo():"не указан"));
+  L.push("Ссылка: "+(state.link||"не указана"));
+  L.push("Ответ API разобран: "+(state.api.parsed?"да, полей "+state.api.paths.length:"нет"));
+  L.push("Отмечено: "+checkedCount()+" из 22, базовый блок "+baseDone()+" из 5");
+  L.push("Вердикт: "+(passed()?"спринт закрыт":"спринт не закрыт"));
+  L.push("");
+  for(i=0;i<CHECKS.length;i++){
+    L.push((state.checks[CHECKS[i].n]?"[x] ":"[ ] ")+CHECKS[i].n+". "+fill(CHECKS[i].t)+(CHECKS[i].base?" (базовый)":"")+(CHECKS[i].main?" (главный)":""));
+  }
+  L.push("");
+  L.push("Дополнительно: "+extrasDone()+" из 6");
+  for(i=0;i<EXTRAS.length;i++) L.push((state.extras[EXTRAS[i].id]?"[x] ":"[ ] ")+EXTRAS[i].t);
+  return L.join("\n");
+}
+function confetti(){
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if(!Element.prototype.animate) return;
+  var cols=["#0e7490","#0891b2","#84cc16","#f59e0b","#ec4899","#4f46e5"],i,d,dx,dy,rot,an;
+  for(i=0;i<32;i++){
+    d=document.createElement("div"); d.className="conf";
+    d.style.background=cols[i%cols.length];
+    d.style.left=(50+(Math.random()*40-20))+"vw"; d.style.top="46vh";
+    document.body.appendChild(d);
+    dx=(Math.random()*2-1)*320; dy=-(180+Math.random()*260); rot=Math.random()*720-360;
+    an=d.animate([
+      {transform:"translate(0,0) rotate(0deg)",opacity:1},
+      {transform:"translate("+dx+"px,"+dy+"px) rotate("+rot+"deg)",opacity:1,offset:.55},
+      {transform:"translate("+(dx*1.3)+"px,"+(dy+520)+"px) rotate("+(rot*1.6)+"deg)",opacity:0}
+    ],{duration:1500+Math.random()*700,easing:"cubic-bezier(.2,.6,.4,1)"});
+    an.onfinish=(function(n){ return function(){ if(n.parentNode) n.parentNode.removeChild(n); }; })(d);
+  }
+}
+
+function refreshDynamic(){
+  var dl=document.getElementById("dynLinks"); if(dl) dl.innerHTML=dynLinksHTML();
+  var pres=document.querySelectorAll("[data-code]"),i,id,txt;
+  for(i=0;i<pres.length;i++){ id=pres[i].getAttribute("data-code"); txt=textFor(id); if(txt) pres[i].textContent=txt; }
+  var lh=document.getElementById("linkHint"); if(lh) lh.textContent=linkHint();
+  updateChrome();
+}
+function refreshRing(){
+  var cnt=checkedCount(),pct=Math.round(cnt/22*100),C=2*Math.PI*38;
+  var fg=document.querySelector(".rsvg .fgc"); if(fg) fg.setAttribute("stroke-dashoffset",String(C-C*pct/100));
+  var num=document.querySelector(".rnum"); if(num) num.textContent=pct+"%";
+  var info=document.querySelector(".rinfo b"); if(info) info.textContent="Готовность спринта: "+cnt+" из 22";
+  var sp=document.querySelector(".rinfo span");
+  if(sp) sp.textContent="Зачёт: базовые 4, 5, 8, 16, 21 и не меньше 15 пунктов. Дополнительно отмечено "+extrasDone()+" из 6.";
+  var dots=document.querySelectorAll(".bdot"),b=baseList(),i,on;
+  for(i=0;i<dots.length;i++){
+    on=!!state.checks[b[i].n];
+    if(on) dots[i].classList.add("on"); else dots[i].classList.remove("on");
+    dots[i].textContent="№"+b[i].n+" "+(on?"✓":"—");
+  }
+}
+function rebuildList(){
+  var box=document.getElementById("clist"); if(!box) return;
+  var list=filteredChecks(),h="",i;
+  for(i=0;i<list.length;i++) h+=checkRowHTML(list[i]);
+  box.innerHTML=h||'<div class="note">В этом фильтре пунктов нет.</div>';
+}
+function refreshApiGen(){
+  var page=document.querySelector("main");
+  if(!page||state.tab!=="api") return;
+  var y=window.scrollY;
+  renderApi(); updateChrome();
+  window.scrollTo(0,y);
+}
+
+document.addEventListener("click",function(e){
+  var el=e.target;
+  if(!el||!el.closest) return;
+  var hit=el.closest("[data-action],[data-tab],[data-topic],[data-check],[data-extra],[data-steptoggle],[data-filter],[data-copy]");
+  if(!hit) return;
+
+  if(hit.hasAttribute("data-copy")){ copyText(textFor(hit.getAttribute("data-copy")),hit); return; }
+  if(hit.hasAttribute("data-topic")){
+    state.topic=hit.getAttribute("data-topic");
+    state.api.map={};
+    save();
+    var y=window.scrollY; renderView(); window.scrollTo(0,y);
+    toast("Тема: «"+T().name+"». Массив, поля и промпты обновлены.");
+    return;
+  }
+  if(hit.hasAttribute("data-steptoggle")){
+    var sn=parseInt(hit.getAttribute("data-steptoggle"),10);
+    state.steps[sn]=!state.steps[sn]; save();
+    var box=hit.closest(".step");
+    if(box){ if(state.steps[sn]) box.classList.add("done"); else box.classList.remove("done"); }
+    hit.setAttribute("aria-pressed",String(!!state.steps[sn]));
+    updateChrome(); return;
+  }
+  if(hit.hasAttribute("data-check")){
+    var cn=parseInt(hit.getAttribute("data-check"),10);
+    state.checks[cn]=!state.checks[cn]; save();
+    if(state.checks[cn]) hit.classList.add("on"); else hit.classList.remove("on");
+    hit.setAttribute("aria-checked",String(!!state.checks[cn]));
+    refreshRing(); updateChrome(); return;
+  }
+  if(hit.hasAttribute("data-extra")){
+    var eid=hit.getAttribute("data-extra");
+    state.extras[eid]=!state.extras[eid]; save();
+    if(state.extras[eid]) hit.classList.add("on"); else hit.classList.remove("on");
+    hit.setAttribute("aria-checked",String(!!state.extras[eid]));
+    refreshRing(); return;
+  }
+  if(hit.hasAttribute("data-filter")){
+    state.filter=hit.getAttribute("data-filter"); save();
+    var fs=document.querySelectorAll("[data-filter]"),i;
+    for(i=0;i<fs.length;i++){ if(fs[i].getAttribute("data-filter")===state.filter) fs[i].classList.add("on"); else fs[i].classList.remove("on"); }
+    rebuildList(); return;
+  }
+  if(hit.hasAttribute("data-tab")){ go(hit.getAttribute("data-tab")); return; }
+
+  var a=hit.getAttribute("data-action");
+  if(a==="start"){
+    state.started=true; save(); view.classList.remove("nostart"); renderView();
+    window.scrollTo({top:0,behavior:"smooth"});
+    toast("Начни с вкладки «Спринт»: выбери тему и впиши логин GitHub.");
+  }
+  else if(a==="go-sprint") go("sprint");
+  else if(a==="go-check") go("check");
+  else if(a==="go-github") go("github");
+  else if(a==="go-tpl") go("tpl");
+  else if(a==="go-api") go("api");
+  else if(a&&a.indexOf("go-p")===0){
+    var pid=a.replace("go-","");
+    state.tab="prompts"; save(); renderView();
+    setTimeout(function(){
+      var node=document.getElementById(pid);
+      if(node){ node.scrollIntoView({behavior:"smooth",block:"start"});
+        node.style.boxShadow="0 0 0 3px rgba(var(--rgb),.35)";
+        setTimeout(function(){ node.style.boxShadow=""; },1800); }
+    },90);
+  }
+  else if(a==="api-parse"){ parseApi(); save(); refreshApiGen(); toast(state.api.parsed?"Ответ разобран. Сопоставь поля со своими именами.":"Не разобралось: смотри сообщение на вкладке."); }
+  else if(a==="api-clear"){ state.api={paste:"",paths:[],map:{},parsed:false,error:""}; save(); refreshApiGen(); toast("Поле разбора очищено."); }
+  else if(a==="timer"){
+    if(state.timer.running){ timerTick(); state.timer.running=false; state.timer.endsAt=null; stopTick(); }
+    else { if(state.timer.left<=0) state.timer.left=3000; state.timer.endsAt=Date.now()+state.timer.left*1000; state.timer.running=true; startTick(); }
+    var tb=document.getElementById("tbtn"); if(tb) tb.textContent=state.timer.running?"Пауза":"Старт";
+    var td=document.getElementById("tdial"); if(td){ if(state.timer.running) td.classList.add("run"); else td.classList.remove("run"); }
+    save();
+  }
+  else if(a==="timer-reset"){
+    state.timer={left:3000,running:false,endsAt:null}; stopTick(); save();
+    var d2=document.getElementById("tdial"); if(d2){ d2.textContent=fmt(3000); d2.classList.remove("run"); }
+    var b2=document.getElementById("tbtn"); if(b2) b2.textContent="Старт";
+    var p2=document.getElementById("tphase"); if(p2) p2.innerHTML="<b>"+esc(PHASES[0].t)+"</b>"+esc(PHASES[0].d);
+    var ph2=document.querySelectorAll("[data-phase]"),q;
+    for(q=0;q<ph2.length;q++){ if(q===0) ph2[q].classList.add("on"); else ph2[q].classList.remove("on"); ph2[q].classList.remove("done"); }
+    toast("Таймер сброшен на 50 минут.");
+  }
+  else if(a==="verify"){
+    var slot=document.getElementById("verdictSlot");
+    if(slot){ slot.innerHTML=verdictHTML(); slot.scrollIntoView({behavior:"smooth",block:"center"}); }
+    if(passed()){ confetti(); toast("Спринт 2 закрыт. Сохрани отчёт в PDF и покажи массив в консоли."); }
+    else toast("Пока не закрыт: смотри список в вердикте.");
+    updateChrome();
+  }
+  else if(a==="copy-report"){ copyText(reportText(),hit,"Отчёт скопирован текстом — можно отправить педагогу."); }
+  else if(a==="reset"){
+    if(window.confirm("Сбросить все отметки чек-листа и шагов? Тема, логин, ссылка и разбор ответа останутся.")){
+      state.checks={}; state.extras={}; state.steps={}; state.filter="all";
+      save(); renderView(); toast("Отметки сброшены.");
+    }
+  }
+  else if(a==="print"){
+    if(!state.started) return;
+    if(state.tab!=="check"){ go("check"); setTimeout(function(){ window.print(); },200); }
+    else window.print();
+  }
+});
+
+document.addEventListener("keydown",function(e){
+  var el=e.target;
+  if(!el||!el.hasAttribute) return;
+  if(e.key===" "||e.key==="Enter"){
+    if(el.hasAttribute("data-check")||el.hasAttribute("data-extra")||el.hasAttribute("data-steptoggle")){ e.preventDefault(); el.click(); }
+  }
+});
+
+document.addEventListener("input",function(e){
+  var el=e.target;
+  if(!el||!el.getAttribute) return;
+  var v=el.getAttribute("data-var");
+  if(!v) return;
+  if(v==="apiPaste"){
+    state.api.paste=el.value;
+    if(String(el.value).trim()) el.classList.add("filled"); else el.classList.remove("filled");
+    save(); return;
+  }
+  state[v]=el.value;
+  if(String(el.value).trim()) el.classList.add("filled"); else el.classList.remove("filled");
+  save();
+  if(v==="q"){
+    var q=String(state.q||"").toLowerCase().trim(),blocks=document.querySelectorAll(".pblock"),i,j,pid,pr,hit;
+    for(i=0;i<blocks.length;i++){
+      pid=blocks[i].id; pr=null;
+      for(j=0;j<PROMPTS.length;j++){ if(PROMPTS[j].id===pid) pr=PROMPTS[j]; }
+      if(!pr) continue;
+      hit=!q||(pr.n+" "+pr.t+" "+pr.s).toLowerCase().indexOf(q)!==-1;
+      blocks[i].style.display=hit?"":"none";
+    }
+    return;
+  }
+  refreshDynamic();
+});
+
+document.addEventListener("change",function(e){
+  var el=e.target;
+  if(!el||!el.getAttribute) return;
+  var k=el.getAttribute("data-apimap");
+  if(k===null) return;
+  state.api.map[k]=el.value;
+  save();
+  refreshApiGen();
+  if(mapReady()) toast("Нормализация и фолбэк собраны — копируй в проект.");
+});
+
+document.getElementById("themeBtn").addEventListener("click",function(){
+  state.dark=!state.dark; save(); applyTheme();
+  toast(state.dark?"Тёмная тема включена — изменились только токены.":"Светлая тема включена.");
+});
+document.getElementById("printBtn").addEventListener("click",function(){
+  if(!state.started) return;
+  if(state.tab!=="check"){ go("check"); setTimeout(function(){ window.print(); },200); }
+  else window.print();
+});
+
+window.addEventListener("error",function(ev){
+  var box=document.getElementById("view");
+  if(box&&!box.innerHTML.trim()){
+    box.className="nostart";
+    box.innerHTML='<div class="errbox">Ошибка скрипта: '+esc(ev.message)+'\nСтрока: '+esc(ev.lineno)+':'+esc(ev.colno)+'</div>';
+  }
+});
+
+function boot(){
+  applyTheme();
+  renderView();
+  if(state.timer.running){
+    if(state.timer.endsAt&&state.timer.endsAt>Date.now()){ startTick(); timerTick(); }
+    else { state.timer.running=false; state.timer.endsAt=null; save(); }
+  }
+}
+try{ boot(); }
+catch(err){
+  view.className="nostart";
+  view.innerHTML='<div class="errbox">Не удалось запустить страницу.\n'+esc(err&&err.message?err.message:String(err))+'</div>';
+}
+})();
+</script>
+</body>
+</html>
